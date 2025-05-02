@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum UserType {
+  VENDOR
+  CUSTOMER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+}
+enum PackageStatus{
+  ACTIVE
+  INACTIVE
+}
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   
+  email     String   @unique
+  password  String
+  email_verification_at  DateTime?
+  utype     String   @default("VENDOR")
+  status    String   @default("PENDING")
+  packageActive String @default("NO")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  vendor   Vendor?
+  access_token AccessToken[]
+  subscriptions SubscribePackage[]
+  transactions Transaction[]
+}
+model AccessToken {
+  id            Int      @id @default(autoincrement())
+  access_token  String   @unique
+  refresh_token String?  @unique
+  expires_at    DateTime
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([userId])
+  @@index([access_token])
+}
+
+model Vendor {
+  id Int @id @default(autoincrement())
+  company String?
+  state String?
+  city String?
+  zipcode String?
+  address String?
+  country String?
+  companyLogo String?
+  fb String?
+  ln String?
+  in String?
+  yt String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id])
+  userId Int @unique
+
+}
+model Package {
+  id Int @id @default(autoincrement())
+  name String?
+  price Float @default(120)
+  duration Int @default(1)
+  status String @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  subscriptions SubscribePackage[]
+}
+
+model SubscribePackage {
+  id Int @id @default(autoincrement())
+  startDate DateTime @default(now())
+  endDate DateTime
+  status String @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  package Package @relation(fields: [packageId], references: [id])
+  packageId Int
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  transactions Transaction[]
+  @@index([packageId])
+  @@index([userId])
+}
+
+model Transaction {
+  id Int @id @default(autoincrement())
+  amount Float
+  paymentMethod String
+  paymentStatus String @default("PENDING")
+  transactionId String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  subscription SubscribePackage @relation(fields: [subscriptionId], references: [id])
+  subscriptionId Int
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  
+  @@index([subscriptionId])
+  @@index([userId])
+}
