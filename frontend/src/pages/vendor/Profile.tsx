@@ -52,7 +52,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('${import.meta.env.VITE_BACKEND_URL}/vendor/profile', {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vendor/profile`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }

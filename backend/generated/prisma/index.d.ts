@@ -3873,14 +3873,16 @@ export namespace Prisma {
   export type VendorMinAggregateOutputType = {
     id: number | null
     company: string | null
-    businessName: string | null
     state: string | null
     city: string | null
     zipcode: string | null
     address: string | null
     country: string | null
     companyLogo: string | null
-    profileImg: string | null
+    fb: string | null
+    ln: string | null
+    in: string | null
+    yt: string | null
     createdAt: Date | null
     updatedAt: Date | null
     userId: number | null
@@ -3889,14 +3891,16 @@ export namespace Prisma {
   export type VendorMaxAggregateOutputType = {
     id: number | null
     company: string | null
-    businessName: string | null
     state: string | null
     city: string | null
     zipcode: string | null
     address: string | null
     country: string | null
     companyLogo: string | null
-    profileImg: string | null
+    fb: string | null
+    ln: string | null
+    in: string | null
+    yt: string | null
     createdAt: Date | null
     updatedAt: Date | null
     userId: number | null
@@ -3905,14 +3909,16 @@ export namespace Prisma {
   export type VendorCountAggregateOutputType = {
     id: number
     company: number
-    businessName: number
     state: number
     city: number
     zipcode: number
     address: number
     country: number
     companyLogo: number
-    profileImg: number
+    fb: number
+    ln: number
+    in: number
+    yt: number
     createdAt: number
     updatedAt: number
     userId: number
@@ -3933,14 +3939,16 @@ export namespace Prisma {
   export type VendorMinAggregateInputType = {
     id?: true
     company?: true
-    businessName?: true
     state?: true
     city?: true
     zipcode?: true
     address?: true
     country?: true
     companyLogo?: true
-    profileImg?: true
+    fb?: true
+    ln?: true
+    in?: true
+    yt?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
@@ -3949,14 +3957,16 @@ export namespace Prisma {
   export type VendorMaxAggregateInputType = {
     id?: true
     company?: true
-    businessName?: true
     state?: true
     city?: true
     zipcode?: true
     address?: true
     country?: true
     companyLogo?: true
-    profileImg?: true
+    fb?: true
+    ln?: true
+    in?: true
+    yt?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
@@ -3965,14 +3975,16 @@ export namespace Prisma {
   export type VendorCountAggregateInputType = {
     id?: true
     company?: true
-    businessName?: true
     state?: true
     city?: true
     zipcode?: true
     address?: true
     country?: true
     companyLogo?: true
-    profileImg?: true
+    fb?: true
+    ln?: true
+    in?: true
+    yt?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
@@ -4068,14 +4080,16 @@ export namespace Prisma {
   export type VendorGroupByOutputType = {
     id: number
     company: string | null
-    businessName: string | null
     state: string | null
     city: string | null
     zipcode: string | null
     address: string | null
     country: string | null
     companyLogo: string | null
-    profileImg: string | null
+    fb: string | null
+    ln: string | null
+    in: string | null
+    yt: string | null
     createdAt: Date
     updatedAt: Date
     userId: number
@@ -4103,14 +4117,16 @@ export namespace Prisma {
   export type VendorSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     company?: boolean
-    businessName?: boolean
     state?: boolean
     city?: boolean
     zipcode?: boolean
     address?: boolean
     country?: boolean
     companyLogo?: boolean
-    profileImg?: boolean
+    fb?: boolean
+    ln?: boolean
+    in?: boolean
+    yt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
@@ -4120,14 +4136,16 @@ export namespace Prisma {
   export type VendorSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     company?: boolean
-    businessName?: boolean
     state?: boolean
     city?: boolean
     zipcode?: boolean
     address?: boolean
     country?: boolean
     companyLogo?: boolean
-    profileImg?: boolean
+    fb?: boolean
+    ln?: boolean
+    in?: boolean
+    yt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
@@ -4137,14 +4155,16 @@ export namespace Prisma {
   export type VendorSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     company?: boolean
-    businessName?: boolean
     state?: boolean
     city?: boolean
     zipcode?: boolean
     address?: boolean
     country?: boolean
     companyLogo?: boolean
-    profileImg?: boolean
+    fb?: boolean
+    ln?: boolean
+    in?: boolean
+    yt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
@@ -4154,20 +4174,22 @@ export namespace Prisma {
   export type VendorSelectScalar = {
     id?: boolean
     company?: boolean
-    businessName?: boolean
     state?: boolean
     city?: boolean
     zipcode?: boolean
     address?: boolean
     country?: boolean
     companyLogo?: boolean
-    profileImg?: boolean
+    fb?: boolean
+    ln?: boolean
+    in?: boolean
+    yt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
   }
 
-  export type VendorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company" | "businessName" | "state" | "city" | "zipcode" | "address" | "country" | "companyLogo" | "profileImg" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["vendor"]>
+  export type VendorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "company" | "state" | "city" | "zipcode" | "address" | "country" | "companyLogo" | "fb" | "ln" | "in" | "yt" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["vendor"]>
   export type VendorInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -4186,14 +4208,16 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       company: string | null
-      businessName: string | null
       state: string | null
       city: string | null
       zipcode: string | null
       address: string | null
       country: string | null
       companyLogo: string | null
-      profileImg: string | null
+      fb: string | null
+      ln: string | null
+      in: string | null
+      yt: string | null
       createdAt: Date
       updatedAt: Date
       userId: number
@@ -4623,14 +4647,16 @@ export namespace Prisma {
   interface VendorFieldRefs {
     readonly id: FieldRef<"Vendor", 'Int'>
     readonly company: FieldRef<"Vendor", 'String'>
-    readonly businessName: FieldRef<"Vendor", 'String'>
     readonly state: FieldRef<"Vendor", 'String'>
     readonly city: FieldRef<"Vendor", 'String'>
     readonly zipcode: FieldRef<"Vendor", 'String'>
     readonly address: FieldRef<"Vendor", 'String'>
     readonly country: FieldRef<"Vendor", 'String'>
     readonly companyLogo: FieldRef<"Vendor", 'String'>
-    readonly profileImg: FieldRef<"Vendor", 'String'>
+    readonly fb: FieldRef<"Vendor", 'String'>
+    readonly ln: FieldRef<"Vendor", 'String'>
+    readonly in: FieldRef<"Vendor", 'String'>
+    readonly yt: FieldRef<"Vendor", 'String'>
     readonly createdAt: FieldRef<"Vendor", 'DateTime'>
     readonly updatedAt: FieldRef<"Vendor", 'DateTime'>
     readonly userId: FieldRef<"Vendor", 'Int'>
@@ -8573,14 +8599,16 @@ export namespace Prisma {
   export const VendorScalarFieldEnum: {
     id: 'id',
     company: 'company',
-    businessName: 'businessName',
     state: 'state',
     city: 'city',
     zipcode: 'zipcode',
     address: 'address',
     country: 'country',
     companyLogo: 'companyLogo',
-    profileImg: 'profileImg',
+    fb: 'fb',
+    ln: 'ln',
+    in: 'in',
+    yt: 'yt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     userId: 'userId'
@@ -8883,14 +8911,16 @@ export namespace Prisma {
     NOT?: VendorWhereInput | VendorWhereInput[]
     id?: IntFilter<"Vendor"> | number
     company?: StringNullableFilter<"Vendor"> | string | null
-    businessName?: StringNullableFilter<"Vendor"> | string | null
     state?: StringNullableFilter<"Vendor"> | string | null
     city?: StringNullableFilter<"Vendor"> | string | null
     zipcode?: StringNullableFilter<"Vendor"> | string | null
     address?: StringNullableFilter<"Vendor"> | string | null
     country?: StringNullableFilter<"Vendor"> | string | null
     companyLogo?: StringNullableFilter<"Vendor"> | string | null
-    profileImg?: StringNullableFilter<"Vendor"> | string | null
+    fb?: StringNullableFilter<"Vendor"> | string | null
+    ln?: StringNullableFilter<"Vendor"> | string | null
+    in?: StringNullableFilter<"Vendor"> | string | null
+    yt?: StringNullableFilter<"Vendor"> | string | null
     createdAt?: DateTimeFilter<"Vendor"> | Date | string
     updatedAt?: DateTimeFilter<"Vendor"> | Date | string
     userId?: IntFilter<"Vendor"> | number
@@ -8900,14 +8930,16 @@ export namespace Prisma {
   export type VendorOrderByWithRelationInput = {
     id?: SortOrder
     company?: SortOrderInput | SortOrder
-    businessName?: SortOrderInput | SortOrder
     state?: SortOrderInput | SortOrder
     city?: SortOrderInput | SortOrder
     zipcode?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     country?: SortOrderInput | SortOrder
     companyLogo?: SortOrderInput | SortOrder
-    profileImg?: SortOrderInput | SortOrder
+    fb?: SortOrderInput | SortOrder
+    ln?: SortOrderInput | SortOrder
+    in?: SortOrderInput | SortOrder
+    yt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -8921,14 +8953,16 @@ export namespace Prisma {
     OR?: VendorWhereInput[]
     NOT?: VendorWhereInput | VendorWhereInput[]
     company?: StringNullableFilter<"Vendor"> | string | null
-    businessName?: StringNullableFilter<"Vendor"> | string | null
     state?: StringNullableFilter<"Vendor"> | string | null
     city?: StringNullableFilter<"Vendor"> | string | null
     zipcode?: StringNullableFilter<"Vendor"> | string | null
     address?: StringNullableFilter<"Vendor"> | string | null
     country?: StringNullableFilter<"Vendor"> | string | null
     companyLogo?: StringNullableFilter<"Vendor"> | string | null
-    profileImg?: StringNullableFilter<"Vendor"> | string | null
+    fb?: StringNullableFilter<"Vendor"> | string | null
+    ln?: StringNullableFilter<"Vendor"> | string | null
+    in?: StringNullableFilter<"Vendor"> | string | null
+    yt?: StringNullableFilter<"Vendor"> | string | null
     createdAt?: DateTimeFilter<"Vendor"> | Date | string
     updatedAt?: DateTimeFilter<"Vendor"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -8937,14 +8971,16 @@ export namespace Prisma {
   export type VendorOrderByWithAggregationInput = {
     id?: SortOrder
     company?: SortOrderInput | SortOrder
-    businessName?: SortOrderInput | SortOrder
     state?: SortOrderInput | SortOrder
     city?: SortOrderInput | SortOrder
     zipcode?: SortOrderInput | SortOrder
     address?: SortOrderInput | SortOrder
     country?: SortOrderInput | SortOrder
     companyLogo?: SortOrderInput | SortOrder
-    profileImg?: SortOrderInput | SortOrder
+    fb?: SortOrderInput | SortOrder
+    ln?: SortOrderInput | SortOrder
+    in?: SortOrderInput | SortOrder
+    yt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -8961,14 +8997,16 @@ export namespace Prisma {
     NOT?: VendorScalarWhereWithAggregatesInput | VendorScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Vendor"> | number
     company?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
-    businessName?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
     state?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
     city?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
     zipcode?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
     address?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
     country?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
     companyLogo?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
-    profileImg?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
+    fb?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
+    ln?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
+    in?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
+    yt?: StringNullableWithAggregatesFilter<"Vendor"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Vendor"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Vendor"> | Date | string
     userId?: IntWithAggregatesFilter<"Vendor"> | number
@@ -9371,14 +9409,16 @@ export namespace Prisma {
 
   export type VendorCreateInput = {
     company?: string | null
-    businessName?: string | null
     state?: string | null
     city?: string | null
     zipcode?: string | null
     address?: string | null
     country?: string | null
     companyLogo?: string | null
-    profileImg?: string | null
+    fb?: string | null
+    ln?: string | null
+    in?: string | null
+    yt?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutVendorInput
@@ -9387,14 +9427,16 @@ export namespace Prisma {
   export type VendorUncheckedCreateInput = {
     id?: number
     company?: string | null
-    businessName?: string | null
     state?: string | null
     city?: string | null
     zipcode?: string | null
     address?: string | null
     country?: string | null
     companyLogo?: string | null
-    profileImg?: string | null
+    fb?: string | null
+    ln?: string | null
+    in?: string | null
+    yt?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: number
@@ -9402,14 +9444,16 @@ export namespace Prisma {
 
   export type VendorUpdateInput = {
     company?: NullableStringFieldUpdateOperationsInput | string | null
-    businessName?: NullableStringFieldUpdateOperationsInput | string | null
     state?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
     zipcode?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     country?: NullableStringFieldUpdateOperationsInput | string | null
     companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
-    profileImg?: NullableStringFieldUpdateOperationsInput | string | null
+    fb?: NullableStringFieldUpdateOperationsInput | string | null
+    ln?: NullableStringFieldUpdateOperationsInput | string | null
+    in?: NullableStringFieldUpdateOperationsInput | string | null
+    yt?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutVendorNestedInput
@@ -9418,14 +9462,16 @@ export namespace Prisma {
   export type VendorUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     company?: NullableStringFieldUpdateOperationsInput | string | null
-    businessName?: NullableStringFieldUpdateOperationsInput | string | null
     state?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
     zipcode?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     country?: NullableStringFieldUpdateOperationsInput | string | null
     companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
-    profileImg?: NullableStringFieldUpdateOperationsInput | string | null
+    fb?: NullableStringFieldUpdateOperationsInput | string | null
+    ln?: NullableStringFieldUpdateOperationsInput | string | null
+    in?: NullableStringFieldUpdateOperationsInput | string | null
+    yt?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: IntFieldUpdateOperationsInput | number
@@ -9434,14 +9480,16 @@ export namespace Prisma {
   export type VendorCreateManyInput = {
     id?: number
     company?: string | null
-    businessName?: string | null
     state?: string | null
     city?: string | null
     zipcode?: string | null
     address?: string | null
     country?: string | null
     companyLogo?: string | null
-    profileImg?: string | null
+    fb?: string | null
+    ln?: string | null
+    in?: string | null
+    yt?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: number
@@ -9449,14 +9497,16 @@ export namespace Prisma {
 
   export type VendorUpdateManyMutationInput = {
     company?: NullableStringFieldUpdateOperationsInput | string | null
-    businessName?: NullableStringFieldUpdateOperationsInput | string | null
     state?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
     zipcode?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     country?: NullableStringFieldUpdateOperationsInput | string | null
     companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
-    profileImg?: NullableStringFieldUpdateOperationsInput | string | null
+    fb?: NullableStringFieldUpdateOperationsInput | string | null
+    ln?: NullableStringFieldUpdateOperationsInput | string | null
+    in?: NullableStringFieldUpdateOperationsInput | string | null
+    yt?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -9464,14 +9514,16 @@ export namespace Prisma {
   export type VendorUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     company?: NullableStringFieldUpdateOperationsInput | string | null
-    businessName?: NullableStringFieldUpdateOperationsInput | string | null
     state?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
     zipcode?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     country?: NullableStringFieldUpdateOperationsInput | string | null
     companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
-    profileImg?: NullableStringFieldUpdateOperationsInput | string | null
+    fb?: NullableStringFieldUpdateOperationsInput | string | null
+    ln?: NullableStringFieldUpdateOperationsInput | string | null
+    in?: NullableStringFieldUpdateOperationsInput | string | null
+    yt?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: IntFieldUpdateOperationsInput | number
@@ -9981,14 +10033,16 @@ export namespace Prisma {
   export type VendorCountOrderByAggregateInput = {
     id?: SortOrder
     company?: SortOrder
-    businessName?: SortOrder
     state?: SortOrder
     city?: SortOrder
     zipcode?: SortOrder
     address?: SortOrder
     country?: SortOrder
     companyLogo?: SortOrder
-    profileImg?: SortOrder
+    fb?: SortOrder
+    ln?: SortOrder
+    in?: SortOrder
+    yt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -10002,14 +10056,16 @@ export namespace Prisma {
   export type VendorMaxOrderByAggregateInput = {
     id?: SortOrder
     company?: SortOrder
-    businessName?: SortOrder
     state?: SortOrder
     city?: SortOrder
     zipcode?: SortOrder
     address?: SortOrder
     country?: SortOrder
     companyLogo?: SortOrder
-    profileImg?: SortOrder
+    fb?: SortOrder
+    ln?: SortOrder
+    in?: SortOrder
+    yt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -10018,14 +10074,16 @@ export namespace Prisma {
   export type VendorMinOrderByAggregateInput = {
     id?: SortOrder
     company?: SortOrder
-    businessName?: SortOrder
     state?: SortOrder
     city?: SortOrder
     zipcode?: SortOrder
     address?: SortOrder
     country?: SortOrder
     companyLogo?: SortOrder
-    profileImg?: SortOrder
+    fb?: SortOrder
+    ln?: SortOrder
+    in?: SortOrder
+    yt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -10747,14 +10805,16 @@ export namespace Prisma {
 
   export type VendorCreateWithoutUserInput = {
     company?: string | null
-    businessName?: string | null
     state?: string | null
     city?: string | null
     zipcode?: string | null
     address?: string | null
     country?: string | null
     companyLogo?: string | null
-    profileImg?: string | null
+    fb?: string | null
+    ln?: string | null
+    in?: string | null
+    yt?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10762,14 +10822,16 @@ export namespace Prisma {
   export type VendorUncheckedCreateWithoutUserInput = {
     id?: number
     company?: string | null
-    businessName?: string | null
     state?: string | null
     city?: string | null
     zipcode?: string | null
     address?: string | null
     country?: string | null
     companyLogo?: string | null
-    profileImg?: string | null
+    fb?: string | null
+    ln?: string | null
+    in?: string | null
+    yt?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10881,14 +10943,16 @@ export namespace Prisma {
 
   export type VendorUpdateWithoutUserInput = {
     company?: NullableStringFieldUpdateOperationsInput | string | null
-    businessName?: NullableStringFieldUpdateOperationsInput | string | null
     state?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
     zipcode?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     country?: NullableStringFieldUpdateOperationsInput | string | null
     companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
-    profileImg?: NullableStringFieldUpdateOperationsInput | string | null
+    fb?: NullableStringFieldUpdateOperationsInput | string | null
+    ln?: NullableStringFieldUpdateOperationsInput | string | null
+    in?: NullableStringFieldUpdateOperationsInput | string | null
+    yt?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -10896,14 +10960,16 @@ export namespace Prisma {
   export type VendorUncheckedUpdateWithoutUserInput = {
     id?: IntFieldUpdateOperationsInput | number
     company?: NullableStringFieldUpdateOperationsInput | string | null
-    businessName?: NullableStringFieldUpdateOperationsInput | string | null
     state?: NullableStringFieldUpdateOperationsInput | string | null
     city?: NullableStringFieldUpdateOperationsInput | string | null
     zipcode?: NullableStringFieldUpdateOperationsInput | string | null
     address?: NullableStringFieldUpdateOperationsInput | string | null
     country?: NullableStringFieldUpdateOperationsInput | string | null
     companyLogo?: NullableStringFieldUpdateOperationsInput | string | null
-    profileImg?: NullableStringFieldUpdateOperationsInput | string | null
+    fb?: NullableStringFieldUpdateOperationsInput | string | null
+    ln?: NullableStringFieldUpdateOperationsInput | string | null
+    in?: NullableStringFieldUpdateOperationsInput | string | null
+    yt?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

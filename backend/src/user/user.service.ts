@@ -48,6 +48,7 @@ export class UserService {
       where: { id },
       include:{
         vendor: true,
+        subscriptions:true
       }
     });
 

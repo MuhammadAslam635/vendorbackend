@@ -143,14 +143,16 @@ exports.Prisma.AccessTokenScalarFieldEnum = {
 exports.Prisma.VendorScalarFieldEnum = {
   id: 'id',
   company: 'company',
-  businessName: 'businessName',
   state: 'state',
   city: 'city',
   zipcode: 'zipcode',
   address: 'address',
   country: 'country',
   companyLogo: 'companyLogo',
-  profileImg: 'profileImg',
+  fb: 'fb',
+  ln: 'ln',
+  in: 'in',
+  yt: 'yt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId'

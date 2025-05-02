@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { toast,ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { useAuth } from '../../useAuth';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from './DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Check, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { PaymentModal } from './PaymentModal';
 import { Alert, AlertDescription } from '../../components/ui/alert';
+import { set } from 'date-fns';
 
 interface Package {
   id: number;
@@ -21,7 +22,9 @@ interface Package {
 const Subscription = () => {
   const { user } = useAuth();
   const [packages, setPackages] = useState<Package[]>([]);
+  const [activePackageId, setActivePackageId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [have, setHave] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,7 +38,6 @@ const Subscription = () => {
   // Clear URL parameters after displaying status
   useEffect(() => {
     if (success || canceled || error) {
-      // Show toast only once when URL params are detected
       if (success) {
         toast.success('Payment successful! Your subscription is now active.');
       } else if (canceled) {
@@ -43,32 +45,48 @@ const Subscription = () => {
       } else if (error) {
         toast.error('There was an issue with your payment.');
       }
-      
-      // Clear URL parameters after a short delay
+
       const timer = setTimeout(() => {
         navigate('/dashboard/subscription', { replace: true });
       }, 100);
-      
+
       return () => clearTimeout(timer);
     }
   }, [success, canceled, error, navigate]);
 
   useEffect(() => {
     fetchPackages();
+    fetchActivePackage();
   }, []);
 
   const fetchPackages = async () => {
     try {
-      const response = await axios.get('${import.meta.env.VITE_BACKEND_URL}/packages', {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/packages`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
       setPackages(response.data);
     } catch (error) {
       toast.error('Failed to fetch subscription packages');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchActivePackage = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/subscribepackage/my/pakcage`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if(response.data.packageId){
+        setHave(true);
+      }
+      setActivePackageId(response.data?.packageId || null);
+    } catch (error) {
+      toast.error('Failed to fetch active package');
     }
   };
 
@@ -88,7 +106,7 @@ const Subscription = () => {
             </AlertDescription>
           </Alert>
         )}
-        
+
         {canceled && (
           <Alert className="bg-yellow-50 border-yellow-200">
             <XCircle className="h-4 w-4 text-yellow-600" />
@@ -97,7 +115,7 @@ const Subscription = () => {
             </AlertDescription>
           </Alert>
         )}
-        
+
         {error && (
           <Alert className="bg-red-50 border-red-200">
             <AlertCircle className="h-4 w-4 text-red-600" />
@@ -115,7 +133,7 @@ const Subscription = () => {
             <div className="grid md:grid-cols-3 gap-6">
               {packages.map((pkg) => (
                 <Card key={pkg.id} className="relative overflow-hidden">
-                  {pkg.status === 'ACTIVE' && (
+                  {pkg.id === activePackageId && (
                     <div className="absolute top-4 right-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs">
                       Active
                     </div>
@@ -130,13 +148,13 @@ const Subscription = () => {
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                   
                     <Button
                       className="w-full bg-[#a0b830] hover:bg-[#8fa029]"
                       onClick={() => handleSubscribeClick(pkg)}
-                      disabled={pkg.status === 'INACTIVE'}
+                      disabled={pkg.id === activePackageId || have === true}
+                      
                     >
-                      {pkg.status === 'ACTIVE' ? 'Subscribe Now' : 'Currently Active'}
+                      {pkg.id === activePackageId ? 'Currently Active' : (have == true? "You Already Have" : 'Subscribe Now')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -155,7 +173,17 @@ const Subscription = () => {
           amount={selectedPackage.price}
         />
       )}
-      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </DashboardLayout>
   );
 };
