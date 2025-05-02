@@ -61,14 +61,16 @@ model AccessToken {
 model Vendor {
   id Int @id @default(autoincrement())
   company String?
-  businessName String?
   state String?
   city String?
   zipcode String?
   address String?
   country String?
   companyLogo String?
-  profileImg String?
+  fb String?
+  ln String?
+  in String?
+  yt String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user User @relation(fields: [userId], references: [id])

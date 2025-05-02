@@ -76,7 +76,6 @@ export class VendorService {
   async updateOrCreate(
     userId: number,
     updateVendorDto: UpdateVendorDto,
-    profileImgPath?: string,
     companyLogoPath?: string,
   ) {
     try {
@@ -86,7 +85,6 @@ export class VendorService {
 
       const data = {
         ...updateVendorDto,
-        ...(profileImgPath && { profileImg: profileImgPath }),
         ...(companyLogoPath && { companyLogo: companyLogoPath })
       };
 

@@ -7,10 +7,6 @@ export class CreateVendorDto {
 
   @IsString()
   @IsOptional()
-  businessName?: string;
-
-  @IsString()
-  @IsOptional()
   state?: string;
 
   @IsString()
@@ -31,9 +27,17 @@ export class CreateVendorDto {
 
   @IsString()
   @IsOptional()
-  profileImg?: string;
-
+  companyLogo?: string;
   @IsString()
   @IsOptional()
-  companyLogo?: string;
+  fb?: string;
+  @IsString()
+  @IsOptional()
+  ln?: string;
+  @IsString()
+  @IsOptional()
+  in?: string;
+  @IsString()
+  @IsOptional()
+  yt?: string;
 }

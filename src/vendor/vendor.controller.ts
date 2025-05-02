@@ -64,7 +64,6 @@ export class VendorController {
     return this.vendorService.updateOrCreate(
       req.user.userId,
       updateVendorDto,
-      profileImg ? `${backendUrl}/uploads/profiles/${profileImg.filename}` : undefined,
       companyLogo ? `${backendUrl}/uploads/logos/${companyLogo.filename}` : undefined
     );
   }
