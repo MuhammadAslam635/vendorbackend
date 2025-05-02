@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
-import { Building2, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Building2,Loader2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { DashboardLayout } from "./DashboardLayout";
@@ -142,7 +142,7 @@ const Profile = () => {
       // Refresh data after update
       window.location.reload();
     } catch (error) {
-      console.error("Profile update error:", error);
+      console.error("Profile update error:", {error});
       toast.error("Failed to update profile. Please try again.");
     } finally {
       setIsLoading(false);

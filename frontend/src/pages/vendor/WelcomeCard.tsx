@@ -25,7 +25,7 @@ interface User {
 }
 
 interface WelcomeCardProps {
-  user: User;
+  user:any;
   onCompleteProfile: () => void;
 }
 

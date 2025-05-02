@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Badge, CheckCircle, Clock, Facebook, Heart, Instagram, Linkedin, MapPin, Pin, Twitter } from "lucide-react";
+import { CheckCircle,  Facebook, Instagram, Linkedin, MapPin, Pin, Twitter } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";

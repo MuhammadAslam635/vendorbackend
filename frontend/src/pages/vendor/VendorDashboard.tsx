@@ -14,7 +14,9 @@ const VendorDashboard = () => {
   return (
     <DashboardLayout title="Vendor Dashboard" user={user}>
       <div className="space-y-6">
-        <WelcomeCard user={user} onCompleteProfile={handleCompleteProfile} />
+        {user && (
+          <WelcomeCard user={user} onCompleteProfile={handleCompleteProfile} />
+        )}
         
         {/* Dashboard Content */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

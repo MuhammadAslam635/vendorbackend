@@ -9,7 +9,6 @@ import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { PaymentModal } from './PaymentModal';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import { set } from 'date-fns';
 
 interface Package {
   id: number;

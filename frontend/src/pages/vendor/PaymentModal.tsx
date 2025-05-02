@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../useAuth';
 import { toast } from 'react-hot-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -23,7 +22,7 @@ export const PaymentModal = ({
   amount 
 }: PaymentModalProps) => {
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+ 
 
   const handleInitiatePayment = async () => {
     try {
