@@ -26,7 +26,7 @@ export class TransactionsService {
     console.log("object transactions",userId);
     return this.prisma.transaction.findMany({where: { userId:userId },
       include: {
-        subscription: true,
+        subscribe_package: true,
         user: true}
       });
   }
@@ -35,10 +35,10 @@ export class TransactionsService {
     console.log("Transaction ID:", id);
     const transaction = await this.prisma.transaction.findUnique({
       where: {
-        id: id // Ensure id is passed correctly
+        id: id
       },
       include: {
-        subscription: true,
+        subscribe_package: true,
         user: true
       }
     });
@@ -54,12 +54,8 @@ export class TransactionsService {
     return `This action updates a #${id} transaction`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} transaction`;
-  }
   async createPaymentSession(userId: number, packageId: number) {
     try {
-      // Fetch package details
       const pack = await this.prisma.package.findUnique({
         where: { id: packageId }
       });
@@ -82,6 +78,20 @@ export class TransactionsService {
             status: 'PENDING'
           }
         });
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId }
+        });
+        if (user) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              totalProfiles: {
+                increment: pack?.profiles
+              },
+              packageActive: 'YES'
+            }
+          });
+        }
 
         // Create transaction record
         const transaction = await prisma.transaction.create({
@@ -89,7 +99,7 @@ export class TransactionsService {
             amount: pack.price,
             paymentMethod: 'QUICKPAY',
             paymentStatus: 'PENDING',
-            subscriptionId: sub.id,
+            subscribe_package_id: sub.id,
             userId
           }
         });
@@ -124,10 +134,10 @@ export class TransactionsService {
       );
       console.log('Payment creation response:', paymentResponse.data);
       const merchantId = this.configService.get('QUICKPAY_MERCHANT_ID');
-    const agreementId = this.configService.get('QUICKPAY_AGREEMENT_ID');
-    const apiKey = this.configService.get('QUICKPAY_API_KEY');
-    const privateKey = this.configService.get('QUICKPAY_PRIVATE_KEY');
-    const agreementKey = this.configService.get('QUICKPAY_AGREEMENT_KEY');
+      const agreementId = this.configService.get('QUICKPAY_AGREEMENT_ID');
+      const apiKey = this.configService.get('QUICKPAY_API_KEY');
+      const privateKey = this.configService.get('QUICKPAY_PRIVATE_KEY');
+      const agreementKey = this.configService.get('QUICKPAY_AGREEMENT_KEY');
 
       // Step 2: Create a payment link using API Key
       const paymentId = paymentResponse.data.id;
@@ -217,7 +227,7 @@ export class TransactionsService {
         const subscription = await prisma.subscribePackage.findFirst({
           where: { id: parseInt(subscriptionId) },
           include: { 
-            transactions: true,
+            transaction: true,
             user: true
           }
         });
@@ -226,11 +236,11 @@ export class TransactionsService {
           throw new BadRequestException('Subscription not found');
         }
   
-        const transaction = subscription.transactions[0];
+        const transaction = subscription.transaction;
   
         // Update transaction status and QuickPay transaction ID
         await prisma.transaction.update({
-          where: { id: transaction.id },
+          where: { id: transaction?.id },
           data: {
             paymentStatus: payload.status,
             transactionId: payload.transactionId?.toString()

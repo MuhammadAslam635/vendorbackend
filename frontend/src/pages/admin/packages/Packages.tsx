@@ -4,7 +4,7 @@ import { useAuth } from '../../../useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { toast,ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { AdminDashboardLayout } from '../layout/AdminDashboardLayout';
 import { Link } from 'react-router-dom';
 
@@ -14,6 +14,8 @@ interface Package {
   price: number;
   duration: number;
   status: string;
+  description: string;
+  profiles: number;
   createdAt: string;
 }
 
@@ -28,7 +30,7 @@ const AdminPackages = () => {
 
   const fetchPackages = async () => {
     try {
-      const response = await axios.get('${import.meta.env.VITE_BACKEND_URL}/packages', {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/packages`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -62,53 +64,81 @@ const AdminPackages = () => {
           <h2 className="text-2xl font-bold">Packages</h2>
           <Button className="bg-[#a0b830] hover:bg-[#8fa029]">
             <Link to="/admin/create-package" className="flex items-center">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Package</Link>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Package</Link>
           </Button>
         </div>
 
         {loading ? (
           <div className="text-center py-8">Loading packages...</div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {packages.map((pkg) => (
-              <Card key={pkg.id} className="relative">
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-start">
-                    <span>{pkg.name}</span>
-                    <span className={`text-sm px-2 py-1 rounded-full ${
-                      pkg.status === 'ACTIVE' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {pkg.status}
-                    </span>
+              <Card
+                key={pkg.id}
+                className="relative overflow-hidden transition-all duration-300 bg-lime-100 hover:shadow-xl hover:scale-105 group border-2 border-transparent hover:border-[#a0b830]"
+              >
+                {/* Premium badge for higher-priced packages */}
+                {pkg.price > 50 && (
+                  <div className="absolute top-4 right-4 bg-gradient-to-r from-green-500 to-lime-300 text-white text-xs px-3 py-1 rounded-full font-bold shadow-md">
+                   {pkg.status}
+                  </div>
+                )}
+
+                <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-800 dark:to-green-900 border-b pb-4">
+                  <CardTitle className="flex justify-between items-center">
+                    <span className="text-xl font-bold text-gray-800 dark:text-white">{pkg.name}</span>
+                  
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-3xl font-bold text-[#a0b830]">
-                    ${pkg.price}
-                    <span className="text-sm text-gray-500 font-normal">
-                      /{pkg.duration} year{pkg.duration > 1 ? 's' : ''}
+
+                <CardContent className="space-y-6 p-6">
+                  {/* Price section with better visual hierarchy */}
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl font-extrabold text-[#a0b830]">${pkg.price}</span>
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      /{pkg.duration} <span className="font-semibold">Year</span>{pkg.duration > 1 ? 's' : ''}
                     </span>
                   </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Link to={`/admin/packages/${pkg.id}/edit`} className="flex items-center">
-                      <Pencil className="h-4 w-4 mr-1" />
-                      Edit</Link>
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => handleDelete(pkg.id)}
+
+                  {/* Profiles section with icon */}
+                  <div className="flex items-center justify-center bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#a0b830] mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                    </svg>
+                    <span className="text-2xl font-bold text-[#a0b830]">{pkg.profiles}</span>
+                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 font-medium">Profiles</span>
+                  </div>
+
+                  {/* Features list with improved styling */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Package Features:</h4>
+                    <ul className="space-y-2">
+                      {pkg.description.split('\\n').map((line, index) => (
+                        <li key={index} className="flex items-start">
+                          <svg className="h-5 w-5 text-[#a0b830] mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{line}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Button section with hover effects */}
+                  <div className="flex justify-center pt-4">
+                    <Link
+                      to={`/admin/packages/${pkg.id}/edit`}
+                      className="group relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-medium text-[#a0b830] border-2 border-[#a0b830] rounded-md shadow-md transition-all duration-300 ease-out hover:bg-[#a0b830] hover:text-white"
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Package
+                    </Link>
                   </div>
                 </CardContent>
+
+                {/* Subtle corner decoration */}
+                <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-[#a0b830] opacity-10 rounded-tl-full" />
               </Card>
             ))}
           </div>

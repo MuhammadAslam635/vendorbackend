@@ -1,0 +1,186 @@
+import { PrismaService } from 'src/prisma/prisma.service';
+import { MailerService } from '@nestjs-modules/mailer';
+export declare class UserService {
+    private prisma;
+    private mailService;
+    constructor(prisma: PrismaService, mailService: MailerService);
+    findByEmail(email: string): Promise<{
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    } | null>;
+    findById(id: number): Promise<{
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    create(email: string, password: string, name?: string): Promise<{
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    getUser(id: string): Promise<{
+        profiles: {
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            company: string | null;
+            state: string | null;
+            city: string | null;
+            zipcode: string | null;
+            address: string | null;
+            country: string | null;
+            companyLogo: string | null;
+            fb: string | null;
+            ln: string | null;
+            in: string | null;
+            yt: string | null;
+            webUrl: string | null;
+            userId: number;
+        }[];
+        subscribe_packages: {
+            id: number;
+            status: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: number;
+            startDate: Date;
+            endDate: Date;
+            packageId: number;
+        }[];
+    } & {
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    getAllUsers(): Promise<({
+        profiles: {
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            company: string | null;
+            state: string | null;
+            city: string | null;
+            zipcode: string | null;
+            address: string | null;
+            country: string | null;
+            companyLogo: string | null;
+            fb: string | null;
+            ln: string | null;
+            in: string | null;
+            yt: string | null;
+            webUrl: string | null;
+            userId: number;
+        }[];
+    } & {
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    })[]>;
+    updateStatus(id: number, status: string): Promise<{
+        profiles: {
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            company: string | null;
+            state: string | null;
+            city: string | null;
+            zipcode: string | null;
+            address: string | null;
+            country: string | null;
+            companyLogo: string | null;
+            fb: string | null;
+            ln: string | null;
+            in: string | null;
+            yt: string | null;
+            webUrl: string | null;
+            userId: number;
+        }[];
+    } & {
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    deleteUser(id: number): Promise<{
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    updatePassword(id: number, password: string): Promise<{
+        id: number;
+        name: string;
+        email: string;
+        password: string;
+        email_verification_at: Date | null;
+        utype: string;
+        status: string;
+        packageActive: string;
+        totalProfiles: number | null;
+        activeProfiles: number | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+}

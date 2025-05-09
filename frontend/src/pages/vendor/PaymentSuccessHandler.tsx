@@ -14,7 +14,7 @@ const PaymentSuccessHandler = () => {
       const orderId = searchParams.get('order_id');
       
       if (orderId) {
-        axios.post('${import.meta.env.VITE_BACKEND_URL}/transactions/payment-success', { orderId })
+        axios.post(`${import.meta.env.VITE_BACKEND_URL}/transactions/payment-success`, { orderId })
           .then(response => {
             navigate(response.data.redirectUrl || '/vendor/dashboard/subscriptions');
           })

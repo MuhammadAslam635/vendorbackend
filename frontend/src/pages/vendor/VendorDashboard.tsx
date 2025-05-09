@@ -1,7 +1,7 @@
 import { useAuth } from "../../useAuth";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "./DashboardLayout";
-import { WelcomeCard } from "./WelcomeCard";
+import UserProfilesCard from "./UserProfileCard";
 
 const VendorDashboard = () => {
   const { user } = useAuth();
@@ -15,7 +15,7 @@ const VendorDashboard = () => {
     <DashboardLayout title="Vendor Dashboard" user={user}>
       <div className="space-y-6">
         {user && (
-          <WelcomeCard user={user} onCompleteProfile={handleCompleteProfile} />
+          <UserProfilesCard user={user} onCompleteProfile={handleCompleteProfile} />
         )}
         
         {/* Dashboard Content */}

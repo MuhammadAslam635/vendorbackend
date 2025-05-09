@@ -5,13 +5,16 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { TokenBlacklistService } from './tokenblocklistservice/tokenblocklistservice.service';
-
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class AuthService {
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
         private tokenBlacklistService: TokenBlacklistService,
+        private mailService: MailerService
       ) {}
     
       async register(registerDto: RegisterDto) {
@@ -20,6 +23,17 @@ export class AuthService {
         const user = await this.userService.create(email, password, name);
         
         const { password: _, ...result } = user;
+        this.mailService.sendMail({
+          to: email,
+          subject: 'Account Created Successfully.',
+          template: 'account-created',
+          context: {
+            name: user.name || 'Valued Customer',
+            loginUrl: `${process.env.FRONTEND_URL}/login`,
+            packagesUrl: `${process.env.FRONTEND_URL}/packages`,
+            supportEmail: process.env.SUPPORT_EMAIL || 'support@yourplatform.com'
+          }
+        });
         return result;
       }
     
@@ -76,5 +90,30 @@ export class AuthService {
         } catch (error) {
             throw new UnauthorizedException('Invalid token');
         }
+    }
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+        const { email } = forgotPasswordDto;
+        const user = await this.userService.findByEmail(email);
+        if (!user) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+        return {
+            message: 'Password reset email sent',
+            success: true,
+            data: user.id
+        };
+    }
+    async resetPassword(resetPasswordDto: ResetPasswordDto, id: string) {
+        const { password } = resetPasswordDto;
+        const user = await this.userService.findById(parseInt(id));
+        if (!user) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await this.userService.updatePassword(parseInt(id), hashedPassword);
+        return {
+            message: 'Password reset successfully',
+            success: true
+        };
     }
 }

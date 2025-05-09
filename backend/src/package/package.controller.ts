@@ -40,9 +40,9 @@ export class PackageController {
     return this.packageService.update(+id, updatePackageDto);
   }
 
-  @Delete(':id')
-  async remove(@Request() req, @Param('id') id: string) {
-    console.log('User in remove:', req.user); // Debug log
-    return this.packageService.remove(+id);
+  @Patch('status/:id')
+  async updateStatus(@Request() req, @Param('id') id: string) {
+    console.log('User in remove:', req.user); 
+    return this.packageService.updateStatus(+id);
   }
 }

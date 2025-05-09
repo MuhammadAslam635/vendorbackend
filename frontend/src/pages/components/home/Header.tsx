@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Link } from "react-router-dom";
+import logo from "../../../../public/logo.png";
 
 const Header = () =>{
     return(
@@ -10,7 +11,7 @@ const Header = () =>{
             <div className="text-2xl font-bold text-white flex items-center space-x-2">
             <Link to="/" className="text-2xl font-bold text-[#a0b830] flex items-center space-x-3 hover:opacity-90">
               <img 
-                src="../../../../public/logo.png" 
+                src={`${logo}`} 
                 alt="VendorLocator Logo" 
                 className="h-8 w-8"
               />

@@ -61,7 +61,7 @@ const Vendors = () => {
 
     const fetchVendors = async () => {
         try {
-            const response = await axios.get('${import.meta.env.VITE_BACKEND_URL}/user', {
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { CheckCircle,  Facebook, Instagram, Linkedin, MapPin, Pin, Twitter } from "lucide-react";
+import { CheckCircle,  Facebook, Globe, Instagram, Linkedin, MapPin, Pin, Twitter } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
+import { Link } from "react-router-dom";
 
 const Vendors = ({ vendors }: { vendors: any[] }) => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -92,29 +93,46 @@ const Vendors = ({ vendors }: { vendors: any[] }) => {
                                         size="icon"
                                         className="border-gray-300 hover:border-gray-400 hover:bg-gray-100"
                                     >
+                                        <Link to={vendor.fb} target="_blank">
                                         <Facebook
                                             className="w-4 h-4 text-[#1877F2]" />
+                                        </Link>
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="icon"
                                         className="border-gray-300 hover:border-gray-400 hover:bg-gray-100"
                                     >
+                                        <Link to={vendor.ln} target="_blank">
                                         <Twitter className="w-4 h-4 text-[#1DA1F2]" />
+                                        </Link>
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="icon"
                                         className="border-gray-300 hover:border-gray-400 hover:bg-gray-100"
                                     >
+                                        <Link to={vendor.in} target="_blank">
                                         <Instagram className="w-4 h-4 text-[#E4405F]" />
+                                        </Link>
+                                        </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="border-gray-300 hover:border-gray-400 hover:bg-gray-100"
+                                    >
+                                        <Link to={vendor.ln} target="_blank">
+                                        <Linkedin className="w-4 h-4 text-[#0077B5]" />
+                                        </Link>
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="icon"
                                         className="border-gray-300 hover:border-gray-400 hover:bg-gray-100"
                                     >
-                                        <Linkedin className="w-4 h-4 text-[#0077B5]" />
+                                        <Link to={vendor.webUrl} target="_blank">
+                                        <Globe className="w-4 h-4 text-[#a0b830]" />
+                                        </Link>
                                     </Button>
                                 </div>
                             </CardContent>

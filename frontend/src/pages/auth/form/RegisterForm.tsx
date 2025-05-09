@@ -139,7 +139,14 @@ const RegisterForm = () => {
             });
 
             if (response.status === 201 || response.status === 200) {
-                toast.success("Registration successful!");
+                toast.success("Registration successful!",{
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
                 navigate("/login");
             }
         } catch (error) {

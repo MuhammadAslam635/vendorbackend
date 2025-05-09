@@ -13,7 +13,7 @@ const VendorSidebar = () => {
     const handleLogout = async () => {
         try {
             const token = localStorage.getItem('token');
-            await axios.post('${import.meta.env.VITE_BACKEND_URL}/auth/logout', {}, {
+            await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/logout`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -51,6 +51,15 @@ const VendorSidebar = () => {
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         Dashboard</Link>
                     </Button>
+                    <Button
+                        variant={isActiveRoute("/my-ads") ? "secondary" : "ghost"}
+                        className="w-full justify-start"
+                    >
+                        <Link to="/my-ads" className="flex items-center">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        My Ads</Link>
+                    </Button>
+                    
                     {user?.packageActive === 'YES' && (
                         <Button
                             variant={isActiveRoute("/vendor/subscriptions") ? "secondary" : "ghost"}
@@ -72,12 +81,12 @@ const VendorSidebar = () => {
                     </Button>
                     {user?.status === 'ACTIVE' && user?.packageActive === 'YES' && (
                     <Button
-                        variant={isActiveRoute("/vendor/profile") ? "secondary" : "ghost"}
+                        variant={isActiveRoute("/vendor/profiles") ? "secondary" : "ghost"}
                         className="w-full justify-start"
                     >
-                        <Link to="/vendor/profile" className="flex items-center">
+                        <Link to="/vendor/profiles" className="flex items-center">
                         <Settings className="mr-2 h-4 w-4" />
-                        Settings</Link>
+                        Vendor Profile</Link>
                     </Button>
                      )}
                 </div>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to Our Areation App</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #a0b830;
+            color: white;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+        .steps { 
+            margin: 20px 0; 
+            padding: 20px;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .footer { 
+            margin-top: 30px; 
+            color: #666;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #a0b830;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .verification-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #a0b830;
+            text-align: center;
+            padding: 10px;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Welcome to Our Areation App!</h2>
+        </div>
+        
+        <p>Dear {{name}},</p>
+        
+        <p>Thank you for creating an account with us! To ensure the security of your account, 
+        As Admin Approved Your Account. You can now create your profile and start using our platform's features:</p>
+
+        <div class="steps">
+            <h3>Next Steps:</h3>
+            <ol>
+                <li>Complete your profile information</li>
+                <li>Browse our available packages</li>
+                <li>Start using our platform's features</li>
+            </ol>
+        </div>
+
+        <p>For security reasons, please do not share this verification code with anyone. 
+        If you did not create an account with us, please ignore this email.</p>
+
+        <p>Need help? Our support team is available 24/7.</p>
+
+        <div class="footer">
+                <p>Best regards,<br>Areation App Team</p>
+            <small>This is an automated message, please do not reply to this email.</small>
+        </div>
+    </div>
+</body>
+</html>

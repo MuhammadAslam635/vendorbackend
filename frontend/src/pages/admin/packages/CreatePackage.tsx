@@ -9,12 +9,15 @@ import axios from 'axios';
 import { toast,ToastContainer } from 'react-toastify';
 import { AdminDashboardLayout } from '../layout/AdminDashboardLayout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Textarea } from '../../../components/ui/textarea';
 
 interface CreatePackageForm {
   name: string;
   price: number;
   duration: number;
   status: 'ACTIVE' | 'INACTIVE';
+  profiles: number;
+  description: string;
 }
 
 const CreatePackage = () => {
@@ -25,14 +28,20 @@ const CreatePackage = () => {
     name: '',
     price: 0,
     duration: 1,
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    profiles: 0,
+    description: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'price' || name === 'duration' ? Number(value) : value
+      [name]: name === 'price' || name === 'duration' || name === 'profiles' 
+        ? Number(value) 
+        : value
     }));
   };
 
@@ -47,7 +56,7 @@ const CreatePackage = () => {
     try {
         const token = localStorage.getItem('token');
         console.log("object Token",token);
-      await axios.post('${import.meta.env.VITE_BACKEND_URL}/packages', formData, {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/packages`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -100,8 +109,22 @@ const CreatePackage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (Year)</Label>
+                <Label htmlFor="profiles">Profiles</Label>
                 <Input
+                  id="profiles"
+                  name="profiles"
+                  type="number"
+                  min="3"
+                  value={formData.profiles}
+                  onChange={handleChange}
+                  placeholder="Enter number of profiles"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration (Year)</Label>
+                  <Input
                   id="duration"
                   name="duration"
                   type="number"
@@ -128,7 +151,17 @@ const CreatePackage = () => {
                   </SelectContent>
                 </Select>
               </div>
-
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Enter description"
+                  required
+                />
+              </div>
               <div className="flex justify-end space-x-4">
                 <Button
                   type="button"

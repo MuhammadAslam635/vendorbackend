@@ -1,11 +1,11 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { CreateVendorDto } from './dto/create-vendor.dto';
-import { UpdateVendorDto } from './dto/update-vendor.dto';
+import { CreateVendorProfileDto } from './dto/create-vendor-profile.dto';
+import { UpdateVendorProfileDto } from './dto/update-vendor-profile.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { join } from 'path';
 import * as fs from 'fs/promises';
-import { SearchVendorDto } from './dto/search-vendor.dto';
+import { SearchVendorProfileDto } from './dto/search-vendor-profile.dto';
 
 @Injectable()
 export class VendorService {
@@ -18,7 +18,6 @@ export class VendorService {
   private readonly uploadDir = join(process.cwd(), 'public', 'uploads');
   private async initializeUploadDirectories() {
     try {
-      await fs.mkdir(join(this.uploadDir, 'profiles'), { recursive: true });
       await fs.mkdir(join(this.uploadDir, 'logos'), { recursive: true });
       console.log('Upload directories created at:', this.uploadDir);
     } catch (error) {
@@ -32,13 +31,13 @@ export class VendorService {
       size: file.buffer?.length,
       subFolder
     });
-  
+
     try {
       if (!file?.buffer) {
         console.error('No file buffer found for:', file.originalname);
         throw new BadRequestException('No file buffer found');
       }
-  
+
       // Get file extension from mimetype
       const mimeToExt = {
         'image/jpeg': '.jpg',
@@ -47,21 +46,21 @@ export class VendorService {
         'image/webp': '.webp'
       };
       const ext = mimeToExt[file.mimetype] || '.jpg';
-  
+
       // Create unique filename with proper extension
       const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${ext}`;
       const folderPath = join(this.uploadDir, subFolder);
       const filePath = join(folderPath, uniqueName);
-      console.log("object file",uniqueName)
-      console.log("object folder path",folderPath)
-      console.log("object path",filePath)
+      console.log("object file", uniqueName)
+      console.log("object folder path", folderPath)
+      console.log("object path", filePath)
 
       // Ensure directory exists
       await fs.mkdir(folderPath, { recursive: true });
-  
+
       // Write file with buffer
       await fs.writeFile(filePath, file.buffer);
-  
+
       // Verify file was written
       const stats = await fs.stat(filePath);
       console.log(`File saved successfully: ${filePath} (${stats.size} bytes)`);
@@ -73,56 +72,122 @@ export class VendorService {
     }
   }
 
-  async updateOrCreate(
+  async createProfile(
     userId: number,
-    updateVendorDto: UpdateVendorDto,
+    createVendorProfileDto: CreateVendorProfileDto,
     companyLogoPath?: string,
   ) {
     try {
-      const existingVendor = await this.prisma.vendor.findUnique({
-        where: { userId }
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId }
       });
-
-      const data = {
-        ...updateVendorDto,
-        ...(companyLogoPath && { companyLogo: companyLogoPath })
-      };
-
-      if (existingVendor) {
-        return await this.prisma.vendor.update({
-          where: { userId },
-          data
-        });
-      } else {
-        return await this.prisma.vendor.create({
+     
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+  
+      // Handle possibly null activeProfiles and totalProfiles with defaults
+      const activeProfiles = user.activeProfiles ?? 0;
+      const totalProfiles = user.totalProfiles ?? 0;
+      
+      // Don't allow profile creation if totalProfiles is 0
+      if (totalProfiles === 0) {
+        throw new BadRequestException('You are not allowed to create profiles');
+      }
+      
+      if (activeProfiles < totalProfiles) {
+        const data = {
+          ...createVendorProfileDto,
+          ...(companyLogoPath ? { companyLogo: companyLogoPath } : {})
+        };
+  
+        const profile = await this.prisma.vendorProfile.create({
           data: {
             ...data,
             userId
           }
         });
+  
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: {
+            activeProfiles: activeProfiles + 1
+          }
+        });
+        
+        return profile;
+      } else {
+        throw new BadRequestException('You have reached the maximum number of active profiles');
       }
+    } catch (error) {
+      console.error('Vendor profile creation error:', error);
+      
+      // Re-throw specific exceptions
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      throw new BadRequestException('Failed to create vendor profile');
+    }
+  }
+  async updateProfile(
+    updateVendorProfileDto: UpdateVendorProfileDto,
+    id: string,
+    companyLogoPath?: string,
+) {
+    try {
+      const profileId = parseInt(id);
+      
+      const existingVendor = await this.prisma.vendorProfile.findUnique({
+        where: { id: profileId }
+      });
+
+      if (!existingVendor) {
+        throw new NotFoundException('Vendor profile not found');
+      }
+
+      // Remove any fields that should not be updated
+      const { createdAt, updatedAt, userId: _, id: __, ...updateData } = updateVendorProfileDto as any;
+
+      const data = {
+        ...updateData,
+        ...(companyLogoPath && { companyLogo: companyLogoPath })
+      };
+
+      return await this.prisma.vendorProfile.update({
+        where: { 
+          id: profileId  // Must be a number, not a string
+        },
+        data: {
+          ...data,
+          // Ensure these fields are not included in the update
+          userId: undefined,
+          createdAt: undefined,
+          updatedAt: undefined,
+        }
+      });
     } catch (error) {
       console.error('Vendor update/create error:', error);
       throw new BadRequestException('Failed to update vendor profile');
     }
-  }
+}
 
   async findByUserId(userId: number) {
-    const vendor = await this.prisma.vendor.findUnique({
-      where: { userId }
+    const vendors = await this.prisma.vendorProfile.findMany({
+      where: { userId: userId }
     });
 
-    if (!vendor) {
+    if (!vendors) {
       throw new NotFoundException(`Vendor profile not found`);
     }
 
-    return vendor;
+    return vendors;
   }
-  async searchVendors(searchDto: SearchVendorDto) {
-    const { search } = searchDto; // Single query parameter named 'search'
+  async searchVendors(searchDto: SearchVendorProfileDto) {
+    const { search } = searchDto;
     console.log("Search Query:", search);
-  
-    return this.prisma.vendor.findMany({
+
+    return this.prisma.vendorProfile.findMany({
       where: {
         OR: [
           search ? { state: { contains: search, mode: 'insensitive' } } : {},
@@ -147,6 +212,11 @@ export class VendorService {
     });
   }
   async getAllVendors() {
-    return this.prisma.vendor.findMany();
+    return this.prisma.vendorProfile.findMany();
+  }
+  async getProfile(id: string) {
+    return this.prisma.vendorProfile.findUnique({
+      where: { id: parseInt(id) }
+    });
   }
 }

@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import Search from "./Search";
-
+import hero from "../../../../public/hero.jpg";
 const Hero = () => {
     return (
-        <section className="relative bg-cover bg-center h-screen" style={{ backgroundImage: "url('../../../../public/hero.jpg')" }}>
+        <section className="relative bg-cover bg-center h-screen" style={{ backgroundImage: `url(${hero})` }}>
             <div className="absolute inset-0 bg-black opacity-50"></div>
             <div className="container mx-auto px-4 relative z-10 flex flex-col items-center justify-center h-full">
                 <div className="max-w-2xl text-center">

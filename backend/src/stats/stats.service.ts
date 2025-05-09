@@ -18,7 +18,7 @@ export class StatsService {
                 status: 'PENDING'
             }
         });
-        const totalVendors = await this.prisma.vendor.count();
+        const totalVendors = await this.prisma.vendorProfile.count();
         const totalPackages = await this.prisma.package.count();
         const totalTransactions = await this.prisma.transaction.count();
         const totalCompletedTransactions = await this.prisma.transaction.count({

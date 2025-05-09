@@ -58,7 +58,7 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get('${import.meta.env.VITE_BACKEND_URL}/transactions/all', {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/transactions/all`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },

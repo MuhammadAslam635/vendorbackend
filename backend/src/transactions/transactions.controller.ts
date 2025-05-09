@@ -37,11 +37,6 @@ export class TransactionsController {
     return this.transactionsService.update(+id, updateTransactionDto);
   }
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionsService.remove(+id);
-  }
-  @UseGuards(JwtAuthGuard)
   @Post('create-session/:packageId')
   async createPaymentSession(
     @Param('packageId') packageId: string,

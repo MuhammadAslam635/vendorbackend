@@ -20,9 +20,7 @@ export class PackageService {
 
   async findAll() {
     return this.prisma.package.findMany({
-      where: {
-        status: 'ACTIVE'
-      },
+     
       orderBy: {
         createdAt: 'desc'
       }
@@ -42,7 +40,7 @@ export class PackageService {
   }
 
   async update(id: number, updatePackageDto: UpdatePackageDto) {
-    // Check if package exists
+    
     await this.findOne(id);
 
     return this.prisma.package.update({
@@ -53,11 +51,8 @@ export class PackageService {
     });
   }
 
-  async remove(id: number) {
-    // Check if package exists
+  async updateStatus(id: number) {
     await this.findOne(id);
-
-    // Soft delete by updating status to INACTIVE
     return this.prisma.package.update({
       where: { id },
       data: {

@@ -18,6 +18,11 @@ import PaymentCancelHandler from './pages/vendor/PaymentCancelHandler'
 import AllVendors from './pages/AllVendors'
 import SearchVendors from './pages/SearchVendors'
 import AdminDashbaord from './pages/admin/AdminDashbaord'
+import CreateProfile from './pages/vendor/CreateProfile'
+import UpdateProfile from './pages/vendor/UpdateProfile'
+import ResetPasswordPage from './pages/auth/ResetPassword'
+import ForgotPasswordPage from './pages/auth/ForgetPassword'
+import MyAds from './pages/MyAds'
 
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
@@ -43,10 +48,19 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/all-vendors" element={<AllVendors />} />
         <Route path="/search-vendors" element={<SearchVendors />} />
+        <Route path="/my-ads" element={<MyAds />} />
         {/* Public routes */}
         <Route
           path="/register"
           element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/reset-password/:userId"
+          element={<ResetPasswordPage />}
+        />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPasswordPage />}
         />
         <Route
           path="/login"
@@ -59,7 +73,9 @@ function App() {
           <ProtectedRoute allowedRoles={['VENDOR']}>
             <Routes>
               <Route path="dashboard" element={<VendorDashboard />} />
-              <Route path="profile" element={<Profile />} />
+              <Route path="create/profile" element={<CreateProfile />} />
+              <Route path="profiles" element={<Profile />} />
+              <Route path="profiles/:id/edit" element={<UpdateProfile />} />
               <Route path="subscriptions" element={<Subscription />} />
               <Route path="transactions" element={<Transaction />} />
               <Route path="/payment-success" element={<PaymentSuccessHandler />} />

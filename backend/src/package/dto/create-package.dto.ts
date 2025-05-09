@@ -18,6 +18,14 @@ export class CreatePackageDto {
   @Min(1)
   duration: number;
 
+  @IsNumber()
+  @Min(1)
+  profiles: number;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @IsEnum(PackageStatus)
   @IsOptional()
   status?: PackageStatus;

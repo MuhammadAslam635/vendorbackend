@@ -7,31 +7,6 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 @Controller('subscribepackage')
 export class SubscribepackageController {
   constructor(private readonly subscribepackageService: SubscribepackageService) {}
-
-  @Post()
-  create(@Body() createSubscribepackageDto: CreateSubscribepackageDto) {
-    return this.subscribepackageService.create(createSubscribepackageDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.subscribepackageService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subscribepackageService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubscribepackageDto: UpdateSubscribepackageDto) {
-    return this.subscribepackageService.update(+id, updateSubscribepackageDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.subscribepackageService.remove(+id);
-  }
   @UseGuards(JwtAuthGuard)
   @Get('/my/pakcage')
   async getPackage(@Request() req){

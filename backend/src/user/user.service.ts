@@ -3,10 +3,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService,
+    private mailService: MailerService
+  ) { }
 
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
@@ -43,12 +46,12 @@ export class UserService {
       },
     });
   }
-  async getUser(id: number) {
+  async getUser(id: string) {
     const user = await this.prisma.user.findUnique({
-      where: { id },
-      include:{
-        vendor: true,
-        subscriptions:true
+      where: { id: parseInt(id) },
+      include: {
+        profiles: true,
+        subscribe_packages: true
       }
     });
 
@@ -64,7 +67,7 @@ export class UserService {
         utype: 'VENDOR'
       },
       include: {
-        vendor: true,
+        profiles: true,
       },
       orderBy: {
         createdAt: 'desc'
@@ -73,54 +76,78 @@ export class UserService {
   }
   async updateStatus(id: number, status: string) {
     const user = await this.prisma.user.findUnique({
-      where: { id },
+      where: { id: id },
       include: {
-        vendor: true
+        profiles: true
       }
     });
-  
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-  
+
     if (user.utype !== 'VENDOR') {
       throw new ConflictException('Cannot update status for non-vendor users');
     }
-  
-    return this.prisma.user.update({
-      where: { id },
+
+    // Update user status
+    const updatedUser = await this.prisma.user.update({
+      where: { id: +id },
       data: {
-        status: status // Direct status assignment
+        status: status
       },
       include: {
-        vendor: true
+        profiles: true
       }
     });
+
+    // If status is being set to active, send welcome email
+    if (status === 'ACTIVE') {
+      await this.mailService.sendMail({
+        to: user.email,
+        subject: 'Account Activated - Welcome to Our Platform!',
+        template: 'account-activation', // Create this template in your mail templates
+        context: {
+          name: user.name || 'Valued Customer',
+          loginUrl: `${process.env.FRONTEND_URL}/login`,
+          packagesUrl: `${process.env.FRONTEND_URL}/packages`,
+          supportEmail: process.env.SUPPORT_EMAIL || 'support@yourplatform.com'
+        }
+      });
+    }
+
+    return updatedUser;
   }
-  
+
   async deleteUser(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
-        vendor: true
+        profiles: true
       }
     });
-  
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-  
+
     // Delete user and associated vendor data in a transaction
     return this.prisma.$transaction(async (prisma) => {
-      if (user.vendor) {
-        await prisma.vendor.delete({
+      if (user.profiles) {
+        await prisma.vendorProfile.deleteMany({
           where: { userId: id }
         });
       }
-  
+
       return prisma.user.delete({
         where: { id }
       });
+    });
+  }
+  async updatePassword(id: number, password: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { password }
     });
   }
 }

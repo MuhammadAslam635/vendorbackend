@@ -9,12 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import axios from 'axios';
 import { toast,ToastContainer } from 'react-toastify';
 import { AdminDashboardLayout } from '../layout/AdminDashboardLayout';
+import { Textarea } from '../../../components/ui/textarea';
 
 interface UpdatePackageForm {
   name: string;
   price: number;
   duration: number;
   status: 'ACTIVE' | 'INACTIVE';
+  description: string;
+  profiles: number;
 }
 
 const UpdatePackage = () => {
@@ -26,7 +29,9 @@ const UpdatePackage = () => {
     name: '',
     price: 0,
     duration: 1,
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    description: '',
+    profiles: 3
   });
 
   useEffect(() => {
@@ -43,7 +48,9 @@ const UpdatePackage = () => {
           name: packageData.name,
           price: packageData.price,
           duration: packageData.duration,
-          status: packageData.status
+          status: packageData.status,
+          description: packageData.description,
+          profiles: packageData.profiles
         });
       } catch (error) {
         toast.error('Failed to fetch package details');
@@ -54,11 +61,11 @@ const UpdatePackage = () => {
     fetchPackage();
   }, [id, navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'price' || name === 'duration' ? Number(value) : value
+      [name]: name === 'price' || name === 'duration' || name === 'profiles' ? Number(value) : value
     }));
   };
 
@@ -127,6 +134,19 @@ const UpdatePackage = () => {
                   required
                 />
               </div>
+              <div className='space-y-2'>
+                <Label htmlFor='profiles'>Profiles</Label>
+                <Input
+                  id='profiles'
+                  name='profiles'
+                  type='number'
+                  min='3'
+                  value={formData.profiles}
+                  onChange={handleChange}
+                  placeholder='Enter number of profiles'
+                  required
+                />  
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="duration">Duration (months)</Label>
@@ -156,6 +176,17 @@ const UpdatePackage = () => {
                     <SelectItem value="INACTIVE">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Enter description"
+                  required
+                />
               </div>
 
               <div className="flex justify-end space-x-4">
