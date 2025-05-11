@@ -4,9 +4,9 @@ const About = () => {
 
     return (
         <>
-            <section className="py-16 bg-white">
+            <section className="py-16 bg-white" id="about">
                 <div className="container mx-auto px-4">
-                    <div id="about" className="about-section max-w-6xl mx-auto">
+                    <div className="about-section max-w-6xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                             <div className="order-2 md:order-1">
                                 <h2 className="text-4xl font-bold text-black mb-8">About Core Aeration</h2>

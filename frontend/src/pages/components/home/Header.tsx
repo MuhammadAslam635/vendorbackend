@@ -4,6 +4,12 @@ import { Link } from "react-router-dom";
 import logo from "../../../../public/logo.png";
 
 const Header = () =>{
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+};
     return(
         <header className="bg-white text-[#a0b830] shadow-md">
         <div className="container mx-auto px-4 py-4">
@@ -21,7 +27,22 @@ const Header = () =>{
             <nav className="hidden md:block">
               <ul className="flex space-x-6 items-center">
                 <li><Link to="/" className="text-[#a0b830] hover:text-gray-950">Home</Link></li>
-                <li><Link to="/" className="text-[#a0b830] hover:text-gray-950">About</Link></li>
+                <li>
+                    <button 
+                        onClick={() => scrollToSection('about')} 
+                        className="text-[#a0b830] hover:text-gray-950"
+                    >
+                        About
+                    </button>
+                </li>
+                <li>
+                    <button 
+                        onClick={() => scrollToSection('faq')} 
+                        className="text-[#a0b830] hover:text-gray-950"
+                    >
+                        FAQ
+                    </button>
+                </li>
                 <li><Link to="/all-vendors" className="text-[#a0b830] hover:text-gray-950">Find Vendors</Link></li>
                 <li><Link to="/register" className="text-[#a0b830] hover:text-gray-950">For Vendors</Link></li>
                 <li>
