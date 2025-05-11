@@ -27,7 +27,7 @@ interface VendorProfileForm {
 const CreateProfile = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
+  const [isFetching] = useState(false);
   const [files, setFiles] = useState<{
     companyLogo?: File;
   }>({});

@@ -5,6 +5,8 @@ import BusinessCard from './components/home/BusinessCard';
 import { useAuth } from '../useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import About from './components/home/About';
+import FAQ from './components/home/FAQ';
 
 const LandingPage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -30,6 +32,8 @@ const LandingPage = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       <Hero />
+      <About />
+      <FAQ />
       <BusinessCard />
      <Footer />
     </div>

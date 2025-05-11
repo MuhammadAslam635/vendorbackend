@@ -47,8 +47,8 @@ const Profile = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortBy] = useState("createdAt");
+  const [sortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     fetchProfiles();

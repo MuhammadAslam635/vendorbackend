@@ -6,7 +6,6 @@ import { Facebook, Twitter, Instagram, Linkedin, Pin, MapPin, CheckCircle, Loade
 import { Input } from "../components/ui/input";
 import { toast } from "react-toastify";
 import Header from "./components/home/Header";
-import Hero from "./components/home/Hero";
 import Footer from "./components/home/Footer";
 import { Link } from "react-router-dom";
 

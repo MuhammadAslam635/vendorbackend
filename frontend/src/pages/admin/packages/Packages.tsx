@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../../useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil} from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import { AdminDashboardLayout } from '../layout/AdminDashboardLayout';
 import { Link } from 'react-router-dom';
@@ -43,19 +43,6 @@ const AdminPackages = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/packages/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      toast.success('Package deleted successfully');
-      fetchPackages();
-    } catch (error) {
-      toast.error('Failed to delete package');
-    }
-  };
 
   return (
     <AdminDashboardLayout title="Manage Packages" user={user}>

@@ -21,63 +21,50 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast, ToastContainer } from "react-toastify";
+import { VendorProfile } from "../../ProtectedRouteProps";
 
-interface Vendor {
-  id: number;
-  businessName: string;
-  companyLogo: string;
-  profileImg: string;
-  company?: string;
-  state?: string;
-  city?: string;
-  zipcode?: string;
-  address?: string;
-  country?: string;
-  webUrl?: string;
-  fb?: string;
-  yt?: string;
-  in?: string;
-  ln?: string;
-  createdAt: Date;
-}
+
 
 interface UserProfile {
   id: number;
   name: string;
   email: string;
-  status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'BLOCKED';
-  packageActive: 'YES' | 'NO';
-  profiles: Vendor[];
+  status: string;
+  packageActive: string;
+  profiles?: VendorProfile[];
 }
 
-const UserProfilesCard = () => {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+interface UserProfilesCardProps {
+  user: UserProfile;
+  onCompleteProfile: () => void;
+}
+
+const UserProfilesCard: React.FC<UserProfilesCardProps> = ({ user: initialUser, onCompleteProfile }) => {
+  const [user, setUser] = useState<UserProfile | null>(initialUser);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/user/me`, {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/me`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
         
-        // Update state with the full response data
         setUser(response.data);
         
         // Store only the user data (without profiles) in localStorage
         const { profiles, ...userData } = response.data;
         localStorage.setItem('userData', JSON.stringify(userData));
-        
-        setLoading(false);
       } catch (err: any) {
         console.error("Error fetching user data:", err);
         setError(err.response?.data?.message || "Failed to load user data");
-        setLoading(false);
         toast.error("Failed to load user profiles");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -133,7 +120,10 @@ const UserProfilesCard = () => {
         <h2 className="text-2xl font-bold text-gray-800">Your Profiles</h2>
         <Button 
           className="bg-[#a0b830] hover:bg-[#8fa029] text-white"
-          onClick={() => window.location.href = "/vendor/create/profile"}
+          onClick={() => {
+            onCompleteProfile();
+            window.location.href = "/vendor/create/profile";
+          }}
         >
           <Store className="w-4 h-4 mr-2" />
           Create New Profile
@@ -212,7 +202,7 @@ const UserProfilesCard = () => {
         </div>
       )}
 
-      {user.profiles && user.profiles.length > 0 ? (
+      {user?.profiles && user.profiles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {user.profiles.map((profile) => (
             <Card
@@ -316,7 +306,7 @@ const UserProfilesCard = () => {
                     
                     {profile.fb && (
                       <a 
-                        href={profile.fb.startsWith('http') ? profile.fb : `https://${profile.facebook}`}
+                        href={profile.fb.startsWith('http') ? profile.fb : `https://${profile.fb}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -332,7 +322,7 @@ const UserProfilesCard = () => {
                     
                     {profile.ln && (
                       <a 
-                        href={profile.ln.startsWith('http') ? profile.ln : `https://${profile.twitter}`}
+                        href={profile.ln.startsWith('http') ? profile.ln : `https://${profile.ln}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -348,7 +338,7 @@ const UserProfilesCard = () => {
                     
                     {profile.in && (
                       <a 
-                        href={profile.in.startsWith('http') ? profile.in : `https://${profile.instagram}`}
+                        href={profile.in.startsWith('http') ? profile.in : `https://${profile.in}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -364,7 +354,7 @@ const UserProfilesCard = () => {
                     
                     {profile.yt && (
                       <a 
-                        href={profile.yt.startsWith('http') ? profile.yt : `https://${profile.linkedin}`}
+                          href={profile.yt.startsWith('http') ? profile.yt : `https://${profile.yt}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -391,7 +381,10 @@ const UserProfilesCard = () => {
           <p className="text-gray-600 mb-6">You haven't created any business profiles yet. Create your first profile to start selling.</p>
           <Button 
             className="bg-[#a0b830] hover:bg-[#8fa029] text-white"
-            onClick={() => window.location.href = "/vendor/create/profile"}
+            onClick={() => {
+              onCompleteProfile();
+              window.location.href = "/vendor/create/profile";
+            }}
           >
             <Store className="w-4 h-4 mr-2" />
             Create First Profile

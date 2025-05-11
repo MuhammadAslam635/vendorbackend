@@ -1,11 +1,30 @@
-import { useAuth } from "../../useAuth";
+import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "./DashboardLayout";
 import UserProfilesCard from "./UserProfileCard";
+import { User } from '../../ProtectedRouteProps';
+import axios from 'axios';
 
 const VendorDashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/me`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        setUser(response.data);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const handleCompleteProfile = () => {
     navigate("/vendor/profile/complete");
@@ -15,7 +34,10 @@ const VendorDashboard = () => {
     <DashboardLayout title="Vendor Dashboard" user={user}>
       <div className="space-y-6">
         {user && (
-          <UserProfilesCard user={user} onCompleteProfile={handleCompleteProfile} />
+          <UserProfilesCard 
+            user={user} // Type assertion since we know the structure matches
+            onCompleteProfile={handleCompleteProfile} 
+          />
         )}
         
         {/* Dashboard Content */}

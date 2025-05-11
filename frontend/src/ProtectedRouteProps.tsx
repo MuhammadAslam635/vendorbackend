@@ -11,7 +11,11 @@ export interface VendorProfile {
     address?: string;
     country?: string;
     companyLogo?: string;
-    profileImg?: string;
+    fb?: string;
+    ln?: string;
+    in?: string;
+    yt?: string;
+    webUrl?: string;
     createdAt: Date;
     updatedAt: Date;
     userId: number;
@@ -25,7 +29,7 @@ export interface User {
   status: string;
   createdAt: Date;
   packageActive: string;
-  vendor?: VendorProfile | null;
+  profiles?: VendorProfile[];
 }
 export interface AuthState {
     user: User | null;
