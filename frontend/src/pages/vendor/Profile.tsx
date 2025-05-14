@@ -1,106 +1,60 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../../useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
-import { Loader2, Search } from "lucide-react";
+import { Building2, Loader2, Mail, Phone, Globe, MapPin, Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { DashboardLayout } from "./DashboardLayout";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import { Link } from "react-router-dom";
-
-interface VendorProfiles {
-  id: number;
-  company: string;
-  address: string;
-  city: string;
-  state: string;
-  zipcode: string;
-  country: string;
-  fb: string;
-  ln: string;
-  in: string;
-  yt: string;
-  webUrl: string;
-  createdAt: string;
-}
+import { User, Zipcode } from "../../ProtectedRouteProps";
+import InfoItem from "../../InfoItem";
 
 const Profile = () => {
-  const { user } = useAuth();
   const [isFetching, setIsFetching] = useState(true);
-  const [profiles, setProfiles] = useState<VendorProfiles[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [sortBy] = useState("createdAt");
-  const [sortOrder] = useState<"asc" | "desc">("desc");
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetchProfiles();
+    fetchProfile();
   }, []);
 
-  const fetchProfiles = async () => {
+  const renderStatusBadge = (status: string) => {
+    const statusConfig = {
+      ACTIVE: { bg: "bg-green-100", text: "text-green-800", border: "border-green-200" },
+      PENDING: { bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-200" },
+      SUSPENDED: { bg: "bg-red-100", text: "text-red-800", border: "border-red-200" },
+      BLOCKED: { bg: "bg-gray-100", text: "text-gray-800", border: "border-gray-200" }
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.PENDING;
+
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text} ${config.border}`}>
+        {status}
+      </span>
+    );
+  };
+
+  const fetchProfile = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/vendor/profiles`,
+        `${import.meta.env.VITE_BACKEND_URL}/user/me`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-      setProfiles(response.data);
+      setUser(response.data);
     } catch (error) {
-      console.error("Failed to fetch profiles:", error);
+      console.error("Failed to fetch profile:", error);
       toast.error("Failed to load profile data");
     } finally {
       setIsFetching(false);
     }
   };
 
-  // Filter and sort profiles
-  const filteredProfiles = profiles.filter((profile) =>
-    Object.values(profile).some(
-      (value) =>
-        value &&
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
-
-  const sortedProfiles = [...filteredProfiles].sort((a, b) => {
-    const aValue = a[sortBy as keyof VendorProfiles];
-    const bValue = b[sortBy as keyof VendorProfiles];
-    if (sortOrder === "asc") {
-      return String(aValue).localeCompare(String(bValue));
-    }
-    return String(bValue).localeCompare(String(aValue));
-  });
-
-  // Pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedProfiles.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(sortedProfiles.length / itemsPerPage);
-
   if (isFetching) {
     return (
       <DashboardLayout title="Vendor Profile" user={user}>
-        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+        <div className="flex items-center justify-center min-h-[50vh]">
           <Loader2 className="h-8 w-8 animate-spin text-[#a0b830]" />
         </div>
       </DashboardLayout>
@@ -109,144 +63,106 @@ const Profile = () => {
 
   return (
     <DashboardLayout title="Vendor Profile" user={user}>
-      <div className="max-w-7xl mx-auto py-6">
-        <div className="flex justify-end mb-4">
-          <Button className="text-white bg-[#a0b830] hover:bg-[#a0b830]/90">
-            <Link to="/vendor/create/profile" >Create Profile</Link>
-          </Button>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Vendor Profiles</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Search and Filter Controls */}
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search profiles..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {user && (
+          <Card className="border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-center sm:space-x-6">
+                <div className="w-32 h-32 mb-4 sm:mb-0 flex-shrink-0">
+                  {user.companyLogo ? (
+                    <img
+                      src={user.companyLogo}
+                      alt={`${user.company || user.businessName} Logo`}
+                      className="w-full h-full rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
+                      <Building2 className="w-12 h-12 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="text-center sm:text-left">
+                  <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800">
+                    {user.company || user.businessName || user.name}
+                  </CardTitle>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center justify-center sm:justify-start space-x-2">
+                      <Mail className="w-4 h-4 text-gray-600" />
+                      <a href={`mailto:${user.email}`} className="text-blue-600 hover:underline">{user.email}</a>
+                    </div>
+                    {user.phone && (
+                      <div className="flex items-center justify-center sm:justify-start space-x-2">
+                        <Phone className="w-4 h-4 text-gray-600" />
+                        <span>{user.phone}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-center sm:justify-start">
+                      {renderStatusBadge(user.status)}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <Select
-                value={itemsPerPage.toString()}
-                onValueChange={(value) => setItemsPerPage(Number(value))}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Rows per page" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 per page</SelectItem>
-                  <SelectItem value="10">10 per page</SelectItem>
-                  <SelectItem value="20">20 per page</SelectItem>
-                  <SelectItem value="50">50 per page</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            </CardHeader>
 
-            {/* Profiles Table */}
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Website</TableHead>
-                    <TableHead>Social Media</TableHead>
-                    <TableHead>Created At</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentItems.map((profile) => (
-                    <TableRow key={profile.id}>
-                      <TableCell>{profile.company}</TableCell>
-                      <TableCell>
-                        {`${profile.city}, ${profile.state}, ${profile.country}`}
-                      </TableCell>
-                      <TableCell>
-                        <a
-                          href={profile.webUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          {profile.webUrl}
-                        </a>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {profile.fb && (
-                            <a
-                              href={profile.fb}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600"
-                            >
-                              FB
-                            </a>
-                          )}
-                          {profile.ln && (
-                            <a
-                              href={profile.ln}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600"
-                            >
-                              LN
-                            </a>
-                          )}
-                        </div>
-                      </TableCell>
-                          <TableCell>
-                            {new Date(profile.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <Button className="text-white bg-[#a0b830] hover:bg-[#a0b830]/90">
-                              <Link to={`/vendor/profiles/${profile.id}/edit`}>Edit</Link>
-                            </Button>
-                          </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <CardContent className="p-4 sm:p-6">
+              {/* Business Information */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
+                  Business Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <InfoItem icon={Building2} label="Business Name" value={user.company} />
+                  <InfoItem icon={MapPin} label="Address" value={user.address} />
+                  <InfoItem icon={MapPin} label="City" value={user.city} />
+                  <InfoItem icon={MapPin} label="State" value={user.state} />
+                  <InfoItem icon={MapPin} label="Country" value={user.country} />
+                  <InfoItem icon={Globe} label="Website" value={user.webUrl} isLink />
+                </div>
+              </div>
 
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-500">
-                Showing {indexOfFirstItem + 1} to{" "}
-                {Math.min(indexOfLastItem, sortedProfiles.length)} of{" "}
-                {sortedProfiles.length} entries
+              {/* Social Media */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
+                  Social Media
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <InfoItem icon={Facebook} label="Facebook" value={user.fb} isLink />
+                  <InfoItem icon={Instagram} label="Instagram" value={user.in} isLink />
+                  <InfoItem icon={Linkedin} label="LinkedIn" value={user.ln} isLink />
+                  <InfoItem icon={Youtube} label="YouTube" value={user.yt} isLink />
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
+
+              {/* Zip Codes */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
+                  Service Areas (ZIP Codes)
+                </h3>
+                {user.zipcodes && user.zipcodes.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {user.zipcodes.map((zipcode: Zipcode) => (
+                      <div 
+                        key={zipcode.id}
+                        className="bg-gray-50 rounded-lg p-3 text-center"
+                      >
+                        <span className="font-medium text-gray-700">{zipcode.zipcode}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 italic">No ZIP codes added yet.</p>
+                )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
       <ToastContainer />
     </DashboardLayout>
   );
 };
+
+// Helper component for info items
+
 
 export default Profile;

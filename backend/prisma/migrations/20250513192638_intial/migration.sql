@@ -13,12 +13,24 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "phone" TEXT,
     "email_verification_at" TIMESTAMP(3),
     "utype" TEXT NOT NULL DEFAULT 'VENDOR',
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "packageActive" TEXT NOT NULL DEFAULT 'NO',
-    "totalProfiles" INTEGER DEFAULT 0,
-    "activeProfiles" INTEGER DEFAULT 0,
+    "totalzipcodes" INTEGER DEFAULT 0,
+    "addedzipcodes" INTEGER DEFAULT 0,
+    "company" TEXT,
+    "state" TEXT,
+    "city" TEXT,
+    "address" TEXT,
+    "country" TEXT,
+    "companyLogo" TEXT,
+    "fb" TEXT,
+    "ln" TEXT,
+    "in" TEXT,
+    "yt" TEXT,
+    "webUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -39,33 +51,24 @@ CREATE TABLE "AccessToken" (
 );
 
 -- CreateTable
-CREATE TABLE "VendorProfile" (
+CREATE TABLE "ZipCode" (
     "id" SERIAL NOT NULL,
-    "company" TEXT,
-    "state" TEXT,
-    "city" TEXT,
-    "zipcode" TEXT,
-    "address" TEXT,
-    "country" TEXT,
-    "companyLogo" TEXT,
-    "fb" TEXT,
-    "ln" TEXT,
-    "in" TEXT,
-    "yt" TEXT,
-    "webUrl" TEXT,
+    "zipcode" TEXT NOT NULL,
+    "userId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" INTEGER NOT NULL,
 
-    CONSTRAINT "VendorProfile_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ZipCode_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Package" (
     "id" SERIAL NOT NULL,
     "name" TEXT,
-    "price" DOUBLE PRECISION NOT NULL DEFAULT 120,
+    "price" DOUBLE PRECISION NOT NULL DEFAULT 150,
     "duration" INTEGER NOT NULL DEFAULT 1,
+    "profiles" INTEGER NOT NULL DEFAULT 3,
+    "description" TEXT DEFAULT 'Best Package for your business /n Optimize and grow your business with our best package /n No 1 Package for your business',
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -118,7 +121,7 @@ CREATE INDEX "AccessToken_userId_idx" ON "AccessToken"("userId");
 CREATE INDEX "AccessToken_access_token_idx" ON "AccessToken"("access_token");
 
 -- CreateIndex
-CREATE INDEX "VendorProfile_userId_idx" ON "VendorProfile"("userId");
+CREATE INDEX "ZipCode_userId_idx" ON "ZipCode"("userId");
 
 -- CreateIndex
 CREATE INDEX "SubscribePackage_packageId_idx" ON "SubscribePackage"("packageId");
@@ -139,7 +142,7 @@ CREATE INDEX "Transaction_userId_idx" ON "Transaction"("userId");
 ALTER TABLE "AccessToken" ADD CONSTRAINT "AccessToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "VendorProfile" ADD CONSTRAINT "VendorProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ZipCode" ADD CONSTRAINT "ZipCode_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SubscribePackage" ADD CONSTRAINT "SubscribePackage_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

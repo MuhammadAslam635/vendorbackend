@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "./DashboardLayout";
-import UserProfilesCard from "./UserProfileCard";
+import UserProfilesCard, { UserProfile } from "./UserProfileCard";
 import { User } from '../../ProtectedRouteProps';
 import axios from 'axios';
 
@@ -27,7 +27,15 @@ const VendorDashboard = () => {
   }, []);
 
   const handleCompleteProfile = () => {
-    navigate("/vendor/profile/complete");
+    navigate("/vendor/profile/update");
+  };
+
+  // Function to safely transform User to UserProfile
+  const getUserProfile = (user: User): UserProfile => {
+    return {
+      ...user,
+      zipcodes: user.zipcodes || [] // Ensure zipcodes is always an array
+    };
   };
 
   return (
@@ -35,7 +43,7 @@ const VendorDashboard = () => {
       <div className="space-y-6">
         {user && (
           <UserProfilesCard 
-            user={user} // Type assertion since we know the structure matches
+            user={getUserProfile(user)}
             onCompleteProfile={handleCompleteProfile} 
           />
         )}

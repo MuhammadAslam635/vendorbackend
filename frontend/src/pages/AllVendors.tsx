@@ -13,7 +13,7 @@ const AllVendors = () => {
     const fetchVendors = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vendor/all`);
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/zipcode/all/profile`);
         setVendors(response.data);
       } catch (error) {
         console.error("Failed to fetch vendors:", error);

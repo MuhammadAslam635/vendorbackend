@@ -109,7 +109,7 @@ const CreatePackage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="profiles">Profiles</Label>
+                <Label htmlFor="profiles">Zipcodes</Label>
                 <Input
                   id="profiles"
                   name="profiles"
@@ -117,7 +117,7 @@ const CreatePackage = () => {
                   min="3"
                   value={formData.profiles}
                   onChange={handleChange}
-                  placeholder="Enter number of profiles"
+                  placeholder="Enter number of zipcodes"
                   required
                 />
               </div>

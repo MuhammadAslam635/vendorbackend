@@ -53,7 +53,7 @@ export class TransactionsService {
   update(id: number, updateTransactionDto: UpdateTransactionDto) {
     return `This action updates a #${id} transaction`;
   }
-
+ 
   async createPaymentSession(userId: number, packageId: number) {
     try {
       const pack = await this.prisma.package.findUnique({
@@ -85,7 +85,7 @@ export class TransactionsService {
           await prisma.user.update({
             where: { id: userId },
             data: {
-              totalProfiles: {
+              totalzipcodes: {
                 increment: pack?.profiles
               },
               packageActive: 'YES'
@@ -116,29 +116,41 @@ export class TransactionsService {
       if (!quickPayApiKey || !apiUrl || !paymentWindowKey) {
         throw new InternalServerErrorException('Payment configuration missing');
       }
-
+      const generateOrderId = () => {
+        // Generate a random number between 1000 and 9999
+        const random = Math.floor(1000 + Math.random() * 9000);
+        // Get current timestamp and take last 4 digits
+        const timestamp = Date.now().toString().slice(-4);
+        // Combine to create a 12-character order ID
+        return `SUB${timestamp}${random}`;
+      };
+      console.log("object",generateOrderId());
       // Step 1: Create a payment using API Key
       const paymentResponse = await axios.post(
         'https://api.quickpay.net/payments',
         {
-          order_id: `SUB-${subscription.sub.id}`,
+          order_id: generateOrderId(), // Will generate something like "SUB12345678"
           currency: 'USD',
+          type: 'payment',
+          basket: [{
+            qty: 1,
+            item_no: packageId,
+            item_name: pack.name,
+            item_price: Math.round(pack.price * 100),
+            vat_rate: 0
+          }]
         },
         {
           headers: {
             'Accept-Version': 'v10',
             'Authorization': `Basic ${Buffer.from(`:${quickPayApiKey}`).toString('base64')}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'QuickPay-Callback-Url': `${apiUrl}/transactions/webhook`
           }
         }
       );
       console.log('Payment creation response:', paymentResponse.data);
       const merchantId = this.configService.get('QUICKPAY_MERCHANT_ID');
-      const agreementId = this.configService.get('QUICKPAY_AGREEMENT_ID');
-      const apiKey = this.configService.get('QUICKPAY_API_KEY');
-      const privateKey = this.configService.get('QUICKPAY_PRIVATE_KEY');
-      const agreementKey = this.configService.get('QUICKPAY_AGREEMENT_KEY');
-
       // Step 2: Create a payment link using API Key
       const paymentId = paymentResponse.data.id;
       const linkResponse = await axios.put(
@@ -174,11 +186,16 @@ export class TransactionsService {
       return {
         paymentUrl: linkResponse.data.url,
         transactionId: subscription.transaction.id,
-        orderId: `SUB-${subscription.sub.id}`
+        orderId: generateOrderId()
       };
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
+      if (axios.isAxiosError(error)) {
+        console.error('QuickPay API Error:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message
+        });
+        throw new BadRequestException(`Payment creation failed: ${error.response?.data?.message || error.message}`);
       }
       console.error('Payment session creation failed:', error);
       throw new InternalServerErrorException('Failed to create payment session');

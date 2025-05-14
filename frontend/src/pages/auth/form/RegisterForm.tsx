@@ -15,6 +15,7 @@ interface FormData {
     lastName: string;
     email: string;
     password: string;
+    phone: string;
     confirmPassword: string;
     agreeToTerms: boolean;
 }
@@ -23,6 +24,7 @@ interface FormErrors {
     firstName?: string;
     lastName?: string;
     email?: string;
+    phone?: string;
     password?: string;
     confirmPassword?: string;
     agreeToTerms?: string;
@@ -43,6 +45,7 @@ const RegisterForm = () => {
         firstName: "",
         lastName: "",
         email: "",
+        phone: "",
         password: "",
         confirmPassword: "",
         agreeToTerms: false
@@ -92,6 +95,11 @@ const RegisterForm = () => {
             newErrors.lastName = "Last name is required";
         }
 
+        // Validate phone
+        if (!formData.phone.trim()) {
+            newErrors.phone = "Phone is required";
+        }
+
         // Validate email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
@@ -135,7 +143,8 @@ const RegisterForm = () => {
             const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/register`, {
                 name: formData.firstName + " " + formData.lastName,
                 email: formData.email,
-                password: formData.password
+                password: formData.password,
+                phone: formData.phone
             });
 
             if (response.status === 201 || response.status === 200) {
@@ -211,6 +220,17 @@ const RegisterForm = () => {
                                     />
                                     {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Phone</Label>
+                                <Input
+                                    id="phone"
+                                    placeholder="1234567890"
+                                    className={`border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 ${errors.phone ? 'border-red-500' : ''}`}
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                />
+                                {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
                             </div>
 
                             <div className="space-y-2">

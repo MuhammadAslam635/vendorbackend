@@ -7,12 +7,13 @@ import { ConfigModule } from '@nestjs/config';
 import { PackageModule } from './package/package.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { SubscribepackageModule } from './subscribepackage/subscribepackage.module';
-import { VendorModule } from './vendor/vendor.module';
+
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { StatsModule } from './stats/stats.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { ZipcodeModule } from './zipcode/zipcode.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,7 +26,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     PackageModule,
     TransactionsModule,
     SubscribepackageModule,
-    VendorModule,
+    ZipcodeModule,
     MailerModule.forRoot({
       transport: {
         host: process.env.MAIL_HOST,
@@ -48,10 +49,11 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
       },
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname,'public'),
+      rootPath: join(__dirname,'..','public'),
       serveRoot: '/public',
     }),
     StatsModule,
+    ZipcodeModule,
   ],
 })
 export class AppModule {}

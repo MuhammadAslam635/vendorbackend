@@ -13,6 +13,8 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   name?: string;
+  @IsString()
+  phone: string;
 
   @IsString()
   @Transform(() => "NO")

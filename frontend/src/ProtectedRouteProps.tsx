@@ -1,21 +1,7 @@
-
-
 export type UserRole = 'ADMIN' | 'VENDOR';
-export interface VendorProfile {
+export interface Zipcode {
     id: number;
-    company?: string;
-    businessName?: string;
-    state?: string;
-    city?: string;
-    zipcode?: string;
-    address?: string;
-    country?: string;
-    companyLogo?: string;
-    fb?: string;
-    ln?: string;
-    in?: string;
-    yt?: string;
-    webUrl?: string;
+    zipcode: string;
     createdAt: Date;
     updatedAt: Date;
     userId: number;
@@ -25,12 +11,28 @@ export interface User {
   id: number;
   email: string;
   name: string;
+  phone: string;
   utype: UserRole;
   status: string;
+  company?: string;
+  businessName?: string;
+  state?: string;
+  city?: string;
+  address?: string;
+  country?: string;
+  companyLogo?: string;
+  fb?: string;
+  ln?: string;
+  in?: string;
+  yt?: string;
+  webUrl?: string;
+  totalzipcodes?: number;
+  addedzipcodes?: number;
   createdAt: Date;
   packageActive: string;
-  profiles?: VendorProfile[];
+  zipcodes?: Zipcode[];
 }
+
 export interface AuthState {
     user: User | null;
     isAuthenticated: boolean;

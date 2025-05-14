@@ -36,8 +36,6 @@ export const PaymentModal = ({
           }
         }
       );
-
-      // Redirect to QuickPay's payment page
       if (response.data && response.data.paymentUrl) {
         window.location.href = response.data.paymentUrl;
       } else {
