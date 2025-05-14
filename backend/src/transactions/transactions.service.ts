@@ -229,76 +229,65 @@ export class TransactionsService {
   }
 
   // Update the handleWebhook method
-  async handleWebhook(payload: WebhookPayload) {
+  async handleWebhook(payload: any) {
     console.log('Processing webhook payload:', payload);
-    const subscriptionId = payload.orderId?.substring(4);
-    const FRONTEND_URL = this.configService.get('FRONTEND_URL');
     
-    if (!subscriptionId) {
-      console.error('Invalid order ID format:', payload.orderId);
-      return this.redirect(FRONTEND_URL + '/dashboard/subscription?error=invalid_order');
-    }
-  
     try {
+      // Extract subscription ID from order ID (remove 'SUB' prefix)
+      const orderIdParts = payload.orderId.split(/[-_]/);
+      const subscriptionId = orderIdParts[orderIdParts.length - 1];
+
       await this.prisma.$transaction(async (prisma) => {
+        // Find the subscription by the transaction ID instead
         const subscription = await prisma.subscribePackage.findFirst({
-          where: { id: parseInt(subscriptionId) },
+          where: {
+            transaction: {
+              transactionId: payload.transactionId.toString()
+            }
+          },
           include: { 
             transaction: true,
             user: true
           }
         });
-  
+
         if (!subscription) {
-          throw new BadRequestException('Subscription not found');
+          console.error('Subscription not found for transaction:', payload.transactionId);
+          return;
         }
-  
-        const transaction = subscription.transaction;
-  
-        // Update transaction status and QuickPay transaction ID
+
+        // Update transaction status
         await prisma.transaction.update({
-          where: { id: transaction?.id },
+          where: { subscribe_package_id: subscription.id },
           data: {
             paymentStatus: payload.status,
-            transactionId: payload.transactionId?.toString()
+            transactionId: payload.transactionId.toString()
           },
         });
-        console.log('Transaction status updated');
-  
-        // Update subscription and user if payment successful
+
+        // Update subscription and user status based on payment status
         if (payload.status === 'COMPLETED') {
           await prisma.subscribePackage.update({
             where: { id: subscription.id },
             data: { status: 'ACTIVE' }
           });
-          console.log('Subscription activated');
-  
+
           await prisma.user.update({
             where: { id: subscription.userId },
             data: { packageActive: 'YES' }
           });
-          console.log('User package status updated');
-  
-          // Return success response with redirect
-          return this.redirect(FRONTEND_URL + '/vendor/dashboard/subscription?success=true');
-        } else if (payload.status === 'CANCELLED' || payload.status === 'FAILED') {
-          // Handle failed or cancelled payments
+        } else if (payload.status === 'FAILED') {
           await prisma.subscribePackage.update({
             where: { id: subscription.id },
             data: { status: 'CANCELLED' }
           });
-          console.log('Subscription cancelled');
-  
-          return this.redirect(FRONTEND_URL + '/vendor/dashboard/subscription?error=payment_failed');
         }
       });
-      
-      console.log('Webhook processed successfully:', payload);
-      return this.redirect(FRONTEND_URL + '/vendor/dashboard/subscription?status=' + payload.status.toLowerCase());
-  
+
+      console.log('Webhook processed successfully');
     } catch (error) {
       console.error('Webhook processing error:', error);
-      return this.redirect(FRONTEND_URL + '/vendor/dashboard/subscription?error=system_error');
+      // Don't throw error, just log it
     }
   }
   
