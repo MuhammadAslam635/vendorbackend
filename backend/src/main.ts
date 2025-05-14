@@ -24,5 +24,14 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   await app.listen(process.env.PORT ?? 3000);
+  app.use((req, res, next) => {
+    console.log('Incoming request:', {
+      method: req.method,
+      path: req.path,
+      headers: req.headers,
+      body: req.body
+    });
+    next();
+  });
 }
 bootstrap();

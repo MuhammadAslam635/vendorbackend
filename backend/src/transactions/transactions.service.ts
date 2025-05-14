@@ -145,7 +145,7 @@ export class TransactionsService {
             'Accept-Version': 'v10',
             'Authorization': `Basic ${Buffer.from(`:${quickPayApiKey}`).toString('base64')}`,
             'Content-Type': 'application/json',
-            'QuickPay-Callback-Url': `${apiUrl}/transactions/webhook`
+            'QuickPay-Callback-Url': `${apiUrl}/transactions/webhook/quickpay`
           }
         }
       );
@@ -160,7 +160,7 @@ export class TransactionsService {
           amount: Math.round(pack.price * 100), // Amount in cents
           continue_url: `${FRONTEND_URL}/transactions/payment-success`,
           cancel_url: `${FRONTEND_URL}/transactions/payment-cancel`,
-          callback_url: `${apiUrl}/transactions/webhook`,
+          callback_url: `${apiUrl}/transactions/webhook/quickpay`,
           auto_capture: true,
           language: 'en',
           payment_methods: 'creditcard', // Add supported payment methods
@@ -233,61 +233,65 @@ export class TransactionsService {
     console.log('Processing webhook payload:', payload);
     
     try {
-      // Extract subscription ID from order ID (remove 'SUB' prefix)
-      const orderIdParts = payload.orderId.split(/[-_]/);
-      const subscriptionId = orderIdParts[orderIdParts.length - 1];
+      // Extract subscription ID from order ID
+      const orderId = payload.orderId;
+      console.log('Processing order:', orderId);
 
       await this.prisma.$transaction(async (prisma) => {
-        // Find the subscription by the transaction ID instead
-        const subscription = await prisma.subscribePackage.findFirst({
+        // Find the transaction by QuickPay transaction ID
+        const transaction = await prisma.transaction.findFirst({
           where: {
-            transaction: {
-              transactionId: payload.transactionId.toString()
-            }
+            transactionId: payload.transactionId.toString()
           },
-          include: { 
-            transaction: true,
-            user: true
+          include: {
+            subscribe_package: {
+              include: {
+                user: true
+              }
+            }
           }
         });
 
-        if (!subscription) {
-          console.error('Subscription not found for transaction:', payload.transactionId);
+        if (!transaction) {
+          console.error('Transaction not found:', payload.transactionId);
           return;
         }
 
         // Update transaction status
         await prisma.transaction.update({
-          where: { subscribe_package_id: subscription.id },
+          where: { id: transaction.id },
           data: {
-            paymentStatus: payload.status,
-            transactionId: payload.transactionId.toString()
-          },
+            paymentStatus: payload.status
+          }
         });
 
-        // Update subscription and user status based on payment status
+        // Update subscription and user if payment is completed
         if (payload.status === 'COMPLETED') {
           await prisma.subscribePackage.update({
-            where: { id: subscription.id },
+            where: { id: transaction.subscribe_package.id },
             data: { status: 'ACTIVE' }
           });
 
           await prisma.user.update({
-            where: { id: subscription.userId },
+            where: { id: transaction.subscribe_package.user.id },
             data: { packageActive: 'YES' }
           });
-        } else if (payload.status === 'FAILED') {
+
+          console.log('Payment completed successfully for order:', orderId);
+        } else {
           await prisma.subscribePackage.update({
-            where: { id: subscription.id },
+            where: { id: transaction.subscribe_package.id },
             data: { status: 'CANCELLED' }
           });
+
+          console.log('Payment failed or cancelled for order:', orderId);
         }
       });
 
       console.log('Webhook processed successfully');
     } catch (error) {
       console.error('Webhook processing error:', error);
-      // Don't throw error, just log it
+      // Log error but don't throw to ensure 200 response
     }
   }
   
