@@ -48,7 +48,7 @@ export class TransactionsController {
     return this.transactionsService.createPaymentSession(req.user.userId, +packageId);
   }
 
-  @Post('webhook')
+  @Post('/webhook/quickpay')
   async handleWebhook(
     @Body() payload: Record<string, any>,
     @Headers('QuickPay-Checksum-Sha256') signature: string
@@ -56,15 +56,11 @@ export class TransactionsController {
     if (!payload) {
       throw new BadRequestException('Webhook payload is required');
     }
-    
-    // Verify signature of the webhook
     const isValid = await this.transactionsService.verifyWebhookSignature(payload, signature);
     
     if (!isValid) {
       throw new BadRequestException('Invalid webhook signature');
     }
-    
-    // Process the webhook payload - QuickPay format mapping
     return this.transactionsService.handleWebhook({
       orderId: payload.order_id,
       status: this.mapQuickPayStatus(payload.accepted),
