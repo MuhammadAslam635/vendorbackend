@@ -22,7 +22,7 @@ export class AuthService {
     const { email, password, name = email.split('@')[0], phone } = registerDto; // Provide default values
     const user = await this.userService.create(email, password, name, phone, "NO");
     
-    const { password: _, ...result } = user;
+    const { password: _, ...userData } = user;
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://default-frontend-url.com';
     const supportEmail = process.env.SUPPORT_EMAIL || 'support@yourplatform.com';
@@ -39,10 +39,27 @@ export class AuthService {
         }
     });
 
-    return result;
+    // Create JWT payload and token, just like in login
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      utype: user.utype
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        utype: user.utype,
+        createdAt: user.createdAt,
+        status: user.status,
+        emailVerified: user.email_verification_at,
+        packageActive: user.packageActive,
+      },
+    };
 }
-
-
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;

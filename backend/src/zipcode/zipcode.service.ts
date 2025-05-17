@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateZipcodeDto } from './dto/create-zipcode.dto';
 import { UpdateZipcodeDto } from './dto/update-zipcode.dto';
 import { SearchZipcodeDto } from './dto/search-zipcode.dto';
@@ -10,72 +10,135 @@ export class ZipcodeService {
   constructor(
     private prisma: PrismaService,
   ) {}
-  create(createZipcodeDto: CreateZipcodeDto) {
-    return this.prisma.zipCode.create({
-      data: {
-        zipcode: createZipcodeDto.zipcode,
-        userId: createZipcodeDto.userId,
+
+  async create(createZipcodeDto: CreateZipcodeDto) {
+    const { zipcode, userId } = createZipcodeDto;
+
+    // Get user to check their limits
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user has reached their ZIP code limit
+    const currentZipcodes = user.addedzipcodes || 0;
+    const maxZipcodes = user.totalzipcodes || 0;
+
+    if (currentZipcodes >= maxZipcodes) {
+      throw new BadRequestException('You have reached your ZIP code limit');
+    }
+
+    // Check if ZIP code already exists for this user
+    const existingZipcode = await this.prisma.zipCode.findFirst({
+      where: {
+        userId: userId,
+        zipcode: zipcode
+      }
+    });
+
+    if (existingZipcode) {
+      throw new BadRequestException('This ZIP code is already added to your account');
+    }
+
+    // Use transaction to ensure both operations succeed
+    return this.prisma.$transaction(async (prisma) => {
+      // Create the ZIP code
+      const newZipcode = await prisma.zipCode.create({
+        data: {
+          zipcode,
+          userId,
+        },
+      });
+
+      // Update user's addedzipcodes count
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          addedzipcodes: currentZipcodes + 1,
+        },
+      });
+
+      return newZipcode;
+    });
+  }
+
+  async remove(id: string, userId: string) {
+    const userIdNum = parseInt(userId);
+    const idNum = parseInt(id);
+
+    // First find the ZIP code to ensure it exists and belongs to the user
+    const zipcode = await this.prisma.zipCode.findFirst({
+      where: {
+        id: idNum,
+        userId: userIdNum,
       },
+    });
+
+    if (!zipcode) {
+      throw new NotFoundException('ZIP code not found or you do not have permission to delete it');
+    }
+
+    // Get user to update their count
+    const user = await this.prisma.user.findUnique({
+      where: { id: userIdNum },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Use transaction to ensure both operations succeed
+    return this.prisma.$transaction(async (prisma) => {
+      // Delete the ZIP code
+      const deletedZipcode = await prisma.zipCode.delete({
+        where: { id: idNum },
+      });
+
+      // Update user's addedzipcodes count
+      const currentZipcodes = user.addedzipcodes || 0;
+      await prisma.user.update({
+        where: { id: userIdNum },
+        data: {
+          addedzipcodes: Math.max(0, currentZipcodes - 1), // Ensure count doesn't go below 0
+        },
+      });
+
+      return deletedZipcode;
     });
   }
 
   findAll() {
-    return `This action returns all zipcode`;
+    return this.prisma.zipCode.findMany();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} zipcode`;
+    return this.prisma.zipCode.findUnique({
+      where: { id },
+    });
   }
 
   update(id: number, updateZipcodeDto: UpdateZipcodeDto) {
-    return `This action updates a #${id} zipcode`;
+    return this.prisma.zipCode.update({
+      where: { id },
+      data: updateZipcodeDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} zipcode`;
-  }
   async searchzipCode(searchZipcodeDto: SearchZipcodeDto) {
-    try {
-      const { zipcode } = searchZipcodeDto;
-      console.log(`Searching for zipcode: ${zipcode}`);
-
-      // Return empty array if search is empty or undefined
-      if (!zipcode || zipcode.trim() === '') {
-        return [];
-      }
-
-      // Clean up the search term
-      const searchTerm = zipcode.trim();
-
-      // Query the database for matching zipcodes
-      const results = await this.prisma.zipCode.findMany({
-        where: {
-          zipcode: {
-            startsWith: searchTerm,
-          },
-        },
-        include: {
-          user: true,
-        },
-        orderBy: {
-          zipcode: 'asc',
-        },
-        take: 10, // Limit results to 10
-      });
-
-      console.log(`Found ${results.length} active users for zipcode search: ${searchTerm}`);
-      return results;
-
-    } catch (error) {
-      console.log(`Error searching for zipcode: ${error.message}`, error.stack);
-      throw new BadRequestException('Failed to search zipcode');
-    }
-  }
-  async getAllZipcode() {
+    const { zipcode } = searchZipcodeDto;
     return this.prisma.zipCode.findMany({
-      include: {
-        user: true,
+      where: {
+        zipcode: {
+          contains: zipcode,
+        },
       },
     });
+  }
+
+  async getAllZipcode() {
+    return this.prisma.zipCode.findMany();
   }
 }

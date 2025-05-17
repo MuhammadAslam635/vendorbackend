@@ -10,7 +10,8 @@ export class ZipcodeController {
   constructor(
     private readonly zipcodeService: ZipcodeService,
   ) {}
- @UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Request() req, @Body() createZipcodeDto: CreateZipcodeDto) {
     const userId = req.user.userId;
@@ -32,15 +33,19 @@ export class ZipcodeController {
     return this.zipcodeService.update(+id, updateZipcodeDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.zipcodeService.remove(+id);
+  remove(@Request() req, @Param('id') id: string) {
+    const userId = req.user.userId;
+    return this.zipcodeService.remove(id, userId);
   }
+
   @Get("/search/profile")
   async searchZipcode(@Query() searchZipcodeDto: SearchZipcodeDto) {
     console.log("searchZipcodeDto",searchZipcodeDto);
     return this.zipcodeService.searchzipCode(searchZipcodeDto);
   }
+
   @Get("/all/profile")
   async getAllZipcode() {
     return this.zipcodeService.getAllZipcode();

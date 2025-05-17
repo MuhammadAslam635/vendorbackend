@@ -81,17 +81,17 @@ export class TransactionsService {
         const user = await this.prisma.user.findUnique({
           where: { id: userId }
         });
-        if (user) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              totalzipcodes: {
-                increment: pack?.profiles
-              },
-              packageActive: 'YES'
-            }
-          });
-        }
+        // if (user) {
+        //   await prisma.user.update({
+        //     where: { id: userId },
+        //     data: {
+        //       totalzipcodes: {
+        //         increment: pack?.profiles
+        //       },
+        //       packageActive: 'NO'
+        //     }
+        //   });
+        // }
 
         // Create transaction record
         const transaction = await prisma.transaction.create({
@@ -174,6 +174,16 @@ export class TransactionsService {
           }
         }
       );
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          totalzipcodes: {
+            increment: pack?.profiles
+          },
+          packageActive: 'YES'
+        }
+      });
       console.log('Payment link response:', linkResponse.data);
       // Save QuickPay payment ID to our transaction for reference
       await this.prisma.transaction.update({
@@ -298,7 +308,7 @@ export class TransactionsService {
   // Remove or simplify confirmPaymentSuccess since webhook will handle everything
   async confirmPaymentSuccess(orderId: string) {
     const FRONTEND_URL = this.configService.get('FRONTEND_URL');
-    return this.redirect(FRONTEND_URL + '/vendor/dashboard/subscription');
+    return this.redirect(FRONTEND_URL + '/vendor/add/zipcode');
   }
   
   async handlePaymentCancel(orderId: string) {

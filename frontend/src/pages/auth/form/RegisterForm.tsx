@@ -9,6 +9,7 @@ import { Label } from "recharts";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
+import { useAuth } from "../../../useAuth";
 
 interface FormData {
     firstName: string;
@@ -148,15 +149,43 @@ const RegisterForm = () => {
             });
 
             if (response.status === 201 || response.status === 200) {
-                toast.success("Registration successful!",{
-                    position: "top-right",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                });
-                navigate("/login");
+                // Check if response contains token and user data
+                if (response.data?.access_token && response.data?.user) {
+                    // Update auth state using the hook
+                    useAuth.getState().login(response.data.user, response.data.access_token);
+                    
+                    toast.success("Registration successful!",{
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                    
+                    // Redirect based on user type
+                    switch(response.data.user.utype) {
+                        case "ADMIN":
+                            navigate("/admin/dashboard");
+                            break;
+                        case "VENDOR":
+                            navigate("/vendor/dashboard");
+                            break;
+                        default:
+                            navigate("/");
+                    }
+                } else {
+                    // Fallback to old behavior if response format doesn't match
+                    toast.success("Registration successful!",{
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                    navigate("/login");
+                }
             }
         } catch (error) {
             console.error("Registration error:", error);

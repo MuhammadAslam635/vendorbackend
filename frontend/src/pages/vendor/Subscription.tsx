@@ -188,10 +188,9 @@ const Subscription = () => {
                   <Button
                       className="w-full bg-[#a0b830] hover:bg-[#8fa029]"
                       onClick={() => handleSubscribeClick(pkg)}
-                      disabled={pkg.id === activePackageId || have === true}
-                      
+                     
                     >
-                      {pkg.id === activePackageId ? 'Currently Active' : (have == true? "You Already Have" : 'Subscribe Now')}
+                      Subscribe Now
                     </Button>
                   </div>
                 </CardContent>

@@ -10,6 +10,7 @@ import axios from "axios";
 import { DashboardLayout } from "./DashboardLayout";
 import { Textarea } from "../../components/ui/textarea";
 import { Link } from "react-router-dom";
+
 interface VendorProfileForm {
   company: string;
   address: string;
@@ -21,12 +22,6 @@ interface VendorProfileForm {
   in: string;
   yt: string;
   webUrl: string;
-  zipcodes: Zipcode[];
-}
-
-// Ensure we match the Zipcode interface structure
-interface Zipcode {
-  zipcode: string;
 }
 
 const UpdateProfile = () => {
@@ -44,13 +39,11 @@ const UpdateProfile = () => {
     companyLogo: ''
   });
 
-  const [newZipcode, setNewZipcode] = useState("");
   const [formData, setFormData] = useState<VendorProfileForm>({
     company: "",
     address: "",
     city: "",
     state: "",
-    zipcodes: [],
     country: "",
     fb: "",
     ln: "",
@@ -63,9 +56,6 @@ const UpdateProfile = () => {
   // Add error state
   const [error, setError] = useState<string | null>(null);
   
-  // Track totalZipcodes separately from user object to ensure it's always available
-  const [totalZipcodes, setTotalZipcodes] = useState(0);
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -99,11 +89,8 @@ const UpdateProfile = () => {
           in: userData.in || "",
           yt: userData.yt || "",
           webUrl: userData.webUrl || "",
-          zipcodes: userData.zipcodes || [],
         });
         
-        // Store total zipcodes separately to ensure it's always available
-        setTotalZipcodes(userData.totalzipcodes || 0);
         setExistingLogo(userData.companyLogo || '');
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -142,37 +129,6 @@ const UpdateProfile = () => {
     }
   };
 
-  const handleAddZipcode = () => {
-    if (!newZipcode.trim()) return;
-    
-    // Use our separately tracked totalZipcodes instead of relying on user object
-    if (formData.zipcodes.length >= totalZipcodes) {
-      toast.error(`You can only add up to ${totalZipcodes} ZIP codes. Please upgrade your package.`);
-      return;
-    }
-    
-    // Check if the zipcode is already added
-    if (formData.zipcodes.some(z => z.zipcode === newZipcode)) {
-      toast.error("This zipcode is already added");
-      return;
-    }
-    
-    // Add the new zipcode to the list
-    setFormData(prev => ({
-      ...prev,
-      zipcodes: [...prev.zipcodes, { zipcode: newZipcode }]
-    }));
-    
-    setNewZipcode("");
-  };
-
-  const handleRemoveZipcode = (code: string) => {
-    setFormData(prev => ({
-      ...prev,
-      zipcodes: prev.zipcodes.filter(z => z.zipcode !== code)
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -182,10 +138,7 @@ const UpdateProfile = () => {
 
       // Append form fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === "zipcodes") {
-          // Convert zipcodes array to JSON string
-          formDataToSend.append("zipcodes", JSON.stringify(value));
-        } else if (value) {
+        if (value) {
           formDataToSend.append(key, value.toString());
         }
       });
@@ -257,7 +210,7 @@ const UpdateProfile = () => {
       </DashboardLayout>
     );
   }
-
+console.log("user", user)
   return (
     <DashboardLayout title="Vendor Profile" user={user}>
       <div className="max-w-4xl mx-auto py-6">
@@ -269,231 +222,192 @@ const UpdateProfile = () => {
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-            {/* Profile Images Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Images</CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-1 gap-6">
-                <div>
-                  <Label htmlFor="companyLogo">Company Logo</Label>
-                  <div className="mt-2 flex items-center gap-4">
-                    <div className="h-24 w-24 rounded bg-gray-100 flex items-center justify-center">
-                      {previews.companyLogo ? (
-                        // Show new selected image preview
-                        <img
-                          src={previews.companyLogo}
-                          alt="Company Logo"
-                          className="h-24 w-24 rounded object-cover"
-                        />
-                      ) : existingLogo ? (
-                        // Show existing image from server
-                        <img
-                          src={existingLogo}
-                          alt="Company Logo"
-                          className="h-24 w-24 rounded object-cover"
-                        />
-                      ) : (
-                        <Building2 className="h-12 w-12 text-gray-400" />
-                      )}
+              {/* Profile Images Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile Images</CardTitle>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-1 gap-6">
+                  <div>
+                    <Label htmlFor="companyLogo">Company Logo</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      <div className="h-24 w-24 rounded bg-gray-100 flex items-center justify-center">
+                        {previews.companyLogo ? (
+                          <img
+                            src={previews.companyLogo}
+                            alt="Company Logo"
+                            className="h-24 w-24 rounded object-cover"
+                          />
+                        ) : existingLogo ? (
+                          <img
+                            src={existingLogo}
+                            alt="Company Logo"
+                            className="h-24 w-24 rounded object-cover"
+                          />
+                        ) : (
+                          <Building2 className="h-12 w-12 text-gray-400" />
+                        )}
+                      </div>
+                      <Input
+                        id="companyLogo"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, 'companyLogo')}
+                      />
                     </div>
-                    <Input
-                      id="companyLogo"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'companyLogo')}
-                    />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Business Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Business Information</CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-1 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="company">Company Name</Label>
-                  <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={handleInputChange}
-                    placeholder="Enter company name"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+              {/* Business Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Information</CardTitle>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Company Name</Label>
+                    <Input
+                      id="company"
+                      value={formData.company}
+                      onChange={handleInputChange}
+                      placeholder="Enter company name"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Address Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Address Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="address">Street Address</Label>
-                  <Textarea
-                    id="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder="Enter street address"
-                    rows={3}
-                  />
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
+              {/* Address Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Address Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
+                    <Label htmlFor="address">Street Address</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address}
                       onChange={handleInputChange}
-                      placeholder="Enter city"
+                      placeholder="Enter street address"
+                      rows={3}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
-                      placeholder="Enter state"
-                    />
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        placeholder="Enter city"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State</Label>
+                      <Input
+                        id="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        placeholder="Enter state"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="country">Country</Label>
+                      <Input
+                        id="country"
+                        value={formData.country}
+                        onChange={handleInputChange}
+                        placeholder="Enter country"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      value={formData.country}
-                      onChange={handleInputChange}
-                      placeholder="Enter country"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Zipcode Management */}
-            <Card>
-              <CardHeader>
-                <CardTitle>ZIP Code Management</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-500">
-                    ZIP codes: {formData.zipcodes.length} of {totalZipcodes} used
+              {/* ZIP Code Management Link */}
+              {/* <Card>
+                <CardHeader>
+                  <CardTitle>ZIP Code Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Manage your service area by adding or removing ZIP codes.
                   </p>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="newZipcode"
-                    value={newZipcode}
-                    onChange={(e) => setNewZipcode(e.target.value)}
-                    placeholder="Enter ZIP code"
-                  />
-                  <Button 
-                    type="button"
-                    onClick={handleAddZipcode}
-                    className="bg-[#a0b830] hover:bg-[#8fa029] text-white"
-                    disabled={formData.zipcodes.length >= totalZipcodes}
+                  <Link
+                    to="/vendor/add/zipcode"
+                    className="bg-[#a0b830] hover:bg-[#8fa029] text-white px-4 py-2 rounded-md inline-flex items-center"
                   >
-                    <PlusCircle className="h-4 w-4 mr-1" /> Add
-                  </Button>
-                </div>
-                
-                <div className="mt-4">
-                  <Label>Current ZIP Codes</Label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {formData.zipcodes.length === 0 ? (
-                      <p className="text-sm text-gray-500">No ZIP codes added yet</p>
-                    ) : (
-                      formData.zipcodes.map((zipcode) => (
-                        <div 
-                          key={zipcode.zipcode}
-                          className="bg-gray-100 px-3 py-1 rounded-full flex items-center gap-1"
-                        >
-                          <span>{zipcode.zipcode}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveZipcode(zipcode.zipcode)}
-                            className="text-gray-500 hover:text-red-500"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))
-                    )}
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Manage ZIP Codes
+                  </Link>
+                </CardContent>
+              </Card> */}
+
+              {/* Social Media & Website */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Social Media & Website</CardTitle>
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="fb">Facebook Account</Label>
+                    <Input
+                      id="fb"
+                      value={formData.fb}
+                      onChange={handleInputChange}
+                      placeholder="Enter Facebook URL"
+                    />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="ln">LinkedIn Account</Label>
+                    <Input
+                      id="ln"
+                      value={formData.ln}
+                      onChange={handleInputChange}
+                      placeholder="Enter LinkedIn URL"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="in">Instagram Account</Label>
+                    <Input
+                      id="in"
+                      value={formData.in}
+                      onChange={handleInputChange}
+                      placeholder="Enter Instagram URL"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="yt">YouTube Account</Label>
+                    <Input
+                      id="yt"
+                      value={formData.yt}
+                      onChange={handleInputChange}
+                      placeholder="Enter YouTube URL"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="webUrl">Website URL</Label>
+                    <Input
+                      id="webUrl"
+                      value={formData.webUrl}
+                      onChange={handleInputChange}
+                      placeholder="Enter Website URL"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Social Media & Website */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Social Media & Website</CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="fb">Facebook Account</Label>
-                  <Input
-                    id="fb"
-                    value={formData.fb}
-                    onChange={handleInputChange}
-                    placeholder="Enter Facebook URL"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ln">LinkedIn Account</Label>
-                  <Input
-                    id="ln"
-                    value={formData.ln}
-                    onChange={handleInputChange}
-                    placeholder="Enter LinkedIn URL"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="in">Instagram Account</Label>
-                  <Input
-                    id="in"
-                    value={formData.in}
-                    onChange={handleInputChange}
-                    placeholder="Enter Instagram URL"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="yt">YouTube Account</Label>
-                  <Input
-                    id="yt"
-                    value={formData.yt}
-                    onChange={handleInputChange}
-                    placeholder="Enter YouTube URL"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="webUrl">Website URL</Label>
-                  <Input
-                    id="webUrl"
-                    value={formData.webUrl}
-                    onChange={handleInputChange}
-                    placeholder="Enter Website URL"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                className="bg-[#a0b830] hover:bg-[#8fa029] text-white"
-                disabled={isLoading}
-              >
-                {isLoading ? "Updating..." : "Update Profile"}
-              </Button>
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  className="bg-[#a0b830] hover:bg-[#8fa029] text-white"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Updating..." : "Update Profile"}
+                </Button>
+              </div>
             </div>
-          </div>
           </form>
         )}
       </div>

@@ -25,6 +25,8 @@ import MyAds from './pages/MyAds'
 import CoreAeration from './pages/CoreAeration'
 import CoreAerationCaution from './pages/CoreAerationCaution'
 import CoreAerationTips from './pages/CoreAerationTips'
+import AddZipcode from './pages/vendor/AddZipcode'
+
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -80,6 +82,7 @@ function App() {
               <Route path="profiles" element={<Profile />} />
               <Route path="profile/update" element={<UpdateProfile />} />
               <Route path="subscriptions" element={<Subscription />} />
+              <Route path="add/zipcode" element={<AddZipcode />} />
               <Route path="transactions" element={<Transaction />} />
               <Route path="/payment-success" element={<PaymentSuccessHandler />} />
               <Route path="/payment-cancel" element={<PaymentCancelHandler />} />

@@ -12,7 +12,7 @@ interface Transaction {
   paymentStatus: string;
   paymentMethod: string;
   createdAt: string;
-  subscriptionId: string | null;
+  subscribe_package_id: string | null;
   package: Package;
 }
 
@@ -22,6 +22,7 @@ interface Package {
   price: number;
   duration: number;
   status: string;
+  
 }
 
 const Transaction = () => {
@@ -78,7 +79,7 @@ const Transaction = () => {
       return (
         (searchFilters.date ? date.includes(searchFilters.date) : true) &&
         (searchFilters.subscriptionId
-          ? transaction.subscriptionId?.toLowerCase().includes(searchFilters.subscriptionId.toLowerCase())
+          ? transaction.subscribe_package_id?.toLowerCase().includes(searchFilters.subscriptionId.toLowerCase())
           : true) &&
         (searchFilters.amount
           ? transaction.amount.toString().includes(searchFilters.amount)
@@ -116,7 +117,6 @@ const Transaction = () => {
   const currentRows = filteredTransactions.slice(indexOfFirstRow, indexOfLastRow);
 
   const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
-
   return (
     <DashboardLayout title="Transaction History" user={user}>
       <div className="max-w-7xl mx-auto py-6 space-y-8">
@@ -200,7 +200,7 @@ const Transaction = () => {
                           })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {transaction.subscriptionId || 'N/A'}
+                          {transaction.subscribe_package_id || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">
                           ${transaction.amount.toFixed(2)}

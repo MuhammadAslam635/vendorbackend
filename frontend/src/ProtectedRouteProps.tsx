@@ -7,6 +7,14 @@ export interface Zipcode {
     userId: number;
 }
 
+export interface Package {
+    id: number;
+    name: string;
+    zipcodes: number;
+    price: number;
+    description: string;
+}
+
 export interface User {
   id: number;
   email: string;
@@ -31,6 +39,7 @@ export interface User {
   createdAt: Date;
   packageActive: string;
   zipcodes?: Zipcode[];
+  package?: Package;
 }
 
 export interface AuthState {

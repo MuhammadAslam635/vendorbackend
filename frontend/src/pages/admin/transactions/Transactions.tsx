@@ -15,7 +15,7 @@ interface Transaction {
   transactionId: string | null;
   createdAt: string;
   updatedAt: string;
-  subscriptionId: number;
+  subscribe_package_id: number;
   userId: number;
   user?: {
     name: string;
@@ -205,7 +205,7 @@ const Transactions = () => {
                     <TableCell>{transaction.transactionId || '-'}</TableCell>
                     <TableCell>{transaction.user?.name || `User ${transaction.userId}`}</TableCell>
                     <TableCell>
-                      {transaction.subscription?.package?.name || `Subscription ${transaction.subscriptionId}`}
+                      {transaction.subscription?.package?.name || `Subscription ${transaction.subscribe_package_id}`}
                     </TableCell>
                     <TableCell>${transaction.amount}</TableCell>
                     <TableCell>{transaction.paymentMethod}</TableCell>

@@ -55,7 +55,7 @@ const Header = () => {
                   onClick={() => scrollToSection("about")}
                   className="text-[#a0b830] hover:text-gray-950"
                 >
-                  About
+                  Remove
                 </button>
               </li>
               <li>
@@ -63,7 +63,7 @@ const Header = () => {
                   onClick={() => scrollToSection("faq")}
                   className="text-[#a0b830] hover:text-gray-950"
                 >
-                  FAQ
+                  Move to folder
                 </button>
               </li>
               <li>
@@ -79,7 +79,7 @@ const Header = () => {
               <li>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline">Pages</Button>
+                    <Button variant="outline">Home Page</Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56">
                     <DropdownMenuItem asChild>

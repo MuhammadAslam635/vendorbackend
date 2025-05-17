@@ -32,7 +32,7 @@ interface ZipCode {
 const MyAds = () => {
     const [vendor, setVendor] = useState<VendorProfile | null>(null);
     const [loading, setLoading] = useState(true);
-
+console.log("vendor",vendor)
     useEffect(() => {
         fetchVendor();
     }, []);
