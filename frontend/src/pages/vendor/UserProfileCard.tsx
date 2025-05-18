@@ -40,7 +40,7 @@ const UserProfileCard = ({ user, onCompleteProfile }: UserProfileCardProps) => {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-xl p-6 max-w-3xl mx-auto">
+    <div className="bg-white shadow-lg rounded-xl p-6 max-w-7xl mx-auto">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
         <div className="flex items-center space-x-4 mb-4 md:mb-0">

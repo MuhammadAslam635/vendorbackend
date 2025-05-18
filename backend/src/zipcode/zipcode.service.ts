@@ -134,11 +134,21 @@ export class ZipcodeService {
         zipcode: {
           contains: zipcode,
         },
+        user: {
+          status: 'ACTIVE',
+        },
+      },
+      include: {
+        user: true,
       },
     });
   }
 
   async getAllZipcode() {
-    return this.prisma.zipCode.findMany();
+    return this.prisma.zipCode.findMany({
+      include: {
+        user: true,
+      },
+    });
   }
 }

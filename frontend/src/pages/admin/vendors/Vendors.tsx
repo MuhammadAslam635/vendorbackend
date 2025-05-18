@@ -28,17 +28,16 @@ interface User {
     email: string;
     status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
     createdAt: string;
-    vendor?: {
-        company: string;
-        businessName: string;
-        state: string;
-        city: string;
-        zipcode: string;
-        address: string;
-        country: string;
-        companyLogo: string;
-        profileImg: string;
-    };
+    company: string;
+    businessName: string;
+    state: string;
+    city: string;
+    zipcode: string;
+    address: string;
+    country: string;
+    companyLogo: string;
+    profileImg: string;
+
 }
 
 const Vendors = () => {
@@ -81,11 +80,11 @@ const Vendors = () => {
             return (
                 user.name.toLowerCase().includes(query) ||
                 user.email.toLowerCase().includes(query) ||
-                user.vendor?.company?.toLowerCase().includes(query) ||
-                user.vendor?.address?.toLowerCase().includes(query) ||
-                user.vendor?.city?.toLowerCase().includes(query) ||
-                user.vendor?.state?.toLowerCase().includes(query) ||
-                user.vendor?.country?.toLowerCase().includes(query)
+                user.company?.toLowerCase().includes(query) ||
+                user.address?.toLowerCase().includes(query) ||
+                user.city?.toLowerCase().includes(query) ||
+                user.state?.toLowerCase().includes(query) ||
+                user.country?.toLowerCase().includes(query)
             );
         });
         setFilteredUsers(filtered);
@@ -196,7 +195,7 @@ const Vendors = () => {
                                     <TableRow key={user.id}>
                                         <TableCell>{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
-                                        <TableCell>{user.vendor?.company || 'Not set'}</TableCell>
+                                        <TableCell>{user.company || 'Not set'}</TableCell>
                                         <TableCell>
                                             <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeColor(user.status)}`}>
                                                 {user.status}
@@ -235,20 +234,20 @@ const Vendors = () => {
                                                                 </div>
 
                                                                 {/* Business Information */}
-                                                                {selectedUser.vendor && (
+                                                                {selectedUser && (
                                                                     <div className="p-4 border rounded-lg shadow-md bg-white">
                                                                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Business Information</h3>
                                                                         <div className="flex items-center space-x-4">
                                                                             <img
-                                                                                src={selectedUser.vendor.companyLogo}
-                                                                                alt={`${selectedUser.vendor.company} Logo`}
+                                                                                src={selectedUser.companyLogo}
+                                                                                alt={`${selectedUser.company} Logo`}
                                                                                 className="w-16 h-16 object-cover rounded-full border"
                                                                             />
                                                                             <div>
-                                                                                <p className="text-gray-800 text-lg font-medium">{selectedUser.vendor.company}</p>
-                                                                                <p className="text-gray-600 text-sm">{selectedUser.vendor.address}</p>
+                                                                                <p className="text-gray-800 text-lg font-medium">{selectedUser.company}</p>
+                                                                                <p className="text-gray-600 text-sm">{selectedUser.address}</p>
                                                                                 <p className="text-gray-600 text-sm">
-                                                                                    {selectedUser.vendor.city}, {selectedUser.vendor.state}, {selectedUser.vendor.country} - {selectedUser.vendor.zipcode}
+                                                                                    {selectedUser.city}, {selectedUser.state}, {selectedUser.country} - {selectedUser.zipcode}
                                                                                 </p>
                                                                             </div>
                                                                         </div>

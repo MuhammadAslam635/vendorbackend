@@ -122,15 +122,7 @@ const AdminDashbaord = () => {
           </Card>
         </div>
 
-        {/* Recent Activity Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-500">No recent activity</p>
-          </CardContent>
-        </Card>
+       
       </div>
     </AdminDashboardLayout>
   );

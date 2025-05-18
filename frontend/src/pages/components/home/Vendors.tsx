@@ -11,6 +11,7 @@ interface ZipcodeWithUser {
   userId: number;
   createdAt: string;
   updatedAt: string;
+  zipcodes?: string[];
   user: {
     id: number;
     name: string;
@@ -37,8 +38,21 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredVendors, setFilteredVendors] = useState<ZipcodeWithUser[]>(vendors);
     
+    // Group vendors by userId
+    const groupVendorsByUser = (vendorsList: ZipcodeWithUser[]) => {
+        const groupedVendors = vendorsList.reduce((acc, current) => {
+            const existingVendor = acc.find(v => v.userId === current.userId);
+            if (existingVendor) {
+                existingVendor.zipcodes = [...(existingVendor.zipcodes || []), current.zipcode];
+                return acc;
+            }
+            return [...acc, { ...current, zipcodes: [current.zipcode] }];
+        }, [] as (ZipcodeWithUser & { zipcodes: string[] })[]);
+        return groupedVendors;
+    };
+
     useEffect(() => {
-        setFilteredVendors(vendors);
+        setFilteredVendors(groupVendorsByUser(vendors));
     }, [vendors]);
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,12 +72,12 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
             );
         });
         
-        setFilteredVendors(filtered);
+        setFilteredVendors(groupVendorsByUser(filtered));
     };
 
     return (
-        <section className="py-16 bg-gray-50">
-            <div className="container mx-auto px-4">
+        <section className="py-16 bg-gray-50 mt-4">
+            <div className="container mx-auto px-4 max-w-7xl">
                 <h2 className="text-4xl font-bold text-center mb-4 bg-[#a0b830] bg-clip-text text-transparent">
                     Top Vendors
                 </h2>
@@ -108,13 +122,21 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                             <CardTitle className="text-xl font-bold bg-[#a0b830] bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
                                                 {vendor.company}
                                             </CardTitle>
-                                            <CardDescription className="text-gray-600 mt-2 flex items-center">
-                                                <Pin className="w-4 h-4 mr-2 text-gray-400" />
-                                                {vendor.address}, {vendorData.zipcode}
+                                            <CardDescription className="text-gray-600 mt-2 grid lg:grid-cols-1 sm:grid-cols-1 gap-2">
+                                                <div className="ml-2 text-sm flex items-center">
+                                                    <Pin className="w-4 h-4 mr-2 text-gray-400" />
+                                                    {vendor.address}
+                                                </div>
+                                                <div className="ml-2 text-sm flex items-center">
+                                                    <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                                                    Zipcodes: {vendorData.zipcodes?.join(", ")}
+                                                </div>
                                             </CardDescription>
                                             <CardDescription className="text-gray-600 mt-2 flex items-center">
-                                                <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                                                {vendor.city}, {vendor.country}
+                                                <div className="ml-2 text-sm flex items-center">
+                                                    <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                                                    {vendor.city}, {vendor.country}
+                                                </div>
                                             </CardDescription>
                                         </div>
                                     </CardHeader>
