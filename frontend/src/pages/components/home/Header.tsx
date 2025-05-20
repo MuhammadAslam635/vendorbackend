@@ -38,7 +38,7 @@ const Header = () => {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <img src={`${logo}`} alt="VendorLocator Logo" className="h-8 w-8" />
-              <h1>VendorLocator</h1>
+              <h1>Core Aeration</h1>
             </Link>
           </div>
 
@@ -47,24 +47,8 @@ const Header = () => {
             <ul className="flex space-x-6 items-center">
               <li>
                 <Link to="/" className="text-[#a0b830] hover:text-gray-950">
-                  Home
+                  VendorLocator
                 </Link>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection("about")}
-                  className="text-[#a0b830] hover:text-gray-950"
-                >
-                  Remove
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection("faq")}
-                  className="text-[#a0b830] hover:text-gray-950"
-                >
-                  Move to folder
-                </button>
               </li>
               <li>
                 <Link to="/all-vendors" className="text-[#a0b830] hover:text-gray-950">
@@ -79,7 +63,7 @@ const Header = () => {
               <li>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline">More Pages</Button>
+                    <Button variant="outline">Home Pages</Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56">
                     <DropdownMenuItem asChild>
@@ -90,6 +74,9 @@ const Header = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/core-aeration-tips">Core Aeration Tips</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/" onClick={() => scrollToSection("faq")}>FAQ</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

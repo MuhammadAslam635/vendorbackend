@@ -15,7 +15,7 @@ QUICKPAY_AGREEMENT_KEY="c12edac0536ec14b890b5aeaa0a6c151b88fce070116261f9e52550f
 PAYMENT_WINDOW_KEY="20b2ec8ca44de05a270990bd843efced9b3165c996485e92582e240461d8d4b2"
 API_URL=https://a3b8-124-29-216-23.ngrok-free.app
 FRONTEND_URL=http://localhost:5173
-BackendImg=http://localhost:3000/public
+BACKENDImg=http://localhost:3000/public
 # Mail Configuration
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=465

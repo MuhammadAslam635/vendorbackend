@@ -147,7 +147,11 @@ export class ZipcodeService {
   async getAllZipcode() {
     return this.prisma.zipCode.findMany({
       include: {
-        user: true,
+        user: {
+          include: {
+            gallery: true,
+          },
+        },
       },
     });
   }

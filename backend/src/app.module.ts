@@ -14,6 +14,7 @@ import { StatsModule } from './stats/stats.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ZipcodeModule } from './zipcode/zipcode.module';
+import { GalleryModule } from './gallery/gallery.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -54,6 +55,7 @@ import { ZipcodeModule } from './zipcode/zipcode.module';
     }),
     StatsModule,
     ZipcodeModule,
+    GalleryModule,
   ],
 })
 export class AppModule {}

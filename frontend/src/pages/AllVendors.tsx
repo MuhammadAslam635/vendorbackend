@@ -3,6 +3,7 @@ import Footer from "./components/home/Footer";
 import Header from "./components/home/Header";
 import Vendors from "./components/home/Vendors";
 import axios from "axios";
+import Hero from "./components/home/Hero";
 
 const AllVendors = () => {
   const [vendors, setVendors] = useState([]);
@@ -28,6 +29,8 @@ const AllVendors = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <Hero />
+      <h1 className="text-2xl font-bold text-center mt-4">All Vendors</h1>
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
           <p className="text-gray-600">Loading vendors...</p>

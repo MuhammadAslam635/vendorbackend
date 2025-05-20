@@ -4,12 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
-import { Building2, Loader2, PlusCircle, X } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { DashboardLayout } from "./DashboardLayout";
 import { Textarea } from "../../components/ui/textarea";
-import { Link } from "react-router-dom";
 
 interface VendorProfileForm {
   company: string;
@@ -210,16 +209,10 @@ const UpdateProfile = () => {
       </DashboardLayout>
     );
   }
-console.log("user", user)
   return (
     <DashboardLayout title="Vendor Profile" user={user}>
       <div className="max-w-4xl mx-auto py-6">
-        {user?.packageActive == 'NO' ? (
-          <div className="bg-red-500 text-white p-4 rounded-md mb-4">
-            <p className="mb-5">You are not subscribed to any package. Please subscribe to a package to update your profile.</p>
-            <Link to="/vendor/subscriptions" className="bg-[#a0b830] hover:bg-[#8fa029] text-white px-4 py-2 rounded-md my-2">Subscribe</Link>
-          </div>
-        ) : (
+      
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
               {/* Profile Images Section */}
@@ -409,7 +402,7 @@ console.log("user", user)
               </div>
             </div>
           </form>
-        )}
+      
       </div>
       <ToastContainer />
     </DashboardLayout>

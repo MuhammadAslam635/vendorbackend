@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Facebook, Twitter, Instagram, Linkedin, Pin, MapPin, CheckCircle, Loader2, Globe } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, Pin, MapPin, CheckCircle, Loader2, Globe, Phone, Image, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { toast } from "react-toastify";
 import Header from "./components/home/Header";
 import Footer from "./components/home/Footer";
@@ -16,12 +16,14 @@ interface VendorProfile {
     state: string;
     country: string;
     companyLogo: string;
+    phone: string;
     fb: string;
     ln: string;
     in: string;
     yt: string;
     webUrl: string;
     zipcodes: ZipCode[];
+    gallery: Gallery[];
 }
 
 interface ZipCode {
@@ -29,10 +31,17 @@ interface ZipCode {
     zipcode: string;
 }
 
+interface Gallery {
+    id: number;
+    image: string;
+    userId: number;
+}
 const MyAds = () => {
     const [vendor, setVendor] = useState<VendorProfile | null>(null);
     const [loading, setLoading] = useState(true);
-console.log("vendor",vendor)
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentSlide, setCurrentSlide] = useState(0);
+
     useEffect(() => {
         fetchVendor();
     }, []);
@@ -112,13 +121,30 @@ console.log("vendor",vendor)
                                 <MapPin className="w-4 h-4 mr-2 text-gray-400" />
                                 {vendor.city}, {vendor.country}
                             </CardDescription>
+                            <CardDescription className="text-gray-600 mt-2 flex items-center">
+                                <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                                {vendor.phone}
+                            </CardDescription>
+                            <CardDescription className="text-gray-600 mt-2 flex items-center">
+                                <Globe className="w-4 h-4 mr-2 text-gray-400" />
+                                {vendor.webUrl}
+                            </CardDescription>
                         </div>
                     </CardHeader>
                     <CardContent className="p-6">
                         <div className="space-y-3 mb-4">
-                            <div className="flex items-center text-gray-600">
+                            <div className="flex items-center justify-between text-gray-600">
+                                <div className="flex items-center">
                                 <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
                                 <span className="text-sm">Verified Business</span>
+                                </div>
+                                <div className="flex items-center">
+                                
+                                    <Button variant="outline" onClick={() => setModalOpen(true)} className="border-gray-300 hover:border-gray-400 hover:bg-gray-100">
+                                    <Image className="w-4 h-4 mr-2 text-gray-400" />
+                                        <span className="text-sm">Gallery</span>
+                                    </Button>
+                                </div>
                             </div>
                             
                             {/* Display Zipcodes */}
@@ -183,20 +209,80 @@ console.log("vendor",vendor)
                                     </Link>
                                 </Button>
                             )}
-                            {vendor.webUrl && (
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="border-gray-300 hover:border-gray-400 hover:bg-gray-100"
-                                >
-                                    <Link to={vendor.webUrl} target="_blank">
-                                        <Globe className="w-4 h-4 text-[#a0b830]" />
-                                    </Link>
-                                </Button>
-                            )}
+                          
                         </div>
                     </CardContent>
                 </Card>
+                  
+
+                        {modalOpen && (
+                            <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+                                <div className="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden">
+                                    {/* Close Button */}
+                                    <button 
+                                        onClick={() => setModalOpen(false)}
+                                        className="absolute top-4 right-4 z-50 text-gray-600 hover:text-gray-800"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+
+                                    {/* Slider Container */}
+                                    <div className="relative p-4">
+                                        <div className="overflow-hidden">
+                                            <div 
+                                                className="flex transition-transform duration-500 ease-out"
+                                                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                                            >
+                                                {vendor.gallery.map((image, index) => (
+                                                    <div 
+                                                        key={image.id} 
+                                                        className="w-full flex-shrink-0 p-2"
+                                                    >
+                                                        <img 
+                                                            src={image.image} 
+                                                            alt={`Gallery ${index + 1}`}
+                                                            className="w-full h-[60vh] object-contain mx-auto"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Navigation Buttons */}
+                                        {vendor.gallery.length > 1 && (
+                                            <>
+                                                <button
+                                                    onClick={() => setCurrentSlide(prev => prev === 0 ? vendor.gallery.length - 1 : prev - 1)}
+                                                    className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
+                                                >
+                                                    <ChevronLeft className="w-6 h-6" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentSlide(prev => prev === vendor.gallery.length - 1 ? 0 : prev + 1)}
+                                                    className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
+                                                >
+                                                    <ChevronRight className="w-6 h-6" />
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {/* Dots Indicator */}
+                                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                                            {vendor.gallery.map((_, index) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => setCurrentSlide(index)}
+                                                    className={`w-2 h-2 rounded-full transition-all ${
+                                                        currentSlide === index ? 'bg-[#a0b830] w-4' : 'bg-gray-300'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+               
             </div>
             <Footer />
         </div>

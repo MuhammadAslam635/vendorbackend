@@ -60,7 +60,7 @@ const VendorSidebar = () => {
                         My Ads</Link>
                     </Button>
                     
-                    {user?.packageActive === 'YES' && (
+                    
                         <Button
                             variant={isActiveRoute("/vendor/subscriptions") ? "secondary" : "ghost"}
                             className="w-full justify-start"
@@ -70,7 +70,7 @@ const VendorSidebar = () => {
                                 Packages
                             </Link>
                         </Button>
-                    )}
+                  
                     <Button
                         variant={isActiveRoute("/vendor/transactions") ? "secondary" : "ghost"}
                         className="w-full justify-start"
@@ -79,7 +79,7 @@ const VendorSidebar = () => {
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         Transaction</Link>
                     </Button>
-                    {user?.status === 'ACTIVE' && user?.packageActive === 'YES' && (
+                    
                     <Button
                         variant={isActiveRoute("/vendor/profiles") ? "secondary" : "ghost"}
                         className="w-full justify-start"
@@ -88,7 +88,7 @@ const VendorSidebar = () => {
                         <Settings className="mr-2 h-4 w-4" />
                         Vendor Profile</Link>
                     </Button>
-                     )}
+                     
                 </div>
             </nav>
             

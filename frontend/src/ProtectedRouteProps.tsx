@@ -40,6 +40,15 @@ export interface User {
   packageActive: string;
   zipcodes?: Zipcode[];
   package?: Package;
+  gallery?: Gallery[];
+}
+
+export interface Gallery {
+  id: number;
+  image: string;
+  userId: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface AuthState {

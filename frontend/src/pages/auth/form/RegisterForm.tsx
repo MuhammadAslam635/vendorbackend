@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from 'react-toastify';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card";
-import { Label } from "recharts";
+import { Label } from "../../../components/ui/label";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
@@ -169,7 +169,7 @@ const RegisterForm = () => {
                             navigate("/admin/dashboard");
                             break;
                         case "VENDOR":
-                            navigate("/vendor/dashboard");
+                            navigate("/vendor/profile/update");
                             break;
                         default:
                             navigate("/");
@@ -226,12 +226,13 @@ const RegisterForm = () => {
                     </CardHeader>
                     <form onSubmit={handleSubmit}>
                         <CardContent className="space-y-4">
+                            {/* First and Last Name */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label>First Name</Label>
+                                    <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
                                     <Input
                                         id="firstName"
-                                        placeholder="John"
+                                        placeholder="First Name"
                                         className={`border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 ${errors.firstName ? 'border-red-500' : ''}`}
                                         value={formData.firstName}
                                         onChange={handleChange}
@@ -239,10 +240,10 @@ const RegisterForm = () => {
                                     {errors.firstName && <p className="text-xs text-red-500">{errors.firstName}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Last Name</Label>
+                                    <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
                                     <Input
                                         id="lastName"
-                                        placeholder="Doe"
+                                        placeholder="Last Name"
                                         className={`border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 ${errors.lastName ? 'border-red-500' : ''}`}
                                         value={formData.lastName}
                                         onChange={handleChange}
@@ -250,11 +251,13 @@ const RegisterForm = () => {
                                     {errors.lastName && <p className="text-xs text-red-500">{errors.lastName}</p>}
                                 </div>
                             </div>
+
+                            {/* Phone */}
                             <div className="space-y-2">
-                                <Label>Phone</Label>
+                                <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
                                 <Input
                                     id="phone"
-                                    placeholder="1234567890"
+                                    placeholder="Phone Number"
                                     className={`border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 ${errors.phone ? 'border-red-500' : ''}`}
                                     value={formData.phone}
                                     onChange={handleChange}
@@ -262,12 +265,13 @@ const RegisterForm = () => {
                                 {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
                             </div>
 
+                            {/* Email */}
                             <div className="space-y-2">
-                                <Label>Email</Label>
+                                <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="john.doe@example.com"
+                                    placeholder="Email Address"
                                     className={`border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 ${errors.email ? 'border-red-500' : ''}`}
                                     value={formData.email}
                                     onChange={handleChange}
@@ -275,11 +279,13 @@ const RegisterForm = () => {
                                 {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
                             </div>
 
+                            {/* Password */}
                             <div className="space-y-2">
-                                <Label>Password</Label>
+                                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                                 <Input
                                     id="password"
                                     type="password"
+                                    placeholder="Password"
                                     className={`border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 ${errors.password ? 'border-red-500' : ''}`}
                                     value={formData.password}
                                     onChange={handleChange}
@@ -288,11 +294,13 @@ const RegisterForm = () => {
                                 {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
                             </div>
 
+                            {/* Confirm Password */}
                             <div className="space-y-2">
-                                <Label>Confirm Password</Label>
+                                <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
                                 <Input
                                     id="confirmPassword"
                                     type="password"
+                                    placeholder="Confirm Password"
                                     className={`border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
@@ -300,6 +308,7 @@ const RegisterForm = () => {
                                 {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
                             </div>
 
+                            {/* Terms and Conditions */}
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="agreeToTerms"
@@ -308,12 +317,12 @@ const RegisterForm = () => {
                                 />
                                 <div className="grid gap-1.5 leading-none">
                                     <label
-                                        htmlFor="terms1"
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                        htmlFor="agreeToTerms"
+                                        className="text-sm text-gray-600"
                                     >
                                         Accept terms and conditions
                                     </label>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm text-gray-500">
                                         You agree to our Terms of Service and Privacy Policy.
                                     </p>
                                 </div>
@@ -323,7 +332,7 @@ const RegisterForm = () => {
                         <CardFooter>
                             <Button
                                 type="submit"
-                                className="w-full bg-[#a0b830] hover:bg-[#a0b830] text-white transition duration-300"
+                                className="w-full bg-[#a0b830] hover:bg-[#8fa029] text-white transition duration-300"
                                 disabled={isLoading}
                             >
                                 {isLoading ? "Creating Account..." : "Create Account"}

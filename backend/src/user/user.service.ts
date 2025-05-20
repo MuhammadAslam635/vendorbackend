@@ -1,5 +1,4 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -7,7 +6,6 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
-import { UpdatePackageDto } from 'src/package/dto/update-package.dto';
 
 @Injectable()
 export class UserService {
@@ -197,7 +195,8 @@ export class UserService {
       where: { id: parseInt(id) },
       include: {
         zipcodes: true,
-        subscribe_packages: true
+        subscribe_packages: true,
+        gallery: true
       }
     });
 

@@ -5,10 +5,9 @@ import ZipCodeManagement from "./ZipCodeManagement";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
+import { Zipcode } from "../../ProtectedRouteProps";
 
-interface Zipcode {
-  zipcode: string;
-}
+
 
 const AddZipcode = () => {
   const { user } = useAuth();

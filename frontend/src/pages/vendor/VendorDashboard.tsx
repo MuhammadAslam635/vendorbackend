@@ -15,21 +15,21 @@ const VendorDashboard = () => {
   const [zipcodes, setZipcodes] = useState<Zipcode[]>([]);
   const [showZipCodeManagement, setShowZipCodeManagement] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/me`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        setUser(response.data);
-        setZipcodes(response.data.zipcodes || []);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/me`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setUser(response.data);
+      setZipcodes(response.data.zipcodes || []);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
 
+  useEffect(() => {
     fetchUser();
   }, []);
 
@@ -56,6 +56,9 @@ const VendorDashboard = () => {
       });
     }
   };
+  const refreshUserData = () => {
+    fetchUser();
+  };
 
   return (
     <DashboardLayout title="Vendor Dashboard" user={user}>
@@ -64,6 +67,7 @@ const VendorDashboard = () => {
           <UserProfilesCard 
             user={getUserProfile(user)}
             onCompleteProfile={handleCompleteProfile} 
+            refreshUserData={refreshUserData}
           />
         )}
         

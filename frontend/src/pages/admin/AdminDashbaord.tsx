@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AlertCircle, CheckCircle, CreditCard, Package, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../useAuth";
 import { WelcomeCard } from "./components/WelcomeCard";
 import { AdminDashboardLayout } from "./layout/AdminDashboardLayout";

@@ -26,7 +26,7 @@ import CoreAeration from './pages/CoreAeration'
 import CoreAerationCaution from './pages/CoreAerationCaution'
 import CoreAerationTips from './pages/CoreAerationTips'
 import AddZipcode from './pages/vendor/AddZipcode'
-
+import AddGallery from './pages/vendor/AddGallery'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -86,6 +86,7 @@ function App() {
               <Route path="transactions" element={<Transaction />} />
               <Route path="/payment-success" element={<PaymentSuccessHandler />} />
               <Route path="/payment-cancel" element={<PaymentCancelHandler />} />
+              <Route path="add/gallery" element={<AddGallery />} />
             </Routes>
           </ProtectedRoute>
         } />

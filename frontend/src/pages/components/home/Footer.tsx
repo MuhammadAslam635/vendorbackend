@@ -1,6 +1,7 @@
-import { Mail, Phone } from "lucide-react";
+import { Mail} from "lucide-react";
 
 const Footer = () => {
+  
     return (
         <footer className="bg-gray-950 text-white py-12 mt-auto">
             <div className="container mx-auto px-4">
@@ -13,21 +14,16 @@ const Footer = () => {
                         <h3 className="text-xl font-semibold mb-4">Quick Links</h3>
                         <ul className="space-y-2">
                             <li><a href="/" className="text-gray-400 hover:text-white transition">Home</a></li>
-                            <li><a href="/about" className="text-gray-400 hover:text-white transition">About Us</a></li>
-                            <li><a href="/search" className="text-gray-400 hover:text-white transition">Find Vendors</a></li>
+                            <li><a href="#faq"  className="text-gray-400 hover:text-white transition">FAQ</a></li>
+                            <li><a href="/search-vendors" className="text-gray-400 hover:text-white transition">Find Vendors</a></li>
                             <li><a href="/register" className="text-gray-400 hover:text-white transition">For Vendors</a></li>
-                            <li><a href="/contact" className="text-gray-400 hover:text-white transition">Contact</a></li>
                         </ul>
                     </div>
                     <div>
                         <h3 className="text-xl font-semibold mb-4">Contact Us</h3>
                         <p className="flex items-center text-gray-400 mb-2">
                             <Mail className="h-4 w-4 mr-2" />
-                            info@vendorlocator.com
-                        </p>
-                        <p className="flex items-center text-gray-400">
-                            <Phone className="h-4 w-4 mr-2" />
-                            (555) 123-4567
+                            Meekoslink@gmail.com
                         </p>
                     </div>
                 </div>

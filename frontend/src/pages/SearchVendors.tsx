@@ -6,6 +6,7 @@ import { CheckCircle, Facebook, Globe, Instagram, Linkedin, MapPin, Pin, Twitter
 import { Button } from "../components/ui/button";
 import Header from "./components/home/Header";
 import Footer from "./components/home/Footer";
+import Hero from "./components/home/Hero";
 
 // Define proper type for the API response based on the updated backend
 interface ZipcodeWithUser {
@@ -65,6 +66,7 @@ const SearchVendors = () => {
     return (
         <div className="min-h-screen flex flex-col">
             <Header />
+            <Hero />
             <div className="container mx-auto px-4 py-8">
                 <h1 className="text-2xl font-bold mb-6">Search Results</h1>
                 {loading ? (
