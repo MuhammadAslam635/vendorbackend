@@ -26,6 +26,7 @@ export class AuthController {
   }
   @Post('reset-password/:id')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto, @Param('id') id: string) {
+    console.log(resetPasswordDto, id);
     return this.authService.resetPassword(resetPasswordDto, id);
   }
   @UseGuards(JwtAuthGuard)

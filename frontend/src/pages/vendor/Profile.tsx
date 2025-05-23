@@ -83,7 +83,7 @@ const Profile = () => {
                 </div>
                 <div className="text-center sm:text-left">
                   <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800">
-                    {user.company || user.businessName || user.name}
+                    {user.company || user.name}
                   </CardTitle>
                   <div className="mt-2 space-y-2">
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
@@ -112,6 +112,7 @@ const Profile = () => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <InfoItem icon={Building2} label="Business Name" value={user.company} />
+                  <InfoItem icon={Building2} label="About" value={user.about} />
                   <InfoItem icon={MapPin} label="Address" value={user.address} />
                   <InfoItem icon={MapPin} label="City" value={user.city} />
                   <InfoItem icon={MapPin} label="State" value={user.state} />

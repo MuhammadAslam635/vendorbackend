@@ -12,6 +12,7 @@ import { Textarea } from "../../components/ui/textarea";
 
 interface VendorProfileForm {
   company: string;
+  about: string;
   address: string;
   city: string;
   state: string;
@@ -40,6 +41,7 @@ const UpdateProfile = () => {
 
   const [formData, setFormData] = useState<VendorProfileForm>({
     company: "",
+    about: "",
     address: "",
     city: "",
     state: "",
@@ -79,6 +81,7 @@ const UpdateProfile = () => {
         const userData = response.data;
         setFormData({
           company: userData.company || "",
+          about: userData.about || "",
           address: userData.address || "",
           city: userData.city || "",
           state: userData.state || "",
@@ -265,6 +268,16 @@ const UpdateProfile = () => {
                       value={formData.company}
                       onChange={handleInputChange}
                       placeholder="Enter company name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="about">About</Label>
+                    <Textarea
+                      id="about"
+                      value={formData.about}
+                      onChange={handleInputChange}
+                      placeholder="Enter about"
+                      rows={3}
                     />
                   </div>
                 </CardContent>

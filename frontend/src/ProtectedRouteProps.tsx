@@ -36,6 +36,7 @@ export interface User {
   webUrl?: string;
   totalzipcodes?: number;
   addedzipcodes?: number;
+  about?: string;
   createdAt: Date;
   packageActive: string;
   zipcodes?: Zipcode[];

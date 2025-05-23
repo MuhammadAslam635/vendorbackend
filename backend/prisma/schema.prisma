@@ -19,6 +19,7 @@ model User {
   packageActive         String             @default("NO")
   totalzipcodes         Int?               @default(0)
   addedzipcodes         Int?               @default(0)
+  about                 String?
   company               String?
   state                 String?
   city                  String?
@@ -78,7 +79,7 @@ model Package {
   price              Float              @default(150)
   duration           Int                @default(1)
   profiles           Int                @default(3)
-  description        String?            @default("Best Package for your business /n Optimize and grow your business with our best package /n No 1 Package for your business")
+  description        String?            @default("Best Package for your business \n Optimize and grow your business with our best package \n No 1 Package for your business")
   status             String             @default("ACTIVE")
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt

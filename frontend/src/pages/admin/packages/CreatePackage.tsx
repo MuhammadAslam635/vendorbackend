@@ -114,7 +114,7 @@ const CreatePackage = () => {
                   id="profiles"
                   name="profiles"
                   type="number"
-                  min="3"
+                  min="1"
                   value={formData.profiles}
                   onChange={handleChange}
                   placeholder="Enter number of zipcodes"

@@ -21,7 +21,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
   @IsOptional()
   company?: string;
-
+  @IsString()
+  @IsOptional()
+  about?: string;
   @IsString()
   @IsOptional()
   state?: string;

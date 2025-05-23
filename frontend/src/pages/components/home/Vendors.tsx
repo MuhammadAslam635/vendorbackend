@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, Facebook, Globe, Image, Instagram, Linkedin, MapPin, Phone, Pin, Twitter, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { CheckCircle, Facebook, Globe, Image, Instagram, Linkedin, MapPin, Phone, Pin, Twitter, ChevronLeft, ChevronRight, X, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Gallery } from "../../../ProtectedRouteProps";
@@ -30,6 +30,7 @@ interface ZipcodeWithUser {
         ln: string;
         yt: string;
         webUrl: string;
+        about: string;
         addedzipcodes: number;
         totalzipcodes: number;
         gallery: Gallery[];
@@ -43,7 +44,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
     const [showGalleryModal, setShowGalleryModal] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [selectedVendorGallery, setSelectedVendorGallery] = useState<Gallery[]>([]);
-    
+
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -93,20 +94,20 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
         if (totalPages <= 5) {
             return Array.from({ length: totalPages }, (_, i) => i + 1);
         }
-        
+
         // Always show first, last, current, and 1-2 pages around current
         const pages = new Set<number>();
         pages.add(1); // First page
         pages.add(totalPages); // Last page
-        
+
         // Current and surrounding pages
         for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
             pages.add(i);
         }
-        
+
         // Convert to sorted array
         const result = Array.from(pages).sort((a, b) => a - b);
-        
+
         // Add ellipses where needed
         const withEllipses: (number | string)[] = [];
         result.forEach((page, index) => {
@@ -115,7 +116,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
             }
             withEllipses.push(page);
         });
-        
+
         return withEllipses;
     };
 
@@ -139,7 +140,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                                 alt={`${vendor.company} Logo`}
                                                 className="w-full h-full object-cover"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                            <div className="absolute inset-0  transition-opacity duration-300" />
                                             {vendor.packageActive === "YES" && (
                                                 <div className="absolute top-0 right-0 w-[120px] h-[120px] overflow-hidden -mt-1 -mr-1 z-10">
                                                     <div className="absolute top-[12px] right-[-35px] w-[170px] text-center transform rotate-45 bg-[#a0b830] text-white font-medium text-sm py-2">
@@ -153,6 +154,12 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                                 {vendor.company}
                                             </CardTitle>
                                             <CardDescription className="text-gray-600 mt-2 grid lg:grid-cols-1 sm:grid-cols-1 gap-2">
+                                                {vendor.about && (
+                                                    <div className="ml-2 text-sm flex items-center">
+                                                        <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                                        {vendor.about}
+                                                    </div>
+                                                )}
                                                 <div className="ml-2 text-sm flex items-center">
                                                     <Pin className="w-4 h-4 mr-2 text-gray-400" />
                                                     {vendor.address}
@@ -174,14 +181,19 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                                     {vendor.phone}
                                                 </div>
                                             )}
-                                            {vendor.webUrl && (
-                                                <div className="ml-2 mt-2 text-sm flex items-center">
-                                                    <Globe className="w-4 h-4 mr-2 text-gray-400" />
-                                                    {vendor.webUrl}
-                                                </div>
-                                            )}
+
                                         </div>
                                     </CardHeader>
+                                    {vendor.webUrl && (
+
+                                        <div className="flex items-center px-6 py-4 bg-gray-50 border-t">
+                                            <a href={vendor.webUrl} target="_blank" className="flex flex-row items-center  cursor-pointer text-blue-500 hover:underline">
+                                                <Globe className="w-4 h-4 mr-2 text-gray-400" />
+                                                {vendor.webUrl}
+                                            </a>
+                                        </div>
+
+                                    )}
                                     <CardContent className="p-6 pt-0">
                                         <div className="space-y-3 mb-4">
                                             <div className="flex items-center justify-between text-gray-600">
@@ -263,7 +275,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </Button>
-                            
+
                             {/* Page numbers */}
                             <div className="hidden sm:flex">
                                 {getPageNumbers().map((page, index) => (
@@ -271,11 +283,10 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                         <Button
                                             key={index}
                                             variant={currentPage === page ? "default" : "ghost"}
-                                            className={`px-4 py-2 ${
-                                                currentPage === page
-                                                    ? 'bg-[#a0b830] text-white'
-                                                    : 'text-gray-700 hover:bg-gray-100'
-                                            } min-w-10 flex items-center justify-center`}
+                                            className={`px-4 py-2 ${currentPage === page
+                                                ? 'bg-[#a0b830] text-white'
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                                } min-w-10 flex items-center justify-center`}
                                             onClick={() => handlePageChange(page)}
                                         >
                                             {page}
@@ -287,14 +298,14 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                     )
                                 ))}
                             </div>
-                            
+
                             {/* Mobile view - current page / total pages */}
                             <div className="flex sm:hidden items-center px-4">
                                 <span className="text-gray-700">
                                     {currentPage} / {totalPages}
                                 </span>
                             </div>
-                            
+
                             {/* Next page button */}
                             <Button
                                 variant="ghost"
@@ -311,11 +322,11 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
 
             {/* Gallery Modal */}
             {showGalleryModal && selectedVendorGallery.length > 0 && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
                     onClick={() => setShowGalleryModal(false)}
                 >
-                    <div 
+                    <div
                         className="relative max-w-4xl w-full"
                         onClick={e => e.stopPropagation()}
                     >
@@ -356,7 +367,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                         className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setCurrentImageIndex(prev => 
+                                            setCurrentImageIndex(prev =>
                                                 prev === 0 ? selectedVendorGallery.length - 1 : prev - 1
                                             );
                                         }}
@@ -367,7 +378,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setCurrentImageIndex(prev => 
+                                            setCurrentImageIndex(prev =>
                                                 prev === selectedVendorGallery.length - 1 ? 0 : prev + 1
                                             );
                                         }}
@@ -382,9 +393,8 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                 {selectedVendorGallery.map((_, index) => (
                                     <button
                                         key={index}
-                                        className={`w-2 h-2 rounded-full transition-all ${
-                                            currentImageIndex === index ? 'bg-white w-4' : 'bg-white/50'
-                                        }`}
+                                        className={`w-2 h-2 rounded-full transition-all ${currentImageIndex === index ? 'bg-white w-4' : 'bg-white/50'
+                                            }`}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setCurrentImageIndex(index);

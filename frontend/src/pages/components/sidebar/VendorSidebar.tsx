@@ -88,6 +88,14 @@ const VendorSidebar = () => {
                         <Settings className="mr-2 h-4 w-4" />
                         Vendor Profile</Link>
                     </Button>
+                    <Button
+                        variant={isActiveRoute("/vendor/reset-password") ? "secondary" : "ghost"}
+                        className="w-full justify-start"
+                    >
+                        <Link to="/vendor/reset-password" className="flex items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Reset Password</Link>
+                    </Button>
                      
                 </div>
             </nav>

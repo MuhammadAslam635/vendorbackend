@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Facebook, Twitter, Instagram, Linkedin, Pin, MapPin, CheckCircle, Loader2, Globe, Phone, Image, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, Pin, MapPin, CheckCircle, Loader2, Globe, Phone, Image, ChevronLeft, ChevronRight, X, Building2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Header from "./components/home/Header";
 import Footer from "./components/home/Footer";
@@ -22,6 +22,7 @@ interface VendorProfile {
     in: string;
     yt: string;
     webUrl: string;
+    about: string;
     zipcodes: ZipCode[];
     gallery: Gallery[];
 }
@@ -93,7 +94,7 @@ const MyAds = () => {
                     <Link to="/vendor/dashboard" className="text-blue-500 hover:underline">Return to Dashboard</Link>
                 </div>
 
-                <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 overflow-hidden">
+                <Card className="group  transition-all duration-300 border-0 overflow-hidden">
                     <CardHeader className="relative p-0">
                         <div className="w-full h-48 bg-[#a0b830] rounded-t-lg mb-4 overflow-hidden">
                             <img
@@ -104,7 +105,7 @@ const MyAds = () => {
                                     (e.target as HTMLImageElement).src = '/placeholder-logo.png';
                                 }}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="absolute inset-0  duration-300" />
                             <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-sm font-medium text-[#a0b830]">
                                 Featured
                             </div>
@@ -113,6 +114,10 @@ const MyAds = () => {
                             <CardTitle className="text-xl font-bold bg-[#a0b830] bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
                                 {vendor.company}
                             </CardTitle>
+                            <CardDescription className="text-gray-600 mt-2 flex items-center">
+                                <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                {vendor.about}
+                            </CardDescription>
                             <CardDescription className="text-gray-600 mt-2 flex items-center">
                                 <Pin className="w-4 h-4 mr-2 text-gray-400" />
                                 {vendor.address}
@@ -125,28 +130,32 @@ const MyAds = () => {
                                 <Phone className="w-4 h-4 mr-2 text-gray-400" />
                                 {vendor.phone}
                             </CardDescription>
-                            <CardDescription className="text-gray-600 mt-2 flex items-center">
-                                <Globe className="w-4 h-4 mr-2 text-gray-400" />
-                                {vendor.webUrl}
-                            </CardDescription>
+
                         </div>
                     </CardHeader>
+                    <div className="flex items-center px-6 py-4 bg-gray-50 border-t">
+                        <a href={vendor.webUrl} target="_blank" className="flex flex-row items-center  cursor-pointer text-blue-500 hover:underline">
+                            <Globe className="w-4 h-4 mr-2 text-gray-400" />
+                            {vendor.webUrl}
+                        </a>
+                    </div>
                     <CardContent className="p-6">
                         <div className="space-y-3 mb-4">
                             <div className="flex items-center justify-between text-gray-600">
+
                                 <div className="flex items-center">
-                                <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                                <span className="text-sm">Verified Business</span>
+                                    <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+                                    <span className="text-sm">Verified Business</span>
                                 </div>
                                 <div className="flex items-center">
-                                
+
                                     <Button variant="outline" onClick={() => setModalOpen(true)} className="border-gray-300 hover:border-gray-400 hover:bg-gray-100">
-                                    <Image className="w-4 h-4 mr-2 text-gray-400" />
+                                        <Image className="w-4 h-4 mr-2 text-gray-400" />
                                         <span className="text-sm">Gallery</span>
                                     </Button>
                                 </div>
                             </div>
-                            
+
                             {/* Display Zipcodes */}
                             <div className="mt-4">
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Service Areas:</h3>
@@ -209,80 +218,79 @@ const MyAds = () => {
                                     </Link>
                                 </Button>
                             )}
-                          
+
                         </div>
                     </CardContent>
                 </Card>
-                  
 
-                        {modalOpen && (
-                            <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-                                <div className="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden">
-                                    {/* Close Button */}
-                                    <button 
-                                        onClick={() => setModalOpen(false)}
-                                        className="absolute top-4 right-4 z-50 text-gray-600 hover:text-gray-800"
+
+                {modalOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+                        <div className="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden">
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setModalOpen(false)}
+                                className="absolute top-4 right-4 z-50 text-gray-600 hover:text-gray-800"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+
+                            {/* Slider Container */}
+                            <div className="relative p-4">
+                                <div className="overflow-hidden">
+                                    <div
+                                        className="flex transition-transform duration-500 ease-out"
+                                        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                                     >
-                                        <X className="w-6 h-6" />
-                                    </button>
-
-                                    {/* Slider Container */}
-                                    <div className="relative p-4">
-                                        <div className="overflow-hidden">
-                                            <div 
-                                                className="flex transition-transform duration-500 ease-out"
-                                                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                                        {vendor.gallery.map((image, index) => (
+                                            <div
+                                                key={image.id}
+                                                className="w-full flex-shrink-0 p-2"
                                             >
-                                                {vendor.gallery.map((image, index) => (
-                                                    <div 
-                                                        key={image.id} 
-                                                        className="w-full flex-shrink-0 p-2"
-                                                    >
-                                                        <img 
-                                                            src={image.image} 
-                                                            alt={`Gallery ${index + 1}`}
-                                                            className="w-full h-[60vh] object-contain mx-auto"
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Navigation Buttons */}
-                                        {vendor.gallery.length > 1 && (
-                                            <>
-                                                <button
-                                                    onClick={() => setCurrentSlide(prev => prev === 0 ? vendor.gallery.length - 1 : prev - 1)}
-                                                    className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
-                                                >
-                                                    <ChevronLeft className="w-6 h-6" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setCurrentSlide(prev => prev === vendor.gallery.length - 1 ? 0 : prev + 1)}
-                                                    className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
-                                                >
-                                                    <ChevronRight className="w-6 h-6" />
-                                                </button>
-                                            </>
-                                        )}
-
-                                        {/* Dots Indicator */}
-                                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                                            {vendor.gallery.map((_, index) => (
-                                                <button
-                                                    key={index}
-                                                    onClick={() => setCurrentSlide(index)}
-                                                    className={`w-2 h-2 rounded-full transition-all ${
-                                                        currentSlide === index ? 'bg-[#a0b830] w-4' : 'bg-gray-300'
-                                                    }`}
+                                                <img
+                                                    src={image.image}
+                                                    alt={`Gallery ${index + 1}`}
+                                                    className="w-full h-[60vh] object-contain mx-auto"
                                                 />
-                                            ))}
-                                        </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
+
+                                {/* Navigation Buttons */}
+                                {vendor.gallery.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={() => setCurrentSlide(prev => prev === 0 ? vendor.gallery.length - 1 : prev - 1)}
+                                            className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
+                                        >
+                                            <ChevronLeft className="w-6 h-6" />
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentSlide(prev => prev === vendor.gallery.length - 1 ? 0 : prev + 1)}
+                                            className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
+                                        >
+                                            <ChevronRight className="w-6 h-6" />
+                                        </button>
+                                    </>
+                                )}
+
+                                {/* Dots Indicator */}
+                                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                                    {vendor.gallery.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setCurrentSlide(index)}
+                                            className={`w-2 h-2 rounded-full transition-all ${currentSlide === index ? 'bg-[#a0b830] w-4' : 'bg-gray-300'
+                                                }`}
+                                        />
+                                    ))}
+                                </div>
                             </div>
-                        )}
-               
+                        </div>
+                    </div>
+                )}
+
             </div>
             <Footer />
         </div>

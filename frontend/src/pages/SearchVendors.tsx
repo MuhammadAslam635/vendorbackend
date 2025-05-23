@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { CheckCircle, Facebook, Globe, Instagram, Linkedin, MapPin, Pin, Twitter } from "lucide-react";
+import { Building2, CheckCircle, Facebook, Globe, Instagram, Linkedin, MapPin, Pin, Twitter } from "lucide-react";
 import { Button } from "../components/ui/button";
 import Header from "./components/home/Header";
 import Footer from "./components/home/Footer";
@@ -10,29 +10,30 @@ import Hero from "./components/home/Hero";
 
 // Define proper type for the API response based on the updated backend
 interface ZipcodeWithUser {
-  id: string;
-  zipcode: string;
-  userId: number;
-  createdAt: string;
-  updatedAt: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    company: string;
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    companyLogo: string;
-    packageActive: string;
-    fb: string;
-    in: string;
-    ln: string;
-    yt: string;
-    webUrl: string;
-  };
+    id: string;
+    zipcode: string;
+    userId: number;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+        phone: string;
+        company: string;
+        address: string;
+        city: string;
+        state: string;
+        country: string;
+        companyLogo: string;
+        packageActive: string;
+        fb: string;
+        in: string;
+        ln: string;
+        yt: string;
+        webUrl: string;
+        about: string;
+    };
 }
 
 const SearchVendors = () => {
@@ -97,6 +98,9 @@ const SearchVendors = () => {
                                                 {user.company}
                                             </CardTitle>
                                             <CardDescription className="text-gray-600 mt-2 flex items-center">
+                                                <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                                {user.about}
+                                                
                                                 <Pin className="w-4 h-4 mr-2 text-gray-400" />
                                                 {user.address}, {zipcodeResult.zipcode}
                                             </CardDescription>
@@ -106,6 +110,14 @@ const SearchVendors = () => {
                                             </CardDescription>
                                         </div>
                                     </CardHeader>
+                                    {user.webUrl && (
+                                        <div className="flex items-center px-6 py-4 bg-gray-50 border-t">
+                                            <a href={user.webUrl} target="_blank" className="flex flex-row items-center  cursor-pointer text-blue-500 hover:underline">
+                                                <Globe className="w-4 h-4 mr-2 text-gray-400" />
+                                                {user.webUrl}
+                                            </a>
+                                        </div>
+                                    )}
                                     <CardContent className="p-6 pt-0">
                                         <div className="space-y-3 mb-4">
                                             <div className="flex items-center text-gray-600">
@@ -154,16 +166,7 @@ const SearchVendors = () => {
                                                     <Linkedin className="w-4 h-4 text-[#0077B5]" />
                                                 </Button>
                                             )}
-                                            {user.webUrl && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="border-gray-300 hover:border-gray-400 hover:bg-gray-100"
-                                                    onClick={() => window.open(user.webUrl, '_blank')}
-                                                >
-                                                    <Globe className="w-4 h-4 text-[#0077B5]" />
-                                                </Button>
-                                            )}
+
                                         </div>
                                     </CardContent>
                                 </Card>

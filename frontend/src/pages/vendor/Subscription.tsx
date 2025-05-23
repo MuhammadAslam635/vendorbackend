@@ -93,10 +93,10 @@ const Subscription = () => {
 
   const handleSubscribeClick = (pkg: Package) => {
     // Don't allow subscribing if user already has an active package
-    if (have) {
-      toast.warning("You already have an active subscription!");
-      return;
-    }
+    // if (have) {
+    //   toast.warning("You already have an active subscription!");
+    //   return;
+    // }
     setSelectedPackage(pkg);
   };
 

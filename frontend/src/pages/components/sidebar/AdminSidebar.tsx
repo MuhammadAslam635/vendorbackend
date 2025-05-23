@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../useAuth";
-import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users, Lock } from "lucide-react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -94,6 +94,17 @@ const AdminSidebar = () => {
           >
             <Users className="mr-2 h-4 w-4" />
             All Users
+          </Link>
+          <Link
+            to="/admin/reset-password"
+            className={`flex items-center w-full px-4 py-2 rounded-md ${
+              isActiveRoute("/admin/reset-password")
+                ? "bg-[#a0b830] text-white"
+                : "hover:bg-gray-100 text-gray-700"
+            }`}
+          >
+            <Lock className="mr-2 h-4 w-4" />
+            Reset Password
           </Link>
         </div>
       </nav>

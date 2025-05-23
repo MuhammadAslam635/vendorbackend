@@ -27,6 +27,8 @@ import CoreAerationCaution from './pages/CoreAerationCaution'
 import CoreAerationTips from './pages/CoreAerationTips'
 import AddZipcode from './pages/vendor/AddZipcode'
 import AddGallery from './pages/vendor/AddGallery'
+import ResetPassword from './pages/vendor/ResetPassword'
+import AdminResetPassword from './pages/admin/AdminResetPassword'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -87,6 +89,7 @@ function App() {
               <Route path="/payment-success" element={<PaymentSuccessHandler />} />
               <Route path="/payment-cancel" element={<PaymentCancelHandler />} />
               <Route path="add/gallery" element={<AddGallery />} />
+              <Route path="reset-password" element={<ResetPassword />} />
             </Routes>
           </ProtectedRoute>
         } />
@@ -101,6 +104,7 @@ function App() {
               <Route path="packages/:id/edit" element={<UpdatePackage />} />
               <Route path="users" element={<Vendors />} />
               <Route path="transactions" element={<Transactions />} />
+              <Route path="reset-password" element={<AdminResetPassword />} />
 
             </Routes>
           </ProtectedRoute>

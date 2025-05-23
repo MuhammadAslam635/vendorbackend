@@ -13,6 +13,8 @@ export class PackageService {
         name: createPackageDto.name,
         price: createPackageDto.price,
         duration: createPackageDto.duration,
+        profiles: createPackageDto.profiles,
+        description: createPackageDto.description,
         status: createPackageDto.status || 'ACTIVE'
       }
     });
