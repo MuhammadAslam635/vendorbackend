@@ -3,15 +3,11 @@ import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-
+import { CreateZipcodeDto } from 'src/zipcode/dto/create-zipcode.dto';
+import { ZipcodeDto } from 'src/zipcode/dto/package-create-zipcode.dto';
 @Controller('transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  create(@Body() createTransactionDto: CreateTransactionDto) {
-    return this.transactionsService.create(createTransactionDto);
-  }
   @UseGuards(JwtAuthGuard)
   @Get('all')
   findAll() {
@@ -40,12 +36,23 @@ export class TransactionsController {
   @Post('create-session/:packageId')
   async createPaymentSession(
     @Param('packageId') packageId: string,
-    @Request() req
+    @Request() req,
+    @Body() createZipcodeDto: ZipcodeDto  // Update this line
   ) {
     if (!packageId) {
       throw new BadRequestException('Package ID is required');
     }
-    return this.transactionsService.createPaymentSession(req.user.userId, +packageId);
+    
+    // Validate zipcodes array
+    if (!createZipcodeDto.zipcodes || !Array.isArray(createZipcodeDto.zipcodes)) {
+      throw new BadRequestException('Invalid zipcodes format');
+    }
+  
+    return this.transactionsService.createPaymentSession(
+      req.user.userId, 
+      +packageId, 
+      createZipcodeDto
+    );
   }
 
   @Post('webhook/quickpay')

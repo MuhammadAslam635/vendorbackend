@@ -5,7 +5,7 @@ import VendorDashboard from './pages/vendor/VendorDashboard'
 import { useAuth } from './useAuth'
 import { ProtectedRouteProps, UserRole } from './ProtectedRouteProps'
 import Profile from './pages/vendor/Profile'
-import Subscription from './pages/vendor/Subscription'
+// import Subscription1 from './pages/vendor/Subscription1'
 import Transaction from './pages/vendor/Transction'
 import AdminPackages from './pages/admin/packages/Packages'
 import CreatePackage from './pages/admin/packages/CreatePackage'
@@ -29,6 +29,7 @@ import AddZipcode from './pages/vendor/AddZipcode'
 import AddGallery from './pages/vendor/AddGallery'
 import ResetPassword from './pages/vendor/ResetPassword'
 import AdminResetPassword from './pages/admin/AdminResetPassword'
+import Subscription from './pages/vendor/Subscription'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -83,7 +84,7 @@ function App() {
               <Route path="dashboard" element={<VendorDashboard />} />
               <Route path="profiles" element={<Profile />} />
               <Route path="profile/update" element={<UpdateProfile />} />
-              <Route path="subscriptions" element={<Subscription />} />
+              <Route path="subscriptions" element={<Subscription/>} />
               <Route path="add/zipcode" element={<AddZipcode />} />
               <Route path="transactions" element={<Transaction />} />
               <Route path="/payment-success" element={<PaymentSuccessHandler />} />

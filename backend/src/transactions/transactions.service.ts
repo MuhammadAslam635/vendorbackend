@@ -4,6 +4,8 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+// import { CreateZipcodeDto } from 'src/zipcode/dto/create-zipcode.dto';
+import { ZipcodeDto } from 'src/zipcode/dto/package-create-zipcode.dto';
 interface WebhookPayload {
   orderId: string;
   status: string;
@@ -15,9 +17,6 @@ export class TransactionsService {
   constructor(private prisma: PrismaService,
     private configService: ConfigService
   ) { }
-  create(createTransactionDto: CreateTransactionDto) {
-    return 'This action adds a new transaction';
-  }
 
   async findAll() {
     return this.prisma.transaction.findMany();
@@ -54,8 +53,9 @@ export class TransactionsService {
     return `This action updates a #${id} transaction`;
   }
  
-  async createPaymentSession(userId: number, packageId: number) {
+  async createPaymentSession(userId: number, packageId: number,createZipcodeDto: ZipcodeDto) {
     try {
+      const { zipcodes } = createZipcodeDto;
       const pack = await this.prisma.package.findUnique({
         where: { id: packageId }
       });
@@ -63,7 +63,40 @@ export class TransactionsService {
       if (!pack) {
         throw new BadRequestException('Package not found');
       }
-
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          zipcodes: true
+        }
+      });
+  
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+  
+      // Create zipcodes first
+      const zipcodeCreationPromises = zipcodes.map(async (zipData) => {
+        return await this.prisma.zipCode.create({
+          data: {
+            zipcode: zipData.zipcode,
+            userId: userId,
+          }
+        });
+      });
+  
+      // Wait for all zipcodes to be created
+      await Promise.all(zipcodeCreationPromises);
+  
+      // Update user's addedzipcodes count
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          addedzipcodes: {
+            increment: zipcodes.length
+          }
+        }
+      });
+      console.log("object",zipcodes.length);
       // Create subscription record
       const subscription = await this.prisma.$transaction(async (prisma) => {
         const endDate = new Date();
@@ -106,7 +139,7 @@ export class TransactionsService {
 
         return { sub, transaction };
       });
-
+    
       // Get QuickPay API credentials
       const quickPayApiKey = this.configService.get('QUICKPAY_API_KEY');
       const apiUrl = this.configService.get('API_URL');

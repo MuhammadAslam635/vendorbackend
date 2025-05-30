@@ -7,9 +7,10 @@ import { DashboardLayout } from './DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { CheckCircle, AlertCircle, XCircle, MapPin } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { PaymentModal } from './PaymentModal';
+import { PaymentModal } from './PaymentModal1';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import ZipCodeSelectionModal from './ZipCodeSelectionModal';
+import { User, Zipcode } from '../../ProtectedRouteProps';
+import ZipCodeManagement from './ZipCodeManagement';
 
 interface Package {
   id: number;
@@ -23,17 +24,16 @@ interface Package {
 
 const Subscription = () => {
   const { user } = useAuth();
+  const [user1, setUser1] = useState<User | null>(null);
   const [packages, setPackages] = useState<Package[]>([]);
   const [activePackageId, setActivePackageId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [have, setHave] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [selectedZipcodes, setSelectedZipcodes] = useState<string[]>([]);
-  const [showZipCodeSelection, setShowZipCodeSelection] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-
+  const [zipcodes, setZipcodes] = useState<Zipcode[]>([]);
+  const [showZipCodeManagement, setShowZipCodeManagement] = useState(false);
   // Handle URL parameters for payment status messages
   const searchParams = new URLSearchParams(location.search);
   const success = searchParams.get('success') === 'true';
@@ -94,49 +94,25 @@ const Subscription = () => {
       toast.error('Failed to fetch active package');
     }
   };
-
-  // Step 1: Handle subscribe button click - Open ZIP code selection
+  const handleZipcodesChange = (newZipcodes: Zipcode[]) => {
+    setZipcodes(newZipcodes);
+    // Update the user object with new zipcodes
+    if (user1) {
+      setUser1({
+        ...user1,
+        zipcodes: newZipcodes,
+        addedzipcodes: newZipcodes.length
+      });
+    }
+  };
   const handleSubscribeClick = (pkg: Package) => {
-    console.log('Subscribe clicked for package:', pkg.name);
+    // Don't allow subscribing if user already has an active package
+    // if (have) {
+    //   toast.warning("You already have an active subscription!");
+    //   return;
+    // }
     setSelectedPackage(pkg);
-    setSelectedZipcodes([]); // Reset ZIP codes
-    setShowZipCodeSelection(true);
-    setShowPaymentModal(false); // Ensure payment modal is closed
   };
-
-  // Step 2: Handle ZIP code selection completion - Open payment modal
-  const handleZipCodeSelectionComplete = (zipcodes: string[]) => {
-    console.log('ZIP codes selected:', zipcodes);
-    setSelectedZipcodes(zipcodes);
-    setShowZipCodeSelection(false);
-    
-    // Small delay to ensure smooth transition between modals
-    setTimeout(() => {
-      setShowPaymentModal(true);
-    }, 100);
-  };
-
-  // Handle payment modal close
-  const handlePaymentModalClose = () => {
-    setShowPaymentModal(false);
-    setSelectedPackage(null);
-    setSelectedZipcodes([]);
-  };
-
-  // Handle ZIP code selection modal close
-  const handleZipCodeSelectionClose = () => {
-    setShowZipCodeSelection(false);
-    setSelectedPackage(null);
-    setSelectedZipcodes([]);
-  };
-
-  // Reset all modal states
-  // const resetModalStates = () => {
-  //   setShowZipCodeSelection(false);
-  //   setShowPaymentModal(false);
-  //   setSelectedPackage(null);
-  //   setSelectedZipcodes([]);
-  // };
 
   return (
     <DashboardLayout title="Subscriptions" user={user}>
@@ -203,6 +179,7 @@ const Subscription = () => {
                   <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-800 dark:to-green-900 border-b pb-4">
                     <CardTitle className="flex justify-between items-center">
                       <span className="text-xl font-bold text-gray-800 dark:text-white">{pkg.name}</span>
+                    
                     </CardTitle>
                   </CardHeader>
 
@@ -242,12 +219,8 @@ const Subscription = () => {
                       <Button
                         className="w-full bg-[#a0b830] hover:bg-[#8fa029]"
                         onClick={() => handleSubscribeClick(pkg)}
-                        disabled={showZipCodeSelection || showPaymentModal} // Prevent multiple clicks
                       >
-                        {selectedPackage?.id === pkg.id && (showZipCodeSelection || showPaymentModal) 
-                          ? 'Processing...' 
-                          : 'Subscribe Now'
-                        }
+                        Subscribe Now
                       </Button>
                     </div>
                   </CardContent>
@@ -260,30 +233,33 @@ const Subscription = () => {
           )}
         </section>
       </div>
-
-      {/* ZIP Code Selection Modal - Step 1 */}
-      {showZipCodeSelection && selectedPackage && (
-        <ZipCodeSelectionModal
-          isOpen={showZipCodeSelection}
-          onClose={handleZipCodeSelectionClose}
-          onProceedToPayment={handleZipCodeSelectionComplete}
-          packageName={selectedPackage.name}
-          maxZipcodes={selectedPackage.profiles}
-        />
-      )}
-
-      {/* Payment Modal - Step 2 */}
-      {showPaymentModal && selectedPackage && selectedZipcodes.length > 0 && (
+      {showZipCodeManagement && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+              <ZipCodeManagement
+                zipcodes={zipcodes}
+                totalZipcodes={user?.totalzipcodes || 0}
+                onZipcodesChange={handleZipcodesChange}
+              />
+              <Button
+                onClick={() => setShowZipCodeManagement(false)}
+                className="mt-4 w-full"
+                variant="outline"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+      {selectedPackage && (
         <PaymentModal
-          isOpen={showPaymentModal}
-          onClose={handlePaymentModalClose}
+          isOpen={!!selectedPackage}
+          onClose={() => setSelectedPackage(null)}
           packageId={selectedPackage.id}
           packageName={selectedPackage.name}
           amount={selectedPackage.price}
-          zipcodes={selectedZipcodes}
         />
       )}
-
       <ToastContainer
         position="top-right"
         autoClose={5000}

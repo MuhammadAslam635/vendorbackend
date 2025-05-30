@@ -87,63 +87,20 @@ export class UserService {
       if (!existingUser) {
         throw new NotFoundException('User profile not found');
       }
-
-      // Parse zipcodes if it's a string
-      const newZipcodes = Array.isArray(updateUserDto.zipcodes) 
-        ? updateUserDto.zipcodes 
-        : JSON.parse(updateUserDto.zipcodes || '[]');
-
-      // Add null check and default value for totalzipcodes
-      const totalAllowedZipcodes = existingUser.totalzipcodes ?? 0;
-
-      // Check if total zipcodes would exceed limit
-      if (newZipcodes.length > totalAllowedZipcodes) {
-        throw new BadRequestException(`Cannot add more than ${totalAllowedZipcodes} zipcodes`);
-      }
-
-      // Remove zipcodes from updateData as we'll handle them separately
-      const { zipcodes, createdAt, updatedAt, userId: _, id: __, ...updateData } = updateUserDto as any;
-
-      // Start a transaction to handle both user update and zipcodes
-      return await this.prisma.$transaction(async (prisma) => {
-        // First, delete all existing zipcodes for this user
-        await prisma.zipCode.deleteMany({
-          where: {
-            userId: profileId
-          }
-        });
-
-        // Create new zipcodes
-        const zipcodePromises = newZipcodes.map(async (zipcode: { zipcode: string }) => {
-          return prisma.zipCode.create({
-            data: {
-              zipcode: zipcode.zipcode,
-              userId: profileId
-            }
-          });
-        });
-
-        await Promise.all(zipcodePromises);
-
-        // Update user profile with new data and addedzipcodes count
-        const updatedUser = await prisma.user.update({
+        const updatedUser = await this.prisma.user.update({
           where: {
             id: profileId
           },
           data: {
-            ...updateData,
-            addedzipcodes: newZipcodes.length, // Update the count of added zipcodes
-            companyLogo: companyLogoPath || updateData.companyLogo,
-            createdAt: undefined,
-            updatedAt: undefined,
+            ...updateUserDto,
+            companyLogo: companyLogoPath || updateUserDto.companyLogo
           },
           include: {
             zipcodes: true // Include updated zipcodes in response
           }
         });
 
-        return updatedUser;
-      });
+      return updatedUser;
 
     } catch (error) {
       console.error('User update error:', error);
