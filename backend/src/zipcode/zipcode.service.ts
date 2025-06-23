@@ -3,7 +3,6 @@ import { CreateZipcodeDto } from './dto/create-zipcode.dto';
 import { UpdateZipcodeDto } from './dto/update-zipcode.dto';
 import { SearchZipcodeDto } from './dto/search-zipcode.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ZipcodeService {
@@ -12,7 +11,7 @@ export class ZipcodeService {
   ) {}
 
   async create(createZipcodeDto: CreateZipcodeDto) {
-    const { zipcode, userId } = createZipcodeDto;
+    const { zipcode, userId, subscribePackageId } = createZipcodeDto;
 
     // Get user to check their limits
     const user = await this.prisma.user.findUnique({

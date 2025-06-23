@@ -6,14 +6,25 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { DashboardLayout } from './DashboardLayout';
 
-interface Transaction {
+interface ZipCode {
   id: number;
-  amount: number;
-  paymentStatus: string;
-  paymentMethod: string;
+  zipcode: string;
+  userId: number;
+  subscribePackageId: number;
   createdAt: string;
-  subscribe_package_id: string | null;
-  package: Package;
+  updatedAt: string;
+}
+
+interface SubscribePackage {
+  id: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  packageId: number;
+  userId: number;
+  zipCodes: ZipCode[];
 }
 
 interface Package {
@@ -22,7 +33,17 @@ interface Package {
   price: number;
   duration: number;
   status: string;
-  
+}
+
+interface Transaction {
+  id: number;
+  amount: number;
+  paymentStatus: string;
+  paymentMethod: string;
+  createdAt: string;
+  subscribePackageId: string | null;
+  package?: Package; // Make optional since it's not in the API response
+  subscribe_package: SubscribePackage; // Add the actual property from API
 }
 
 const Transaction = () => {
@@ -37,6 +58,7 @@ const Transaction = () => {
     amount: '',
     status: '',
     paymentMethod: '',
+    zipCodes: '', // Fixed: renamed from 'zipcodes' to match the filter
   });
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
@@ -76,10 +98,23 @@ const Transaction = () => {
         month: 'short',
         day: 'numeric',
       });
+      
+      // Helper function to get zip codes as a string
+      const getZipCodesString = (transaction: Transaction) => {
+        if (transaction.subscribe_package?.zipCodes) {
+          return transaction.subscribe_package.zipCodes
+            .map(zip => zip.zipcode)
+            .join(', ');
+        }
+        return '';
+      };
+
+      const zipCodesString = getZipCodesString(transaction);
+
       return (
         (searchFilters.date ? date.includes(searchFilters.date) : true) &&
         (searchFilters.subscriptionId
-          ? transaction.subscribe_package_id?.toLowerCase().includes(searchFilters.subscriptionId.toLowerCase())
+          ? transaction.subscribePackageId?.toLowerCase().includes(searchFilters.subscriptionId.toLowerCase())
           : true) &&
         (searchFilters.amount
           ? transaction.amount.toString().includes(searchFilters.amount)
@@ -89,6 +124,9 @@ const Transaction = () => {
           : true) &&
         (searchFilters.paymentMethod
           ? transaction.paymentMethod.toLowerCase().includes(searchFilters.paymentMethod.toLowerCase())
+          : true) &&
+        (searchFilters.zipCodes
+          ? zipCodesString.toLowerCase().includes(searchFilters.zipCodes.toLowerCase())
           : true)
       );
     });
@@ -112,11 +150,22 @@ const Transaction = () => {
     }
   };
 
+  // Helper function to display zip codes
+  const displayZipCodes = (transaction: Transaction) => {
+    if (transaction.subscribe_package?.zipCodes && transaction.subscribe_package.zipCodes.length > 0) {
+      return transaction.subscribe_package.zipCodes
+        .map(zip => zip.zipcode)
+        .join(', ');
+    }
+    return 'N/A';
+  };
+
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredTransactions.slice(indexOfFirstRow, indexOfLastRow);
 
   const totalPages = Math.ceil(filteredTransactions.length / rowsPerPage);
+
   return (
     <DashboardLayout title="Transaction History" user={user}>
       <div className="max-w-7xl mx-auto py-6 space-y-8">
@@ -143,48 +192,63 @@ const Transaction = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
                         <input
                           type="text"
                           placeholder="Search Date"
                           value={searchFilters.date}
                           onChange={(e) => handleSearchChange(e, 'date')}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm mt-1"
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Subscription ID
                         <input
                           type="text"
                           placeholder="Search Subscription ID"
                           value={searchFilters.subscriptionId}
                           onChange={(e) => handleSearchChange(e, 'subscriptionId')}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm mt-1"
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
                         <input
                           type="text"
                           placeholder="Search Amount"
                           value={searchFilters.amount}
                           onChange={(e) => handleSearchChange(e, 'amount')}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm mt-1"
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Zip Codes
+                        <input
+                          type="text"
+                          placeholder="Search Zip Codes"
+                          value={searchFilters.zipCodes}
+                          onChange={(e) => handleSearchChange(e, 'zipCodes')}
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm mt-1"
+                        />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
                         <input
                           type="text"
                           placeholder="Search Status"
                           value={searchFilters.status}
                           onChange={(e) => handleSearchChange(e, 'status')}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm mt-1"
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Payment Method
                         <input
                           type="text"
                           placeholder="Search Payment Method"
                           value={searchFilters.paymentMethod}
                           onChange={(e) => handleSearchChange(e, 'paymentMethod')}
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm mt-1"
                         />
                       </th>
                     </tr>
@@ -200,10 +264,13 @@ const Transaction = () => {
                           })}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {transaction.subscribe_package_id || 'N/A'}
+                          {transaction.subscribePackageId || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">
                           ${transaction.amount.toFixed(2)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {displayZipCodes(transaction)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
@@ -227,25 +294,27 @@ const Transaction = () => {
         </Card>
 
         {/* Pagination */}
-        <div className="flex justify-between items-center mt-4">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+        {filteredTransactions.length > 0 && (
+          <div className="flex justify-between items-center mt-4">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

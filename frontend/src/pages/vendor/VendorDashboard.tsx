@@ -72,8 +72,8 @@ const VendorDashboard = () => {
         )}
         
         {/* Dashboard Content */}
-        <div className="bg-white shadow-lg rounded-xl justify-center p-6 max-w-7xl mx-auto">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
+        {/* <div className="bg-white shadow-lg rounded-xl justify-center p-6 max-w-7xl mx-auto">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1"> */}
           {/* ZIP Code Management Card */}
           {/* {user?.packageActive === 'YES' && user?.status === 'ACTIVE' && (
             <Card>
@@ -96,9 +96,9 @@ const VendorDashboard = () => {
                 {/* </div>
               </CardContent>
             </Card> */}
-          {/* )} */} */
-        </div>
-        </div>
+          {/* )} */} 
+        {/* </div>
+        </div> */}
 
         {/* ZIP Code Management Modal */}
         {/* {showZipCodeManagement && (

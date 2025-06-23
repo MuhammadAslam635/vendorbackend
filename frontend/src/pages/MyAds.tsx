@@ -88,27 +88,27 @@ const MyAds = () => {
     return (
         <div className="min-h-screen flex flex-col">
             <Header />
-            <div className="container max-w-xl mx-auto px-4 py-8 justify-center items-center">
+            <div className="max-w-3xl mx-auto px-4 py-8 justify-center items-center mt-10">
                 <div className="mt-10 flex justify-between items-center">
                     <h1 className="text-3xl font-bold text-gray-900 mb-4">My Ads</h1>
                     <Link to="/vendor/dashboard" className="text-blue-500 hover:underline">Return to Dashboard</Link>
                 </div>
 
                 <Card className="group  transition-all duration-300 border-0 overflow-hidden">
-                    <CardHeader className="relative p-0">
+                    <CardHeader className="relative p-0 ">
                         <div className="w-full h-48 bg-[#a0b830] rounded-t-lg mb-4 overflow-hidden">
                             <img
                                 src={vendor.companyLogo}
                                 alt={`${vendor.company} Logo`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover bg-[#a0b830] px-2"
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = '/placeholder-logo.png';
                                 }}
                             />
                             <div className="absolute inset-0  duration-300" />
-                            <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-sm font-medium text-[#a0b830]">
+                            {/* <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-sm font-medium text-[#a0b830]">
                                 Featured
-                            </div>
+                            </div> */}
                         </div>
                         <div className="p-6">
                             <CardTitle className="text-xl font-bold bg-[#a0b830] bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
@@ -225,8 +225,8 @@ const MyAds = () => {
 
 
                 {modalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-                        <div className="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden">
+                    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 bg-[#a0b830]">
+                        <div className="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden bg-[#a0b830]">
                             {/* Close Button */}
                             <button
                                 onClick={() => setModalOpen(false)}
@@ -236,8 +236,8 @@ const MyAds = () => {
                             </button>
 
                             {/* Slider Container */}
-                            <div className="relative p-4">
-                                <div className="overflow-hidden">
+                            <div className="relative">
+                                <div className="overflow-hidden bg-[#a0b830]">
                                     <div
                                         className="flex transition-transform duration-500 ease-out"
                                         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -245,7 +245,7 @@ const MyAds = () => {
                                         {vendor.gallery.map((image, index) => (
                                             <div
                                                 key={image.id}
-                                                className="w-full flex-shrink-0 p-2"
+                                                className="w-full flex-shrink-0"
                                             >
                                                 <img
                                                     src={image.image}

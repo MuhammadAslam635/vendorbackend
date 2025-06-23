@@ -45,11 +45,11 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:block">
             <ul className="flex space-x-6 items-center">
-              <li>
+              {/* <li>
                 <Link to="/" className="text-[#a0b830] hover:text-gray-950">
                   VendorLocator
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link to="/all-vendors" className="text-[#a0b830] hover:text-gray-950">
                   Find Vendors
@@ -60,7 +60,7 @@ const Header = () => {
                   For Vendors
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline">Home Pages</Button>
@@ -80,7 +80,7 @@ const Header = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </li>
+              </li> */}
               <li>
                 <Button variant="default" asChild>
                   <Link to="/login">Login</Link>

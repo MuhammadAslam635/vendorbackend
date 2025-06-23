@@ -86,6 +86,7 @@ const Subscription = () => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
+      console.log('my packages',response);
       if(response.data.packageId){
         setHave(true);
       }
@@ -228,9 +229,9 @@ const Subscription = () => {
                       <ul className="space-y-2">
                         {pkg.description.split('\\n').map((line, index) => (
                           <li key={index} className="flex items-start">
-                            <svg className="h-5 w-5 text-[#a0b830] mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {/* <svg className="h-5 w-5 text-[#a0b830] mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            </svg> */}
                             <span className="text-sm text-gray-700 dark:text-gray-300">{line}</span>
                           </li>
                         ))}

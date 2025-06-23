@@ -77,7 +77,7 @@ export const PaymentModal = ({
         }, 1000);
       } else {
         console.error('Invalid payment response:', response.data);
-        toast.error('Invalid payment response. Please try again.');
+        toast.error(response.data.message);
       }
     } catch (error: any) {
       console.error('Payment error:', error);

@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSubscribepackageDto } from './dto/create-subscribepackage.dto';
-import { UpdateSubscribepackageDto } from './dto/update-subscribepackage.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -19,6 +17,18 @@ export class SubscribepackageService {
         package: true,
         transaction: true,
         user: true,
+        zipCodes: true, // Ensure this matches the schema
+      },
+    });
+  }
+  
+  async getUserAllPackages(userId: number) {
+    return this.prisma.subscribePackage.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        zipCodes: true, // Ensure this matches the schema
       },
     });
   }

@@ -327,7 +327,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                     onClick={() => setShowGalleryModal(false)}
                 >
                     <div
-                        className="relative max-w-4xl w-full"
+                        className="relative max-w-4xl w-full  bg-[#a0b830] p-2 rounded-lg"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Close button */}

@@ -20,6 +20,7 @@ CREATE TABLE "User" (
     "packageActive" TEXT NOT NULL DEFAULT 'NO',
     "totalzipcodes" INTEGER DEFAULT 0,
     "addedzipcodes" INTEGER DEFAULT 0,
+    "about" TEXT,
     "company" TEXT,
     "state" TEXT,
     "city" TEXT,
@@ -35,6 +36,17 @@ CREATE TABLE "User" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Gallery" (
+    "id" SERIAL NOT NULL,
+    "image" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" INTEGER NOT NULL,
+
+    CONSTRAINT "Gallery_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -55,6 +67,7 @@ CREATE TABLE "ZipCode" (
     "id" SERIAL NOT NULL,
     "zipcode" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,
+    "subscribePackageId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -68,7 +81,9 @@ CREATE TABLE "Package" (
     "price" DOUBLE PRECISION NOT NULL DEFAULT 150,
     "duration" INTEGER NOT NULL DEFAULT 1,
     "profiles" INTEGER NOT NULL DEFAULT 3,
-    "description" TEXT DEFAULT 'Best Package for your business /n Optimize and grow your business with our best package /n No 1 Package for your business',
+    "description" TEXT DEFAULT 'Best Package for your business 
+ Optimize and grow your business with our best package 
+ No 1 Package for your business',
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -99,7 +114,7 @@ CREATE TABLE "Transaction" (
     "transactionId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "subscribe_package_id" INTEGER NOT NULL,
+    "subscribePackageId" INTEGER NOT NULL,
     "userId" INTEGER NOT NULL,
 
     CONSTRAINT "Transaction_pkey" PRIMARY KEY ("id")
@@ -133,10 +148,13 @@ CREATE INDEX "SubscribePackage_userId_idx" ON "SubscribePackage"("userId");
 CREATE UNIQUE INDEX "Transaction_transactionId_key" ON "Transaction"("transactionId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Transaction_subscribe_package_id_key" ON "Transaction"("subscribe_package_id");
+CREATE UNIQUE INDEX "Transaction_subscribePackageId_key" ON "Transaction"("subscribePackageId");
 
 -- CreateIndex
 CREATE INDEX "Transaction_userId_idx" ON "Transaction"("userId");
+
+-- AddForeignKey
+ALTER TABLE "Gallery" ADD CONSTRAINT "Gallery_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AccessToken" ADD CONSTRAINT "AccessToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -145,13 +163,16 @@ ALTER TABLE "AccessToken" ADD CONSTRAINT "AccessToken_userId_fkey" FOREIGN KEY (
 ALTER TABLE "ZipCode" ADD CONSTRAINT "ZipCode_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ZipCode" ADD CONSTRAINT "ZipCode_subscribePackageId_fkey" FOREIGN KEY ("subscribePackageId") REFERENCES "SubscribePackage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "SubscribePackage" ADD CONSTRAINT "SubscribePackage_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "Package"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SubscribePackage" ADD CONSTRAINT "SubscribePackage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_subscribe_package_id_fkey" FOREIGN KEY ("subscribe_package_id") REFERENCES "SubscribePackage"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_subscribePackageId_fkey" FOREIGN KEY ("subscribePackageId") REFERENCES "SubscribePackage"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

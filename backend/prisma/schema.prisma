@@ -66,9 +66,11 @@ model ZipCode {
   id        Int      @id @default(autoincrement())
   zipcode   String
   userId    Int
+  subscribePackageId  Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
+  subscribe_package SubscribePackage? @relation(fields: [subscribePackageId], references: [id]) // Updated to optional relation
 
   @@index([userId])
 }
@@ -98,6 +100,7 @@ model SubscribePackage {
   package     Package      @relation(fields: [packageId], references: [id])
   user        User         @relation(fields: [userId], references: [id])
   transaction Transaction?
+  zipCodes    ZipCode[]
 
   @@index([packageId])
   @@index([userId])
@@ -111,9 +114,9 @@ model Transaction {
   transactionId        String?          @unique
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
-  subscribe_package_id Int              @unique
+  subscribePackageId Int              @unique
   userId               Int
-  subscribe_package    SubscribePackage @relation(fields: [subscribe_package_id], references: [id])
+  subscribe_package    SubscribePackage @relation(fields: [subscribePackageId], references: [id])
   user                 User             @relation(fields: [userId], references: [id])
 
   @@index([userId])

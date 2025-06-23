@@ -49,7 +49,8 @@ const VendorSidebar = () => {
                     >
                         <Link to="/vendor/dashboard" className="flex items-center">
                         <LayoutDashboard className="mr-2 h-4 w-4" />
-                        Dashboard</Link>
+                        My Profile
+                        </Link>
                     </Button>
                     <Button
                         variant={isActiveRoute("/my-ads") ? "secondary" : "ghost"}
@@ -80,14 +81,14 @@ const VendorSidebar = () => {
                         Transaction</Link>
                     </Button>
                     
-                    <Button
+                    {/* <Button
                         variant={isActiveRoute("/vendor/profiles") ? "secondary" : "ghost"}
                         className="w-full justify-start"
                     >
                         <Link to="/vendor/profiles" className="flex items-center">
                         <Settings className="mr-2 h-4 w-4" />
                         Vendor Profile</Link>
-                    </Button>
+                    </Button> */}
                     <Button
                         variant={isActiveRoute("/vendor/reset-password") ? "secondary" : "ghost"}
                         className="w-full justify-start"

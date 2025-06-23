@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { PlusCircle, X, Loader2, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { PlusCircle, X, Loader2, MapPin, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
@@ -24,7 +24,91 @@ const ZipCodeSelectionModal = ({
 }: ZipCodeSelectionModalProps) => {
   const [newZipcode, setNewZipcode] = useState("");
   const [selectedZipcodes, setSelectedZipcodes] = useState<string[]>([]);
+  const [existingZipcodes, setExistingZipcodes] = useState<string[]>([]);
   const [isLoading] = useState(false);
+  const [isFetchingZipcodes, setIsFetchingZipcodes] = useState(false);
+  const [conflictingZipcodes, setConflictingZipcodes] = useState<string[]>([]);
+  const [showConflictAlert, setShowConflictAlert] = useState(false);
+
+  // Fetch existing ZIP codes from backend
+  // Updated code for extracting ZIP codes from the API response
+const fetchExistingZipcodes = async () => {
+  try {
+    setIsFetchingZipcodes(true);
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/subscribepackage/my/all/packages`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Extract all ZIP codes from the response
+    const allZipcodes: string[] = [];
+    
+    // Check if data has zipCodes array
+    if (data.zipCodes && Array.isArray(data.zipCodes)) {
+      data.zipCodes.forEach((zipCodeObj: any) => {
+        // If zipCodeObj has a zipcode property, extract it
+        if (zipCodeObj.zipcode) {
+          allZipcodes.push(zipCodeObj.zipcode);
+        }
+        // If zipCodeObj has a code property, extract it
+        else if (zipCodeObj.code) {
+          allZipcodes.push(zipCodeObj.code);
+        }
+        // If zipCodeObj is a string itself
+        else if (typeof zipCodeObj === 'string') {
+          allZipcodes.push(zipCodeObj);
+        }
+      });
+    }
+    
+    // Remove duplicates
+    const uniqueZipcodes = [...new Set(allZipcodes)];
+    setExistingZipcodes(uniqueZipcodes);
+    
+  } catch (error) {
+    console.error('Error fetching existing ZIP codes:', error);
+    toast.error('Failed to load existing ZIP codes. Please try again.');
+    setExistingZipcodes([]);
+  } finally {
+    setIsFetchingZipcodes(false);
+  }
+};
+
+  // Check for conflicts with existing ZIP codes
+  const checkForConflicts = (zipcodes: string[]) => {
+    const conflicts = zipcodes.filter(zipcode => existingZipcodes.includes(zipcode));
+    setConflictingZipcodes(conflicts);
+    setShowConflictAlert(conflicts.length > 0);
+    return conflicts;
+  };
+
+  // Fetch existing ZIP codes when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchExistingZipcodes();
+      setSelectedZipcodes([]);
+      setNewZipcode("");
+      setConflictingZipcodes([]);
+      setShowConflictAlert(false);
+    }
+  }, [isOpen]);
+
+  // Check for conflicts whenever selected ZIP codes change
+  useEffect(() => {
+    if (selectedZipcodes.length > 0) {
+      checkForConflicts(selectedZipcodes);
+    } else {
+      setConflictingZipcodes([]);
+      setShowConflictAlert(false);
+    }
+  }, [selectedZipcodes, existingZipcodes]);
 
   const handleAddZipcode = () => {
     if (!newZipcode.trim()) {
@@ -39,8 +123,16 @@ const ZipCodeSelectionModal = ({
       return;
     }
 
+    const trimmedZipcode = newZipcode.trim();
+
+    // Check if zipcode already exists in user's account
+    if (existingZipcodes.includes(trimmedZipcode)) {
+      toast.error("You already have this ZIP code in your account");
+      return;
+    }
+
     // Check if zipcode is already in current selection
-    if (selectedZipcodes.includes(newZipcode.trim())) {
+    if (selectedZipcodes.includes(trimmedZipcode)) {
       toast.error("This ZIP code is already selected");
       return;
     }
@@ -50,7 +142,7 @@ const ZipCodeSelectionModal = ({
       return;
     }
 
-    const newSelection = [...selectedZipcodes, newZipcode.trim()];
+    const newSelection = [...selectedZipcodes, trimmedZipcode];
     setSelectedZipcodes(newSelection);
     setNewZipcode("");
     
@@ -72,9 +164,16 @@ const ZipCodeSelectionModal = ({
     }
   };
 
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
     if (selectedZipcodes.length !== maxZipcodes) {
       toast.error(`Please add exactly ${maxZipcodes} ZIP codes to proceed with the ${packageName} package.`);
+      return;
+    }
+
+    // Final conflict check before proceeding
+    const conflicts = checkForConflicts(selectedZipcodes);
+    if (conflicts.length > 0) {
+      toast.error(`Cannot proceed: You already have ${conflicts.join(', ')} in your account. Please remove them and add different ZIP codes.`);
       return;
     }
     
@@ -84,11 +183,20 @@ const ZipCodeSelectionModal = ({
   const handleClose = () => {
     setSelectedZipcodes([]);
     setNewZipcode("");
+    setExistingZipcodes([]);
+    setConflictingZipcodes([]);
+    setShowConflictAlert(false);
     onClose();
   };
 
+  const handleRemoveConflictingZipcodes = () => {
+    const cleanedSelection = selectedZipcodes.filter(zipcode => !conflictingZipcodes.includes(zipcode));
+    setSelectedZipcodes(cleanedSelection);
+    toast.success(`Removed ${conflictingZipcodes.length} conflicting ZIP code${conflictingZipcodes.length > 1 ? 's' : ''}`);
+  };
+
   const canAddMore = selectedZipcodes.length < maxZipcodes;
-  const canProceedToPayment = selectedZipcodes.length === maxZipcodes;
+  const canProceedToPayment = selectedZipcodes.length === maxZipcodes && conflictingZipcodes.length === 0;
   const remainingZipcodes = maxZipcodes - selectedZipcodes.length;
 
   return (
@@ -102,6 +210,45 @@ const ZipCodeSelectionModal = ({
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Loading State for Fetching ZIP Codes */}
+          {isFetchingZipcodes && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  <p className="text-blue-800 text-sm">Loading existing ZIP codes...</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Conflict Alert */}
+          {showConflictAlert && conflictingZipcodes.length > 0 && (
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="pt-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-red-800 text-sm font-medium">
+                      ZIP Code Conflict Detected
+                    </p>
+                    <p className="text-red-700 text-sm mt-1">
+                      You already have these ZIP codes in your account: <span className="font-semibold">{conflictingZipcodes.join(', ')}</span>
+                    </p>
+                    <Button
+                      onClick={handleRemoveConflictingZipcodes}
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 border-red-300 text-red-700 hover:bg-red-100"
+                    >
+                      Remove Conflicting ZIP Codes
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Package Info Card */}
           <Card className="bg-gradient-to-r from-[#a0b830]/5 to-[#a0b830]/10 border-[#a0b830]/20">
             <CardContent className="pt-4">
@@ -111,12 +258,22 @@ const ZipCodeSelectionModal = ({
                   <p className="text-sm text-gray-600">
                     This package requires exactly <span className="font-bold text-[#a0b830]">{maxZipcodes}</span> ZIP codes
                   </p>
+                  {existingZipcodes.length > 0 && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      You already have {existingZipcodes.length} ZIP code{existingZipcodes.length !== 1 ? 's' : ''} in your account
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-black">
                     {selectedZipcodes.length}/{maxZipcodes}
                   </div>
                   <div className="text-xs text-gray-500">ZIP codes</div>
+                  {conflictingZipcodes.length > 0 && (
+                    <div className="text-xs text-red-600 mt-1">
+                      {conflictingZipcodes.length} conflicts
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -139,7 +296,8 @@ const ZipCodeSelectionModal = ({
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 
                   className={`h-3 rounded-full transition-all duration-500 ${
-                    canProceedToPayment ? 'bg-green-500' : 'bg-[#a0b830]'
+                    canProceedToPayment ? 'bg-green-500' : 
+                    conflictingZipcodes.length > 0 ? 'bg-red-500' : 'bg-[#a0b830]'
                   }`}
                   style={{ width: `${(selectedZipcodes.length / maxZipcodes) * 100}%` }}
                 ></div>
@@ -151,7 +309,7 @@ const ZipCodeSelectionModal = ({
                   value={newZipcode}
                   onChange={(e) => setNewZipcode(e.target.value)}
                   placeholder="Enter ZIP code (e.g., 12345)"
-                  disabled={isLoading || !canAddMore}
+                  disabled={isLoading || !canAddMore || isFetchingZipcodes}
                   maxLength={10}
                   className="flex-1"
                   onKeyPress={(e) => {
@@ -164,7 +322,7 @@ const ZipCodeSelectionModal = ({
                   type="button"
                   onClick={handleAddZipcode}
                   className="bg-[#a0b830] hover:bg-[#8fa029] text-white"
-                  disabled={isLoading || !canAddMore}
+                  disabled={isLoading || !canAddMore || isFetchingZipcodes}
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -177,11 +335,25 @@ const ZipCodeSelectionModal = ({
               </div>
 
               {/* Status Messages */}
-              {!canAddMore && selectedZipcodes.length === maxZipcodes && (
+              {!canAddMore && selectedZipcodes.length === maxZipcodes && conflictingZipcodes.length === 0 && (
                 <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                  <p className="text-green-800 text-sm font-medium">
-                    ✅ Perfect! You've added all {maxZipcodes} required ZIP codes. Ready to proceed!
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <p className="text-green-800 text-sm font-medium">
+                      Perfect! You've added all {maxZipcodes} required ZIP codes. Ready to proceed!
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {conflictingZipcodes.length > 0 && selectedZipcodes.length === maxZipcodes && (
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <p className="text-red-800 text-sm font-medium">
+                      Cannot proceed due to ZIP code conflicts. Please remove conflicting ZIP codes above.
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -204,24 +376,40 @@ const ZipCodeSelectionModal = ({
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {selectedZipcodes.map((zipcode, index) => (
-                        <div
-                          key={`${zipcode}-${index}`}
-                          className="bg-[#a0b830] bg-opacity-10 border border-[#a0b830] px-3 py-2 rounded-lg flex items-center gap-2 transition-all hover:bg-[#a0b830] hover:bg-opacity-20"
-                        >
-                          <MapPin className="h-4 w-4 text-[#a0b830]" />
-                          <span className="text-white font-medium">{zipcode}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveZipcode(zipcode)}
-                            className="text-white hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded"
-                            disabled={isLoading}
-                            title="Remove ZIP code"
+                      {selectedZipcodes.map((zipcode, index) => {
+                        const isConflicting = conflictingZipcodes.includes(zipcode);
+                        return (
+                          <div
+                            key={`${zipcode}-${index}`}
+                            className={`px-3 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                              isConflicting 
+                                ? 'bg-red-100 border border-red-300 text-red-800' 
+                                : 'bg-[#a0b830] bg-opacity-10 border border-[#a0b830] hover:bg-[#a0b830] hover:bg-opacity-20'
+                            }`}
                           >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
+                            <MapPin className={`h-4 w-4 ${isConflicting ? 'text-red-600' : 'text-[#a0b830]'}`} />
+                            <span className={`font-medium ${isConflicting ? 'text-red-800' : 'text-black'}`}>
+                              {zipcode}
+                            </span>
+                            {isConflicting && (
+                              <AlertCircle className="h-3 w-3 text-red-600" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveZipcode(zipcode)}
+                              className={`transition-colors p-1 rounded ${
+                                isConflicting 
+                                  ? 'text-red-600 hover:text-red-800 hover:bg-red-200' 
+                                  : 'text-[#a0b830] hover:text-red-500 hover:bg-red-50'
+                              }`}
+                              disabled={isLoading}
+                              title="Remove ZIP code"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -241,20 +429,22 @@ const ZipCodeSelectionModal = ({
             </Button>
             <Button
               onClick={handleProceedToPayment}
-              className={`flex-1 text-black transition-all ${
+              className={`flex-1 text-white transition-all ${
                 canProceedToPayment 
                   ? 'bg-green-600 hover:bg-green-700 shadow-lg' 
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
-              disabled={isLoading || !canProceedToPayment}
+              disabled={isLoading || !canProceedToPayment || isFetchingZipcodes}
             >
               {canProceedToPayment ? (
                 <>
                   Proceed to Payment 
-                  <span className="ml-2 bg-white bg-opacity-20 px-2 py-1 rounded text-sm">
+                  <span className="ml-2 bg-gray-950 bg-opacity-20 px-2 py-1 rounded text-sm">
                     {selectedZipcodes.length} ZIP codes
                   </span>
                 </>
+              ) : conflictingZipcodes.length > 0 ? (
+                'Resolve Conflicts First'
               ) : (
                 `Add ${remainingZipcodes} more ZIP code${remainingZipcodes !== 1 ? 's' : ''}`
               )}

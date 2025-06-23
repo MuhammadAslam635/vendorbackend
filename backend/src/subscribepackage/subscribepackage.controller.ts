@@ -12,4 +12,9 @@ export class SubscribepackageController {
   async getPackage(@Request() req){
   return this.subscribepackageService.getUserPackage(req.user.userId);
   }
+  @UseGuards(JwtAuthGuard)
+  @Get("/my/all/packages")
+  async gteAllPackages(@Request() req){
+    return this.subscribepackageService.getUserAllPackages(req.user.userId);
+  }
 }

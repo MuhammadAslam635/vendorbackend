@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
@@ -22,12 +21,20 @@ export class TransactionsService {
     return this.prisma.transaction.findMany();
   }
   async myAllT(userId: number) {
-    console.log("object transactions",userId);
-    return this.prisma.transaction.findMany({where: { userId:userId },
+    console.log("object transactions", userId);
+    return this.prisma.transaction.findMany({
+      where: {
+        userId: userId
+      },
       include: {
-        subscribe_package: true,
-        user: true}
-      });
+        subscribe_package: {
+          include: {
+            zipCodes: true  // Include zipCodes from the subscribe_package
+          }
+        },
+        user: true
+      }
+    });
   }
 
   async findOne(id: number) {
@@ -52,8 +59,7 @@ export class TransactionsService {
   update(id: number, updateTransactionDto: UpdateTransactionDto) {
     return `This action updates a #${id} transaction`;
   }
- 
-  async createPaymentSession(userId: number, packageId: number,createZipcodeDto: ZipcodeDto) {
+  async createPaymentSession(userId: number, packageId: number, createZipcodeDto: ZipcodeDto) {
     try {
       const { zipcodes } = createZipcodeDto;
       const pack = await this.prisma.package.findUnique({
@@ -63,45 +69,53 @@ export class TransactionsService {
       if (!pack) {
         throw new BadRequestException('Package not found');
       }
+
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
           zipcodes: true
         }
       });
-  
+
       if (!user) {
         throw new BadRequestException('User not found');
       }
-  
-      // Create zipcodes first
-      const zipcodeCreationPromises = zipcodes.map(async (zipData) => {
-        return await this.prisma.zipCode.create({
-          data: {
-            zipcode: zipData.zipcode,
-            userId: userId,
-          }
-        });
-      });
-  
-      // Wait for all zipcodes to be created
-      await Promise.all(zipcodeCreationPromises);
-  
-      // Update user's addedzipcodes count
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          addedzipcodes: {
-            increment: zipcodes.length
-          }
+
+      // Validate ZIP codes don't already exist
+      const existingZipcodes = await this.prisma.zipCode.findMany({
+        where: {
+          AND: [
+            {
+              zipcode: {
+                in: zipcodes.map(z => z.zipcode)
+              }
+            },
+            {
+              userId: userId
+            }
+          ]
         }
       });
-      console.log("object",zipcodes.length);
-      // Create subscription record
+
+      if (existingZipcodes.length > 0) {
+        const duplicateZipcodes = existingZipcodes.map(z => z.zipcode);
+        return {
+          success: false,
+          error: 'DUPLICATE_ZIPCODES',
+          message: `You already have the following ZIP codes in your account: ${duplicateZipcodes.join(', ')}`,
+          duplicateZipcodes: duplicateZipcodes,
+          availableZipcodes: zipcodes
+            .map(z => z.zipcode)
+            .filter(zipcode => !duplicateZipcodes.includes(zipcode))
+        };
+      }
+
+      // Create subscription and ZIP codes in a single transaction
       const subscription = await this.prisma.$transaction(async (prisma) => {
         const endDate = new Date();
         endDate.setMonth(endDate.getMonth() + pack.duration);
 
+        // Create subscription first
         const sub = await prisma.subscribePackage.create({
           data: {
             packageId,
@@ -111,103 +125,125 @@ export class TransactionsService {
             status: 'PENDING'
           }
         });
-        const user = await this.prisma.user.findUnique({
-          where: { id: userId }
+
+        // Create ZIP codes with the subscription ID
+        const zipcodeCreationPromises = zipcodes.map(async (zipData) => {
+          return await prisma.zipCode.create({
+            data: {
+              zipcode: zipData.zipcode,
+              userId: userId,
+              subscribePackageId: sub.id
+            }
+          });
         });
-        // if (user) {
-        //   await prisma.user.update({
-        //     where: { id: userId },
-        //     data: {
-        //       totalzipcodes: {
-        //         increment: pack?.profiles
-        //       },
-        //       packageActive: 'NO'
-        //     }
-        //   });
-        // }
+
+        // Wait for all ZIP codes to be created
+        await Promise.all(zipcodeCreationPromises);
+
+        // Update user's ZIP code count
+        // await prisma.user.update({
+        //   where: { id: userId },
+        //   data: {
+        //     addedzipcodes: {
+        //       increment: zipcodes.length
+        //     },
+        //     totalzipcodes: {
+        //       increment: pack?.profiles
+        //     },
+        //     packageActive: 'YES'
+        //   }
+        // });
 
         // Create transaction record
         const transaction = await prisma.transaction.create({
           data: {
             amount: pack.price,
-            paymentMethod: 'QUICKPAY',
+            paymentMethod: 'PayPal',
             paymentStatus: 'PENDING',
-            subscribe_package_id: sub.id,
+            subscribePackageId: sub.id,
             userId
           }
         });
 
         return { sub, transaction };
       });
-    
-      // Get QuickPay API credentials
-      const quickPayApiKey = this.configService.get('QUICKPAY_API_KEY');
+
+      console.log("ZIP codes created:", zipcodes.length);
+
+      // Get PayPal API credentials
+      const paypalClientId = this.configService.get('PAYPAL_CLIENT_ID');
+      const paypalClientSecret = this.configService.get('PAYPAL_CLIENT_SECRET');
+      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL'); // sandbox or live
       const apiUrl = this.configService.get('API_URL');
-      const FRONTEND_URL = this.configService.get('FRONTEND_URL');
-      const paymentWindowKey = this.configService.get('PAYMENT_WINDOW_KEY');
-      
-      if (!quickPayApiKey || !apiUrl || !paymentWindowKey) {
-        throw new InternalServerErrorException('Payment configuration missing');
+      const frontendUrl = this.configService.get('FRONTEND_URL');
+
+      if (!paypalClientId || !paypalClientSecret || !paypalBaseUrl) {
+        throw new InternalServerErrorException('PayPal configuration missing');
       }
+
       const generateOrderId = () => {
-        // Generate a random number between 1000 and 9999
         const random = Math.floor(1000 + Math.random() * 9000);
-        // Get current timestamp and take last 4 digits
         const timestamp = Date.now().toString().slice(-4);
-        // Combine to create a 12-character order ID
         return `SUB${timestamp}${random}`;
       };
-      console.log("object",generateOrderId());
-      // Step 1: Create a payment using API Key
-      const paymentResponse = await axios.post(
-        'https://api.quickpay.net/payments',
+
+      const orderId = generateOrderId();
+      console.log("Generated Order ID:", orderId,paypalBaseUrl,paypalClientId,paypalClientSecret);
+
+      // Step 1: Get PayPal Access Token
+      const authResponse = await axios.post(
+        `${paypalBaseUrl}/v1/oauth2/token`,
+        'grant_type=client_credentials',
         {
-          order_id: generateOrderId(), // Will generate something like "SUB12345678"
-          currency: 'USD',
-          type: 'payment',
-          basket: [{
-            qty: 1,
-            item_no: packageId,
-            item_name: pack.name,
-            item_price: Math.round(pack.price * 100),
-            vat_rate: 0
-          }]
-        },
-        {
+          auth: {
+            username: paypalClientId,
+            password: paypalClientSecret
+          },
           headers: {
-            'Accept-Version': 'v10',
-            'Authorization': `Basic ${Buffer.from(`:${quickPayApiKey}`).toString('base64')}`,
-            'Content-Type': 'application/json',
-            'QuickPay-Callback-Url': `${apiUrl}/transactions/webhook/quickpay`
-          }
-        }
-      );
-      console.log('Payment creation response:', paymentResponse.data);
-      const merchantId = this.configService.get('QUICKPAY_MERCHANT_ID');
-      // Step 2: Create a payment link using API Key
-      const paymentId = paymentResponse.data.id;
-      const linkResponse = await axios.put(
-        `https://api.quickpay.net/payments/${paymentId}/link`,
-        {
-          merchant_id: merchantId,
-          amount: Math.round(pack.price * 100), // Amount in cents
-          continue_url: `${FRONTEND_URL}/transactions/payment-success`,
-          cancel_url: `${FRONTEND_URL}/transactions/payment-cancel`,
-          callback_url: `${apiUrl}/transactions/webhook/quickpay`,
-          auto_capture: true,
-          language: 'en',
-          payment_methods: 'creditcard', // Add supported payment methods
-          framed: false
-        },
-        {
-          headers: {
-            'Accept-Version': 'v10',
-            'Authorization': `Basic ${Buffer.from(`:${quickPayApiKey}`).toString('base64')}`,
-            'Content-Type': 'application/json'
+            'Accept': 'application/json',
+            'Accept-Language': 'en_US',
+            'Content-Type': 'application/x-www-form-urlencoded'
           }
         }
       );
 
+      const accessToken = authResponse.data.access_token;
+
+      // Step 2: Create PayPal Order
+      const orderResponse = await axios.post(
+        `${paypalBaseUrl}/v2/checkout/orders`,
+        {
+          intent: 'CAPTURE',
+          purchase_units: [{
+            reference_id: orderId,
+            amount: {
+              currency_code: 'USD',
+              value: pack.price.toFixed(2)
+            },
+            description: pack.name,
+            custom_id: subscription.transaction.id.toString(),
+            soft_descriptor: pack.name?.substring(0, 22) || 'No description' // PayPal limit
+          }],
+          application_context: {
+            brand_name: 'App Ceration',
+            landing_page: 'BILLING',
+            user_action: 'PAY_NOW',
+            return_url: `${frontendUrl}/transactions/payment-success?transactionId=${subscription.transaction.id}`,
+            cancel_url: `${frontendUrl}/transactions/payment-cancel?transactionId=${subscription.transaction.id}`
+          }
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'PayPal-Request-Id': orderId // Idempotency key
+          }
+        }
+      );
+
+      console.log('PayPal order creation response:', orderResponse.data);
+
+      // Update user package status
       await this.prisma.user.update({
         where: { id: userId },
         data: {
@@ -217,23 +253,32 @@ export class TransactionsService {
           packageActive: 'YES'
         }
       });
-      console.log('Payment link response:', linkResponse.data);
-      // Save QuickPay payment ID to our transaction for reference
+
+      // Save PayPal order ID to our transaction for reference
       await this.prisma.transaction.update({
         where: { id: subscription.transaction.id },
-        data: { 
-          transactionId: paymentId.toString()
+        data: {
+          transactionId: orderResponse.data.id
         }
       });
 
+      // Find the approval URL from PayPal response
+      const approvalUrl = orderResponse.data.links.find(link => link.rel === 'approve')?.href;
+
+      if (!approvalUrl) {
+        throw new InternalServerErrorException('PayPal approval URL not found');
+      }
+
       return {
-        paymentUrl: linkResponse.data.url,
+        paymentUrl: approvalUrl,
         transactionId: subscription.transaction.id,
-        orderId: generateOrderId()
+        orderId: orderId,
+        paypalOrderId: orderResponse.data.id
       };
+
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('QuickPay API Error:', {
+        console.error('PayPal API Error:', {
           status: error.response?.status,
           data: error.response?.data,
           message: error.message
@@ -245,110 +290,283 @@ export class TransactionsService {
     }
   }
 
-  async verifyWebhookSignature(payload: any, signature: string): Promise<boolean> {
+  // Method to capture PayPal payment after user approval
+  async capturePayPalPayment(paypalOrderId: string) {
     try {
-      // Get the private key from config
-      const privateKey = this.configService.get('QUICKPAY_PRIVATE_KEY');
-      
-      if (!privateKey) {
-        console.error('Private key not configured');
-        return false;
+      const paypalClientId = this.configService.get('PAYPAL_CLIENT_ID');
+      const paypalClientSecret = this.configService.get('PAYPAL_CLIENT_SECRET');
+      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL');
+
+      // Get access token
+      const authResponse = await axios.post(
+        `${paypalBaseUrl}/v1/oauth2/token`,
+        'grant_type=client_credentials',
+        {
+          auth: {
+            username: paypalClientId,
+            password: paypalClientSecret
+          },
+          headers: {
+            'Accept': 'application/json',
+            'Accept-Language': 'en_US',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }
+      );
+
+      const accessToken = authResponse.data.access_token;
+
+      // Capture the payment
+      const captureResponse = await axios.post(
+        `${paypalBaseUrl}/v2/checkout/orders/${paypalOrderId}/capture`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      console.log('PayPal capture response:', captureResponse.data);
+
+      // Update transaction status based on capture result
+      const paypalStatus = captureResponse.data.status;
+      const transactionStatus = paypalStatus === 'COMPLETED' ? 'COMPLETED' : 'FAILED';
+
+      // Find and update our transaction
+      const transaction = await this.prisma.transaction.findFirst({
+        where: {
+          transactionId: paypalOrderId
+        },
+        include: {
+          subscribe_package: true
+        }
+      });
+
+      if (transaction) {
+        await this.prisma.$transaction(async (prisma) => {
+          // Update transaction status
+          await prisma.transaction.update({
+            where: { id: transaction.id },
+            data: {
+              paymentStatus: transactionStatus
+            }
+          });
+
+          // Update subscription status
+          if (transactionStatus === 'COMPLETED') {
+            await prisma.subscribePackage.update({
+              where: { id: transaction.subscribe_package.id },
+              data: { status: 'ACTIVE' }
+            });
+
+            await prisma.user.update({
+              where: { id: transaction.userId },
+              data: { packageActive: 'YES' }
+            });
+          } else {
+            await prisma.subscribePackage.update({
+              where: { id: transaction.subscribe_package.id },
+              data: { status: 'CANCELLED' }
+            });
+          }
+        });
       }
-  
-      // According to QuickPay documentation, create a checksum to compare
-      // This is a simplified example, implement according to QuickPay's docs
-      const crypto = require('crypto');
-      const payloadString = JSON.stringify(payload);
-      const calculatedSignature = crypto
-        .createHmac('sha256', privateKey)
-        .update(payloadString)
-        .digest('hex');
-      
-      return calculatedSignature === signature;
+
+      return captureResponse.data;
+
     } catch (error) {
-      console.error('Signature verification failed:', error);
+      console.error('PayPal capture error:', error);
+      throw new InternalServerErrorException('Failed to capture PayPal payment');
+    }
+  }
+
+  // PayPal webhook handler (optional - for additional security)
+  async verifyPayPalWebhook(payload: any, headers: any): Promise<boolean> {
+    try {
+      const paypalClientId = this.configService.get('PAYPAL_CLIENT_ID');
+      const paypalClientSecret = this.configService.get('PAYPAL_CLIENT_SECRET');
+      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL');
+      const webhookId = this.configService.get('PAYPAL_WEBHOOK_ID');
+
+      if (!webhookId) {
+        console.log('PayPal webhook verification disabled - no webhook ID configured');
+        return true; // Skip verification if not configured
+      }
+
+      // Get access token
+      const authResponse = await axios.post(
+        `${paypalBaseUrl}/v1/oauth2/token`,
+        'grant_type=client_credentials',
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Accept-Language': 'en_US',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${Buffer.from(`${paypalClientId}:${paypalClientSecret}`).toString('base64')}`
+          }
+        }
+      );
+
+      const accessToken = authResponse.data.access_token;
+
+      // Verify webhook signature
+      const verifyResponse = await axios.post(
+        `${paypalBaseUrl}/v1/notifications/verify-webhook-signature`,
+        {
+          auth_algo: headers['paypal-auth-algo'],
+          cert_id: headers['paypal-cert-id'],
+          transmission_id: headers['paypal-transmission-id'],
+          transmission_sig: headers['paypal-transmission-sig'],
+          transmission_time: headers['paypal-transmission-time'],
+          webhook_id: webhookId,
+          webhook_event: payload
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      return verifyResponse.data.verification_status === 'SUCCESS';
+
+    } catch (error) {
+      console.error('PayPal webhook verification failed:', error);
       return false;
     }
   }
 
-  // Update the handleWebhook method
-  async handleWebhook(payload: any) {
-    console.log('Processing webhook payload:', payload);
-    
+  // Handle PayPal webhooks (optional)
+  async handlePayPalWebhook(payload: any, headers: any) {
+    console.log('Processing PayPal webhook payload:', payload);
+
     try {
-      // Extract subscription ID from order ID
-      const orderId = payload.orderId;
-      console.log('Processing order:', orderId);
+      // Verify webhook (optional but recommended for production)
+      const isValid = await this.verifyPayPalWebhook(payload, headers);
+      if (!isValid) {
+        console.error('Invalid PayPal webhook signature');
+        return;
+      }
 
+      const eventType = payload.event_type;
+      const resource = payload.resource;
+
+      // Handle different webhook events
+      switch (eventType) {
+        case 'CHECKOUT.ORDER.APPROVED':
+          console.log('PayPal order approved:', resource.id);
+          break;
+
+        case 'PAYMENT.CAPTURE.COMPLETED':
+          await this.handlePaymentCompleted(resource);
+          break;
+
+        case 'PAYMENT.CAPTURE.DENIED':
+        case 'PAYMENT.CAPTURE.FAILED':
+          await this.handlePaymentFailed(resource);
+          break;
+
+        default:
+          console.log('Unhandled PayPal webhook event:', eventType);
+      }
+
+      console.log('PayPal webhook processed successfully');
+    } catch (error) {
+      console.error('PayPal webhook processing error:', error);
+    }
+  }
+
+  private async handlePaymentCompleted(resource: any) {
+    const customId = resource.custom_id; // This contains our transaction ID
+
+    if (customId) {
       await this.prisma.$transaction(async (prisma) => {
-        // Find the transaction by QuickPay transaction ID
-        const transaction = await prisma.transaction.findFirst({
-          where: {
-            transactionId: payload.transactionId.toString()
-          },
+        const transaction = await prisma.transaction.findUnique({
+          where: { id: parseInt(customId) },
           include: {
-            subscribe_package: {
-              include: {
-                user: true
-              }
-            }
+            subscribe_package: true
           }
         });
 
-        if (!transaction) {
-          console.error('Transaction not found:', payload.transactionId);
-          return;
-        }
+        if (transaction) {
+          await prisma.transaction.update({
+            where: { id: transaction.id },
+            data: { paymentStatus: 'COMPLETED' }
+          });
 
-        // Update transaction status
-        await prisma.transaction.update({
-          where: { id: transaction.id },
-          data: {
-            paymentStatus: payload.status
-          }
-        });
-
-        // Update subscription and user if payment is completed
-        if (payload.status === 'COMPLETED') {
           await prisma.subscribePackage.update({
             where: { id: transaction.subscribe_package.id },
             data: { status: 'ACTIVE' }
           });
 
           await prisma.user.update({
-            where: { id: transaction.subscribe_package.user.id },
+            where: { id: transaction.userId },
             data: { packageActive: 'YES' }
           });
+        }
+      });
+    }
+  }
 
-          console.log('Payment completed successfully for order:', orderId);
-        } else {
+  private async handlePaymentFailed(resource: any) {
+    const customId = resource.custom_id;
+
+    if (customId) {
+      await this.prisma.$transaction(async (prisma) => {
+        const transaction = await prisma.transaction.findUnique({
+          where: { id: parseInt(customId) },
+          include: {
+            subscribe_package: true
+          }
+        });
+
+        if (transaction) {
+          await prisma.transaction.update({
+            where: { id: transaction.id },
+            data: { paymentStatus: 'FAILED' }
+          });
+
           await prisma.subscribePackage.update({
             where: { id: transaction.subscribe_package.id },
             data: { status: 'CANCELLED' }
           });
-
-          console.log('Payment failed or cancelled for order:', orderId);
         }
       });
-
-      console.log('Webhook processed successfully');
-    } catch (error) {
-      console.error('Webhook processing error:', error);
-      // Log error but don't throw to ensure 200 response
     }
   }
-  
+  // Add these to your service
+  async updateTransactionStatus(transactionId: number, status: string) {
+    return this.prisma.transaction.update({
+      where: { id: transactionId },
+      data: { paymentStatus: status }
+    });
+  }
+
+  async getTransactionStatus(transactionId: number, userId: number) {
+    return this.prisma.transaction.findFirst({
+      where: {
+        id: transactionId,
+        userId: userId
+      },
+      include: {
+        subscribe_package: true
+      }
+    });
+  }
   // Remove or simplify confirmPaymentSuccess since webhook will handle everything
   async confirmPaymentSuccess(orderId: string) {
     const FRONTEND_URL = this.configService.get('FRONTEND_URL');
     return this.redirect(FRONTEND_URL + '/vendor/add/zipcode');
   }
-  
+
   async handlePaymentCancel(orderId: string) {
     const FRONTEND_URL = this.configService.get('FRONTEND_URL');
     return this.redirect(FRONTEND_URL + '/vendor/dashboard/subscription?canceled=true');
   }
-  
+
   private redirect(url: string) {
     return {
       statusCode: 302,
@@ -357,5 +575,5 @@ export class TransactionsService {
     };
   }
 
-  
+
 }
