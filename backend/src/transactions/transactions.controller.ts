@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException, Headers, HttpCode, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException, Headers, HttpCode, Query, InternalServerErrorException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -114,68 +114,66 @@ async handlePayPalWebhook(
 }
 
 // Optional: Endpoint to handle payment success redirect
-@Get('payment-success')
+@Post('payment-success')
 async handlePaymentSuccess(
-  @Query('token') paypalOrderId: string,
-  @Query('PayerID') payerId: string,
-  @Query('transactionId') transactionId?: string
+  @Body('transactionId') transactionId?: string
 ) {
   try {
-    if (!paypalOrderId) {
-      throw new BadRequestException('PayPal Order ID is required');
+    if (!transactionId) {
+      throw new BadRequestException('Transaction ID is required');
     }
 
-    // Capture the payment
-    const result = await this.transactionsService.capturePayPalPayment(paypalOrderId);
+    // Call service function to handle payment success
+    const result = await this.transactionsService.confirmPaymentSuccess(
+      transactionId
+    );
     
     return {
       status: 'success',
       message: 'Payment completed successfully',
-      paypalOrderId,
-      payerId,
-      transactionId,
-      captureResult: result
+      data: result
     };
   } catch (error) {
     console.error('Payment success handling failed:', error);
-    return {
-      status: 'error',
-      message: 'Payment processing failed',
-      error: error.message
-    };
+    
+    // Re-throw known exceptions
+    if (error instanceof BadRequestException ||  
+        error instanceof InternalServerErrorException) {
+      throw error;
+    }
+    
+    throw new InternalServerErrorException('Payment processing failed');
   }
 }
 
-// Optional: Endpoint to handle payment cancellation
-@Get('payment-cancel')
+@Post('payment-cancel')
 async handlePaymentCancel(
-  @Query('token') paypalOrderId: string,
-  @Query('transactionId') transactionId?: string
+  @Body('transactionId') transactionId?: string
 ) {
   try {
-    console.log('Payment cancelled:', { paypalOrderId, transactionId });
-
-    // Update transaction status to cancelled if we have the transaction ID
-    if (transactionId) {
-      await this.transactionsService.updateTransactionStatus(
-        parseInt(transactionId), 
-        'CANCELLED'
-      );
+    if (!transactionId) {
+      throw new BadRequestException('Transaction ID is required');
     }
+
+    console.log('Payment cancelled:', {  transactionId });
+
+    // Call service function to handle payment cancellation
+    const result = await this.transactionsService.handlePaymentCancel(transactionId);
 
     return {
       status: 'cancelled',
-      message: 'Payment was cancelled by user',
-      paypalOrderId,
-      transactionId
+      message: 'Payment was cancelled successfully',
+      data: result
     };
   } catch (error) {
     console.error('Payment cancel handling failed:', error);
-    return {
-      status: 'error',
-      message: 'Error handling payment cancellation',
-      error: error.message
-    };
+    
+    // Re-throw known exceptions
+    if (error instanceof BadRequestException) {
+      throw error;
+    }
+    
+    throw new InternalServerErrorException('Error handling payment cancellation');
   }
 }
 

@@ -228,15 +228,15 @@ export class TransactionsService {
             brand_name: 'App Ceration',
             landing_page: 'BILLING',
             user_action: 'PAY_NOW',
-            return_url: `${frontendUrl}/transactions/payment-success?transactionId=${subscription.transaction.id}`,
-            cancel_url: `${frontendUrl}/transactions/payment-cancel?transactionId=${subscription.transaction.id}`
+            return_url: `${frontendUrl}/vendor/payment-success?transactionId=${subscription.transaction.id}`,
+            cancel_url: `${frontendUrl}/vendor/payment-cancel?transactionId=${subscription.transaction.id}`
           }
         },
         {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`,
-            'PayPal-Request-Id': orderId // Idempotency key
+            'PayPal-Request-Id': orderId 
           }
         }
       );
@@ -248,9 +248,11 @@ export class TransactionsService {
         where: { id: userId },
         data: {
           totalzipcodes: {
-            increment: pack?.profiles
+            increment: pack?.profiles,
           },
-          packageActive: 'YES'
+          addedzipcodes:{
+            increment: zipcodes.length
+          }
         }
       });
 
@@ -558,13 +560,144 @@ export class TransactionsService {
   }
   // Remove or simplify confirmPaymentSuccess since webhook will handle everything
   async confirmPaymentSuccess(orderId: string) {
+    // This method is not needed if using webhooks
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { transactionId: orderId },
+      include: { subscribe_package: true }
+    });
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+    // Update transaction status to completed
+    await this.prisma.transaction.update({
+      where: { id: transaction.id },
+      data: { paymentStatus: 'COMPLETED' }
+    });
+    // Update subscription status to active
+    await this.prisma.subscribePackage.update({
+      where: { id: transaction.subscribe_package.id },
+      data: { status: 'ACTIVE' }
+    });
+    // Update user package status
+    await this.prisma.user.update({
+      where: { id: transaction.userId },
+      data: { packageActive: 'YES' }
+    });
+    // Redirect to frontend URL
+    // Fixed: Use configService to get frontend URL
     const FRONTEND_URL = this.configService.get('FRONTEND_URL');
-    return this.redirect(FRONTEND_URL + '/vendor/add/zipcode');
+    return this.redirect(FRONTEND_URL + '/vendor/dashboard');
   }
 
   async handlePaymentCancel(orderId: string) {
-    const FRONTEND_URL = this.configService.get('FRONTEND_URL');
-    return this.redirect(FRONTEND_URL + '/vendor/dashboard/subscription?canceled=true');
+    try {
+      // Validate orderId
+      const orderIdNum = parseInt(orderId);
+      if (isNaN(orderIdNum)) {
+        throw new BadRequestException('Invalid order ID format');
+      }
+  
+      const transaction = await this.prisma.transaction.findFirst({
+        where: {
+          id: orderIdNum
+        },
+        include: {
+          subscribe_package: true
+        }
+      });
+  
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found');
+      }
+  
+      // Check if subscription package exists
+      if (!transaction.subscribe_package) {
+        throw new NotFoundException('Subscription package not found');
+      }
+  
+      // Update transaction status to cancelled
+      await this.prisma.transaction.update({
+        where: { id: transaction.id },
+        data: { paymentStatus: 'CANCELLED' }
+      });
+  
+      // Update subscription status to cancelled
+      await this.prisma.subscribePackage.update({
+        where: { id: transaction.subscribe_package.id },
+        data: { status: 'CANCELLED' }
+      });
+  
+      // Get zip codes and user data
+      const codes = await this.prisma.zipCode.findMany({
+        where: {
+          subscribePackageId: transaction.subscribe_package.id
+        }
+      });
+  
+      const user = await this.prisma.user.findUnique({
+        where: { id: transaction.userId }
+      });
+  
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+  
+      // Update user data based on conditions
+      if (user.totalzipcodes !== null && user.totalzipcodes !== 0 && codes && codes.length > 0) {
+        if (user.totalzipcodes === codes.length) {
+          // If user's total zipcodes equals codes being cancelled, set packageActive to 'NO'
+          await this.prisma.user.update({
+            where: { id: transaction.userId },
+            data: {
+              packageActive: 'NO',
+              totalzipcodes: {
+                decrement: codes.length
+              },
+              addedzipcodes: {
+                decrement: codes.length
+              }
+            }
+          });
+        } else if (user.totalzipcodes > codes.length) {
+          // If user has more zipcodes than being cancelled, only decrement
+          await this.prisma.user.update({
+            where: { id: transaction.userId },
+            data: {
+              totalzipcodes: {
+                decrement: codes.length
+              },
+              addedzipcodes: {
+                decrement: codes.length
+              }
+            }
+          });
+        }
+      }
+  
+      // Delete zip codes (always execute if codes exist)
+      if (codes && codes.length > 0) {
+        await this.prisma.zipCode.deleteMany({
+          where: {
+            subscribePackageId: transaction.subscribe_package.id
+          }
+        });
+      }
+  
+      const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+      return this.redirect(`${FRONTEND_URL}/vendor/subscriptions?canceled=true`);
+  
+    } catch (error) {
+      // Log the error for debugging
+      console.error('Error in handlePaymentCancel:', error);
+      
+      // Re-throw known exceptions
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      // Handle unexpected errors
+      throw new InternalServerErrorException('Failed to cancel payment');
+    }
   }
 
   private redirect(url: string) {
