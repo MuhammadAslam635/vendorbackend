@@ -9,6 +9,7 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -118,5 +119,9 @@ export class UserController {
       console.error('Email error:', error);
       throw new BadRequestException('Failed to send test email');
     }
+  }
+  @Post('/admin/create-user')
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    return this.userService.createUser(createUserDto);
   }
 }

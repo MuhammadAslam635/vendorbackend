@@ -28,6 +28,8 @@ interface User {
     email: string;
     status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
     createdAt: string;
+    utype: string;
+    phone: string;
     company: string;
     businessName: string;
     state: string;
@@ -184,6 +186,7 @@ const Vendors = () => {
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
+                                    <TableHead>UType</TableHead>
                                     <TableHead>Business</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Joined</TableHead>
@@ -195,6 +198,7 @@ const Vendors = () => {
                                     <TableRow key={user.id}>
                                         <TableCell>{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
+                                        <TableCell>{user.utype}</TableCell>
                                         <TableCell>{user.company || 'Not set'}</TableCell>
                                         <TableCell>
                                             <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeColor(user.status)}`}>

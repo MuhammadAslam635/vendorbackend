@@ -50,23 +50,33 @@ const AdminSidebar = () => {
         <div className="space-y-1">
           <Link
             to="/admin/dashboard"
-            className={`flex items-center w-full px-4 py-2 rounded-md ${
-              isActiveRoute("/admin/dashboard")
+            className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/admin/dashboard")
                 ? "bg-[#a0b830] text-white"
                 : "hover:bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
           </Link>
+          {user && user.utype === "ADMIN" && (
+            <Link
+              to="/admin/create-user"
+              className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/admin/create-user")
+                  ? "bg-[#a0b830] text-white"
+                  : "hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Create User
+            </Link>
+          )}
 
           <Link
             to="/admin/packages"
-            className={`flex items-center w-full px-4 py-2 rounded-md ${
-              isActiveRoute("/admin/packages")
+            className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/admin/packages")
                 ? "bg-[#a0b830] text-white"
                 : "hover:bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
             <Package className="mr-2 h-4 w-4" />
             Packages
@@ -74,62 +84,60 @@ const AdminSidebar = () => {
 
           <Link
             to="/admin/transactions"
-            className={`flex items-center w-full px-4 py-2 rounded-md ${
-              isActiveRoute("/admin/transactions")
+            className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/admin/transactions")
                 ? "bg-[#a0b830] text-white"
                 : "hover:bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
             Transactions
           </Link>
-
-          <Link
-            to="/admin/users"
-            className={`flex items-center w-full px-4 py-2 rounded-md ${
-              isActiveRoute("/admin/users")
+          {user && user.utype === "ADMIN" && (
+            <Link
+              to="/admin/users"
+            className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/admin/users")
                 ? "bg-[#a0b830] text-white"
                 : "hover:bg-gray-100 text-gray-700"
-            }`}
-          >
+              }`}
+            >
             <Users className="mr-2 h-4 w-4" />
             All Users
           </Link>
-          <Link
-            to="/admin/reset-password"
-            className={`flex items-center w-full px-4 py-2 rounded-md ${
-              isActiveRoute("/admin/reset-password")
-                ? "bg-[#a0b830] text-white"
-                : "hover:bg-gray-100 text-gray-700"
+          )}
+        <Link
+          to="/admin/reset-password"
+          className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/admin/reset-password")
+              ? "bg-[#a0b830] text-white"
+              : "hover:bg-gray-100 text-gray-700"
             }`}
-          >
-            <Lock className="mr-2 h-4 w-4" />
-            Reset Password
-          </Link>
-        </div>
-      </nav>
-
-      <div className="border-t p-4">
-        <div className="flex items-center gap-4 mb-4">
-          <Avatar>
-            <AvatarImage src="/placeholder.png" alt={user?.name} />
-            <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-gray-500">{user?.email}</p>
-          </div>
-        </div>
-        <Button
-          variant="destructive"
-          className="w-full justify-start text-white hover:text-white"
-          onClick={handleLogout}
         >
-          <LogOutIcon className="mr-2 h-4 w-4" />
-          Logout
-        </Button>
+          <Lock className="mr-2 h-4 w-4" />
+          Reset Password
+        </Link>
+    </div>
+      </nav >
+
+  <div className="border-t p-4">
+    <div className="flex items-center gap-4 mb-4">
+      <Avatar>
+        <AvatarImage src="/placeholder.png" alt={user?.name} />
+        <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
+      </Avatar>
+      <div>
+        <p className="text-sm font-medium">{user?.name}</p>
+        <p className="text-xs text-gray-500">{user?.email}</p>
       </div>
     </div>
+    <Button
+      variant="destructive"
+      className="w-full justify-start text-white hover:text-white"
+      onClick={handleLogout}
+    >
+      <LogOutIcon className="mr-2 h-4 w-4" />
+      Logout
+    </Button>
+  </div>
+    </div >
   );
 };
 

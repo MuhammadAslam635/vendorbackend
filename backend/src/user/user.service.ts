@@ -6,6 +6,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
@@ -165,9 +166,7 @@ export class UserService {
   }
   async getAllUsers() {
     return this.prisma.user.findMany({
-      where: {
-        utype: 'VENDOR'
-      },
+    
       include: {
         zipcodes: true,
       },
@@ -225,7 +224,10 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
-        zipcodes: true
+        zipcodes: true,
+        transactions: true,
+        gallery: true,
+        subscribe_packages: true
       }
     });
 
@@ -251,6 +253,42 @@ export class UserService {
       where: { id },
       data: { password }
     });
+  }
+
+  async createUser(createUserDto: CreateUserDto) {
+    // Check if email already exists
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: createUserDto.email },
+    });
+  
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
+  
+    // Check if phone number already exists using findFirst instead of findUnique
+    const phoneExists = await this.prisma.user.findFirst({
+      where: { phone: createUserDto.phone },
+    });
+    
+    if (phoneExists) {
+      throw new ConflictException('Phone number already exists');
+    }
+  
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+  
+    // Create the user
+    await this.prisma.user.create({
+      data: {
+        ...createUserDto,
+        password: hashedPassword,
+        email_verification_at: new Date(), // Set email verification date to now
+      },
+    });
+    return {
+      message: 'User created successfully',
+      status: 'success',
+      }
   }
 }
 

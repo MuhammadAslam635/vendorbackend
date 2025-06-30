@@ -29,6 +29,7 @@ interface ApiError {
 
 const LoginForm = () => {
     const navigate = useNavigate();
+    const { login } = useAuth(); // Use the hook properly
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState<LoginFormData>({
         email: "",
@@ -62,22 +63,36 @@ const LoginForm = () => {
             });
 
             if (response.data?.access_token && response.data?.user) {
-                // Update auth state using the hook
-                useAuth.getState().login(response.data.user, response.data.access_token);
+                // Store token in localStorage if remember me is checked
+                if (formData.remember) {
+                    localStorage.setItem('token', response.data.access_token);
+                } else {
+                    // Use sessionStorage if remember me is not checked
+                    sessionStorage.setItem('token', response.data.access_token);
+                }
+                
+                // Update auth state using the hook properly
+                login(response.data.user, response.data.access_token);
                 
                 toast.success("Login successful!");
                 
                 // Redirect based on user type
-                switch(response.data.user.utype) {
-                    case "ADMIN":
-                        navigate("/admin/dashboard");
-                        break;
-                    case "VENDOR":
-                        navigate("/vendor/dashboard");
-                        break;
-                    default:
-                        navigate("/");
-                }
+                console.log("user", response.data.user);
+                
+                // Use setTimeout to ensure state updates complete before navigation
+                setTimeout(() => {
+                    switch (response.data.user.utype) {
+                        case "ADMIN":
+                        case "SUBADMIN":
+                            navigate("/admin/dashboard");
+                            break;
+                        case "VENDOR":
+                            navigate("/vendor/dashboard");
+                            break;
+                        default:
+                            navigate("/");
+                    }
+                }, 100);
             }
         } catch (error) {
             console.error("Login error:", error);
@@ -85,7 +100,9 @@ const LoginForm = () => {
 
             if (apiError.response?.data?.message) {
                 toast.error(apiError.response.data.message);
-            } else {
+            } else if (apiError.response?.status === 401) {
+                toast.error("Invalid email or password. Please try again.");
+            }else {
                 toast.error("Login failed. Please check your credentials and try again.");
             }
         } finally {
@@ -125,6 +142,7 @@ const LoginForm = () => {
                                     placeholder="john.doe@example.com" 
                                     className="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200"
                                     required 
+                                    disabled={isLoading}
                                 />
                             </div>
                             
@@ -142,6 +160,7 @@ const LoginForm = () => {
                                     onChange={handleInputChange}
                                     className="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200"
                                     required 
+                                    disabled={isLoading}
                                 />
                             </div>
                             
@@ -150,6 +169,7 @@ const LoginForm = () => {
                                     id="remember" 
                                     checked={formData.remember}
                                     onCheckedChange={handleCheckboxChange}
+                                    disabled={isLoading}
                                 />
                                 <Label htmlFor="remember" className="text-sm">Remember me</Label>
                             </div>
@@ -158,7 +178,7 @@ const LoginForm = () => {
                             <Button 
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-[#a0b830] hover:bg-[#8fa029] text-white transition duration-300"
+                                className="w-full bg-[#a0b830] hover:bg-[#8fa029] text-white transition duration-300 disabled:opacity-50"
                             >
                                 {isLoading ? "Signing in..." : "Sign In"}
                             </Button>

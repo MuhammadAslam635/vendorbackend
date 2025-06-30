@@ -30,6 +30,7 @@ import AddGallery from './pages/vendor/AddGallery'
 import ResetPassword from './pages/vendor/ResetPassword'
 import AdminResetPassword from './pages/admin/AdminResetPassword'
 import Subscription from './pages/vendor/Subscription'
+import CreateUser from './pages/admin/users/CreateUser'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -94,12 +95,15 @@ function App() {
             </Routes>
           </ProtectedRoute>
         } />
+      
 
         {/* Fix the admin routes paths */}
         <Route path="/admin/*" element={
-          <ProtectedRoute allowedRoles={['ADMIN']}>
+          <ProtectedRoute allowedRoles={['ADMIN', 'SUBADMIN']}>
+            {/* Admin routes */}
             <Routes>
               <Route path="dashboard" element={<AdminDashbaord />} />
+              <Route path="create-user" element={<CreateUser />} />
               <Route path="packages" element={<AdminPackages />} />
               <Route path="create-package" element={<CreatePackage />} />
               <Route path="packages/:id/edit" element={<UpdatePackage />} />

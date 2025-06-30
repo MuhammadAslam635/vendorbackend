@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'VENDOR';
+export type UserRole = 'ADMIN' | 'VENDOR' | 'SUBADMIN';
 export interface Zipcode {
     id: number;
     zipcode: string;
