@@ -43,7 +43,7 @@ const FAQ = () => {
     };
     return (
         <>
-            <section className="py-16 bg-white mt-10">
+            {/* <section className="py-16 bg-white mt-10">
                 <div className="containerId mx-auto px-4">
                     
                         <div className="hero-section">
@@ -176,7 +176,7 @@ const FAQ = () => {
                     </div>
                 
 
-            </section>
+            </section> */}
             <div className="containerId mx-auto px-4">
             <div className="section">
                 <h1 className="hero-title">Core Aeration: The Secret to a Healthier Lawn</h1>
