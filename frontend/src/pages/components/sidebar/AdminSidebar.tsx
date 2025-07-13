@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../useAuth";
-import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users, Lock, Gem } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users, Lock } from "lucide-react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
