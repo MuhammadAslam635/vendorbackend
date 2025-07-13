@@ -6,6 +6,9 @@ import { Input } from "../../../components/ui/input";
 import { Card, CardContent, CardHeader } from "../../../components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
 import { Label } from "../../../components/ui/label";
+import { Checkbox } from "../../../components/ui/checkbox";
+import { Badge } from "../../../components/ui/badge";
+import { X } from "lucide-react";
 
 interface CreateUserProps {
     name: string;
@@ -13,8 +16,15 @@ interface CreateUserProps {
     phone: string;
     utype: string;
     status: string;
-    password: string; // Assuming password is required for user creation
+    password: string;
+    permissions: string[];
 }
+
+const AVAILABLE_PERMISSIONS = [
+    { value: "Approval", label: "Approval" },
+    { value: "Editing", label: "Editing" },
+    { value: "Deletion", label: "Deletion" },
+];
 
 const CreateUser = () => {
     const { user } = useAuth();
@@ -24,11 +34,28 @@ const CreateUser = () => {
         phone: '',
         utype: '',
         status: '',
-        password: '' // Initialize password field
+        password: '',
+        permissions: []
     });
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const handlePermissionToggle = (permission: string) => {
+        setUserData(prev => ({
+            ...prev,
+            permissions: prev.permissions.includes(permission)
+                ? prev.permissions.filter(p => p !== permission)
+                : [...prev.permissions, permission]
+        }));
+    };
+
+    const removePermission = (permission: string) => {
+        setUserData(prev => ({
+            ...prev,
+            permissions: prev.permissions.filter(p => p !== permission)
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,6 +66,21 @@ const CreateUser = () => {
         // Basic validation
         if (!userData.name || !userData.email || !userData.phone || !userData.utype || !userData.status) {
             setError('All fields are required');
+            setIsLoading(false);
+            return;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(userData.email)) {
+            setError('Please enter a valid email address');
+            setIsLoading(false);
+            return;
+        }
+
+        // Password validation
+        if (userData.password.length < 6) {
+            setError('Password must be at least 6 characters long');
             setIsLoading(false);
             return;
         }
@@ -72,7 +114,8 @@ const CreateUser = () => {
                 phone: '',
                 utype: '',
                 status: '',
-                password: '' // Reset password field
+                password: '',
+                permissions: []
             });
         } catch (e: any) {
             const errorMessage = e.message || 'An error occurred while creating the user';
@@ -91,7 +134,7 @@ const CreateUser = () => {
                         <h1 className="text-2xl font-bold">Create User</h1>
                     </CardHeader>
                     <CardContent>
-                        <form className="space-y-4" onSubmit={handleSubmit}>
+                        <form className="space-y-6" onSubmit={handleSubmit}>
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
                                 <div>
                                     <Label className="block text-sm font-medium text-gray-700">Name</Label>
@@ -128,15 +171,17 @@ const CreateUser = () => {
                                         required
                                     />
                                 </div>
+                                
                                 <div>
                                     <Label className="block text-sm font-medium text-gray-700">Password</Label>
                                     <Input
-                                        type="text"
+                                        type="password"
                                         value={userData.password}
                                         onChange={(e) => setUserData({ ...userData, password: e.target.value })}
                                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                         disabled={isLoading}
                                         required
+                                        minLength={6}
                                     />
                                 </div>
                                 
@@ -144,7 +189,14 @@ const CreateUser = () => {
                                     <Label className="block text-sm font-medium text-gray-700">User Type</Label>
                                     <Select
                                         value={userData.utype}
-                                        onValueChange={(value) => setUserData({ ...userData, utype: value })}
+                                        onValueChange={(value) => {
+                                            setUserData({ 
+                                                ...userData, 
+                                                utype: value,
+                                                // Clear permissions if not SUBADMIN
+                                                permissions: value === 'SUBADMIN' ? userData.permissions : []
+                                            });
+                                        }}
                                         disabled={isLoading}
                                     >
                                         <SelectTrigger className="mt-1 w-full">
@@ -175,15 +227,75 @@ const CreateUser = () => {
                                     </Select>
                                 </div>
                             </div>
+
+                            {/* Permissions Section - Only show if user type is SUBADMIN */}
+                            {userData.utype === 'SUBADMIN' && (
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label className="block text-sm font-medium text-gray-700 mb-3">
+                                            Permissions
+                                        </Label>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                            {AVAILABLE_PERMISSIONS.map((permission) => (
+                                                <div key={permission.value} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={permission.value}
+                                                        checked={userData.permissions.includes(permission.value)}
+                                                        onCheckedChange={() => handlePermissionToggle(permission.value)}
+                                                        disabled={isLoading}
+                                                    />
+                                                    <label
+                                                        htmlFor={permission.value}
+                                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                                    >
+                                                        {permission.label}
+                                                    </label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Selected Permissions Display */}
+                                    {userData.permissions.length > 0 && (
+                                        <div>
+                                            <Label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Selected Permissions ({userData.permissions.length})
+                                            </Label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {userData.permissions.map((permission) => {
+                                                    const permissionLabel = AVAILABLE_PERMISSIONS.find(p => p.value === permission)?.label || permission;
+                                                    return (
+                                                        <Badge
+                                                            key={permission}
+                                                            variant="secondary"
+                                                            className="flex items-center gap-1 px-2 py-1"
+                                                        >
+                                                            {permissionLabel}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removePermission(permission)}
+                                                                disabled={isLoading}
+                                                                className="ml-1 hover:text-red-500 disabled:cursor-not-allowed"
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                            </button>
+                                                        </Badge>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             
                             {error && (
-                                <div className="text-red-500 text-sm mt-2">
+                                <div className="text-red-500 text-sm mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
                                     {error}
                                 </div>
                             )}
                             
                             {success && (
-                                <div className="text-green-500 text-sm mt-2">
+                                <div className="text-green-500 text-sm mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
                                     {success}
                                 </div>
                             )}
@@ -192,7 +304,7 @@ const CreateUser = () => {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="px-4 py-2 bg-lime-600 text-white rounded-md hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-6 py-2 bg-lime-600 text-white rounded-md hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     {isLoading ? 'Creating...' : 'Create User'}
                                 </button>

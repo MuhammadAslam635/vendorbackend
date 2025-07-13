@@ -15,6 +15,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ZipcodeModule } from './zipcode/zipcode.module';
 import { GalleryModule } from './gallery/gallery.module';
+import { PermissionModule } from './permission/permission.module';
+import { ChatModule } from './chat/chat.module';
+import { MessageModule } from './message/message.module';
+import { PromoModule } from './promo/promo.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -56,6 +60,10 @@ import { GalleryModule } from './gallery/gallery.module';
     StatsModule,
     ZipcodeModule,
     GalleryModule,
+    PermissionModule,
+    ChatModule,
+    MessageModule,
+    PromoModule,
   ],
 })
 export class AppModule {}

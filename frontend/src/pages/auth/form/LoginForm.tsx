@@ -83,6 +83,8 @@ const LoginForm = () => {
                 setTimeout(() => {
                     switch (response.data.user.utype) {
                         case "ADMIN":
+                            navigate("/admin/dashboard");
+                            break;
                         case "SUBADMIN":
                             navigate("/admin/dashboard");
                             break;

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../useAuth";
-import { LayoutDashboard, Package, ShoppingCart, Settings, LogOutIcon } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, LogOutIcon, MessageCircle, Ticket } from "lucide-react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -83,20 +83,20 @@ const VendorSidebar = () => {
                             Transaction</Link>
                     </Button>
 
-                    {/* <Button
-                        variant={isActiveRoute("/vendor/profiles") ? "secondary" : "ghost"}
+                    <Button
+                        variant={isActiveRoute("/vendor/support-chats") ? "secondary" : "ghost"}
                         className="w-full justify-start"
                     >
-                        <Link to="/vendor/profiles" className="flex items-center">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Vendor Profile</Link>
-                    </Button> */}
+                        <Link to="/vendor/support-chats" className="flex items-center">
+                        <Ticket className="mr-2 h-4 w-4" />
+                        Chat</Link>
+                    </Button>
                     <Button
                         variant={isActiveRoute("/vendor/reset-password") ? "secondary" : "ghost"}
                         className="w-full justify-start"
                     >
                         <Link to="/vendor/reset-password" className="flex items-center">
-                            <Settings className="mr-2 h-4 w-4" />
+                            <MessageCircle className="mr-2 h-4 w-4" />
                             Reset Password</Link>
                     </Button>
 

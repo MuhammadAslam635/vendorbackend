@@ -31,6 +31,12 @@ import ResetPassword from './pages/vendor/ResetPassword'
 import AdminResetPassword from './pages/admin/AdminResetPassword'
 import Subscription from './pages/vendor/Subscription'
 import CreateUser from './pages/admin/users/CreateUser'
+import Chat from './pages/vendor/Chat'
+import CreateTicket from './pages/vendor/CreateTicket'
+import TicketMessages from './pages/vendor/TicketMessages'
+import CreatePromo from './pages/admin/promo/CreatePromo'
+import ShowPromos from './pages/admin/promo/ShowPromos'
+import EditPromo from './pages/admin/promo/EditPromo'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -92,6 +98,9 @@ function App() {
               <Route path="/payment-cancel" element={<PaymentCancelHandler />} />
               <Route path="add/gallery" element={<AddGallery />} />
               <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="/support-chats" element={<Chat />} />
+              <Route path="/createticket" element={<CreateTicket />} />
+              <Route path="/ticket/:id" element={<TicketMessages />} />
             </Routes>
           </ProtectedRoute>
         } />
@@ -99,7 +108,7 @@ function App() {
 
         {/* Fix the admin routes paths */}
         <Route path="/admin/*" element={
-          <ProtectedRoute allowedRoles={['ADMIN', 'SUBADMIN']}>
+          <ProtectedRoute allowedRoles={['ADMIN', 'SUBADMIN','SUPERADMIN']}>
             {/* Admin routes */}
             <Routes>
               <Route path="dashboard" element={<AdminDashbaord />} />
@@ -110,6 +119,9 @@ function App() {
               <Route path="users" element={<Vendors />} />
               <Route path="transactions" element={<Transactions />} />
               <Route path="reset-password" element={<AdminResetPassword />} />
+              <Route path="create-promo" element={<CreatePromo />} />
+              <Route path="promos" element={<ShowPromos />} />
+              <Route path="edit-promo/:id" element={<EditPromo />} />
 
             </Routes>
           </ProtectedRoute>

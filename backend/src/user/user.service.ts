@@ -6,7 +6,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, PermissionType, UserStatus } from './dto/create-user.dto';
+import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
 @Injectable()
 export class UserService {
@@ -88,18 +89,18 @@ export class UserService {
       if (!existingUser) {
         throw new NotFoundException('User profile not found');
       }
-        const updatedUser = await this.prisma.user.update({
-          where: {
-            id: profileId
-          },
-          data: {
-            ...updateUserDto,
-            companyLogo: companyLogoPath || updateUserDto.companyLogo
-          },
-          include: {
-            zipcodes: true // Include updated zipcodes in response
-          }
-        });
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          id: profileId
+        },
+        data: {
+          ...updateUserDto,
+          companyLogo: companyLogoPath || updateUserDto.companyLogo
+        },
+        include: {
+          zipcodes: true // Include updated zipcodes in response
+        }
+      });
 
       return updatedUser;
 
@@ -114,6 +115,9 @@ export class UserService {
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
+      include: {
+        permissions:true
+      }
     });
   }
 
@@ -166,7 +170,7 @@ export class UserService {
   }
   async getAllUsers() {
     return this.prisma.user.findMany({
-    
+
       include: {
         zipcodes: true,
       },
@@ -195,7 +199,7 @@ export class UserService {
     const updatedUser = await this.prisma.user.update({
       where: { id: +id },
       data: {
-        status: status
+        status: status as UserStatus
       },
       include: {
         zipcodes: true
@@ -260,35 +264,245 @@ export class UserService {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: createUserDto.email },
     });
-  
+
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
-  
-    // Check if phone number already exists using findFirst instead of findUnique
-    const phoneExists = await this.prisma.user.findFirst({
-      where: { phone: createUserDto.phone },
-    });
-    
-    if (phoneExists) {
-      throw new ConflictException('Phone number already exists');
+
+    // Check if phone number already exists (only if phone is provided)
+    if (createUserDto.phone) {
+      const phoneExists = await this.prisma.user.findFirst({
+        where: { phone: createUserDto.phone },
+      });
+
+      if (phoneExists) {
+        throw new ConflictException('Phone number already exists');
+      }
     }
-  
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-  
-    // Create the user
-    await this.prisma.user.create({
-      data: {
-        ...createUserDto,
-        password: hashedPassword,
-        email_verification_at: new Date(), // Set email verification date to now
+
+    // Extract permissions from DTO
+    const { permissions, ...userDataWithoutPermissions } = createUserDto;
+    const userPermissions = permissions || [PermissionType.APPROVAL];
+
+    try {
+      // Create user with permissions in a transaction
+      const result = await this.prisma.$transaction(async (prisma) => {
+        // Create the user
+        const newUser = await prisma.user.create({
+          data: {
+            ...userDataWithoutPermissions,
+            password: hashedPassword,
+            email_verification_at: new Date(),
+          },
+        });
+
+        // Create multiple permissions for the user
+        await prisma.permission.createMany({
+          data: userPermissions.map(permission => ({
+            userId: newUser.id,
+            name: permission,
+          })),
+        });
+
+        return newUser;
+      });
+
+      return {
+        message: 'User created successfully',
+        status: 'success',
+        data: {
+          id: result.id,
+          name: result.name,
+          email: result.email,
+          utype: result.utype,
+          status: result.status,
+          permissions: userPermissions,
+        },
+      };
+    } catch (error) {
+      // Handle transaction errors
+      throw new ConflictException('Failed to create user and permissions');
+    }
+  }
+
+  async updateUser(id: number, updateUserDto: UpdateAdminUserDto) {
+    // Check if user exists
+    const existingUser = await this.prisma.user.findUnique({
+      where: { id },
+      include: { permissions: true },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check email uniqueness if email is being updated
+    if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
+      const emailExists = await this.prisma.user.findUnique({
+        where: { email: updateUserDto.email },
+      });
+
+      if (emailExists) {
+        throw new ConflictException('Email already exists');
+      }
+    }
+
+    // Check phone uniqueness if phone is being updated
+    if (updateUserDto.phone && updateUserDto.phone !== existingUser.phone) {
+      const phoneExists = await this.prisma.user.findFirst({
+        where: { phone: updateUserDto.phone },
+      });
+
+      if (phoneExists) {
+        throw new ConflictException('Phone number already exists');
+      }
+    }
+
+    // Extract permissions from update DTO
+    const { permissions, password, ...userDataWithoutPermissions } = updateUserDto;
+
+    try {
+      const result = await this.prisma.$transaction(async (prisma) => {
+        // Prepare user data
+        const userData: any = { ...userDataWithoutPermissions };
+
+        // Hash password if provided
+        if (password) {
+          userData.password = await bcrypt.hash(password, 10);
+        }
+
+        // Update user
+        const updatedUser = await prisma.user.update({
+          where: { id },
+          data: userData,
+        });
+
+        // Update permissions if provided
+        if (permissions && permissions.length > 0) {
+          // Delete existing permissions
+          await prisma.permission.deleteMany({
+            where: { userId: id },
+          });
+
+          // Create new permissions
+          await prisma.permission.createMany({
+            data: permissions.map(permission => ({
+              userId: id,
+              name: permission,
+            })),
+          });
+        }
+
+        return updatedUser;
+      });
+
+      return {
+        message: 'User updated successfully',
+        status: 'success',
+        data: {
+          id: result.id,
+          name: result.name,
+          email: result.email,
+          utype: result.utype,
+          status: result.status,
+          permissions: permissions || existingUser.permissions.map(p => p.name),
+        },
+      };
+    } catch (error) {
+      throw new ConflictException('Failed to update user');
+    }
+  }
+
+  async getUserWithPermissions(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        permissions: {
+          select: {
+            name: true,
+            createdAt: true,
+          }
+        }
       },
     });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return {
-      message: 'User created successfully',
-      status: 'success',
+      ...user,
+      permissions: user.permissions.map(p => p.name),
+    };
+  }
+
+  async addPermissionToUser(userId: number, permission: PermissionType) {
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    // Check if permission already exists - using unique constraint
+    const existingPermission = await this.prisma.permission.findUnique({
+      where: {
+        userId_name: {  // This is the compound unique constraint name
+          userId: userId,
+          name: permission
+        }
       }
+    });
+  
+    if (existingPermission) {
+      throw new ConflictException('Permission already exists for this user');
+    }
+  
+    // Add permission
+    await this.prisma.permission.create({
+      data: {
+        userId: userId,
+        name: permission,
+      },
+    });
+  
+    return {
+      message: 'Permission added successfully',
+      status: 'success',
+    };
+  }
+
+  async removePermissionFromUser(userId: number, permission: PermissionType) {
+    // Check if user exists
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Remove permission
+    const deletedPermission = await this.prisma.permission.deleteMany({
+      where: {
+        userId: userId,
+        name: permission,
+      },
+    });
+
+    if (deletedPermission.count === 0) {
+      throw new NotFoundException('Permission not found for this user');
+    }
+
+    return {
+      message: 'Permission removed successfully',
+      status: 'success',
+    };
   }
 }
 

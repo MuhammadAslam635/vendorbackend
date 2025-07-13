@@ -79,7 +79,7 @@ export class AuthService {
     const payload = {
       sub: user.id,
       email: user.email,
-      utype: user.utype
+      utype: user.utype,
     };
 
     return {
@@ -93,6 +93,7 @@ export class AuthService {
         status: user.status,
         emailVerified: user.email_verification_at,
         packageActive: user.packageActive,
+        permissions:user.permissions
       },
     };
   }
