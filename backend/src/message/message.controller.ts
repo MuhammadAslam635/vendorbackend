@@ -41,7 +41,7 @@ export class MessageController {
   @Post('/upload')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/attachments',
+      destination: './public/uploads/attachments',
       filename: (req, file, cb) => {
         // Generate unique filename
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -78,7 +78,7 @@ export class MessageController {
     }
 
     // Return the file URL
-    const fileUrl = `${process.env.APP_URL || 'http://localhost:3000'}/uploads/attachments/${file.filename}`;
+    const fileUrl = `${process.env.API_URL || 'http://localhost:3000'}/public/uploads/attachments/${file.filename}`;
 
     return {
       status: 'success',
