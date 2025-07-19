@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -6,7 +6,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto, PermissionType, UserStatus } from './dto/create-user.dto';
+import { CreateUserDto, PermissionType, RouteType, UserStatus } from './dto/create-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
 @Injectable()
@@ -116,7 +116,8 @@ export class UserService {
     return this.prisma.user.findUnique({
       where: { email },
       include: {
-        permissions:true
+        permissions:true,
+        routes:true
       }
     });
   }
@@ -152,9 +153,9 @@ export class UserService {
       },
     });
   }
-  async getUser(id: string) {
+  async getUser(id: number) {
     const user = await this.prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       include: {
         zipcodes: true,
         subscribe_packages: true,
@@ -191,9 +192,9 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    if (user.utype !== 'VENDOR') {
-      throw new ConflictException('Cannot update status for non-vendor users');
-    }
+    // if (user.utype !== 'VENDOR') {
+    //   throw new ConflictException('Cannot update status for non-vendor users');
+    // }
 
     // Update user status
     const updatedUser = await this.prisma.user.update({
@@ -260,56 +261,94 @@ export class UserService {
   }
 
   async createUser(createUserDto: CreateUserDto) {
-    // Check if email already exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: createUserDto.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
-    }
-
-    // Check if phone number already exists (only if phone is provided)
-    if (createUserDto.phone) {
-      const phoneExists = await this.prisma.user.findFirst({
-        where: { phone: createUserDto.phone },
-      });
-
-      if (phoneExists) {
-        throw new ConflictException('Phone number already exists');
-      }
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-    // Extract permissions from DTO
-    const { permissions, ...userDataWithoutPermissions } = createUserDto;
-    const userPermissions = permissions || [PermissionType.APPROVAL];
-
     try {
-      // Create user with permissions in a transaction
+      // Check if email already exists
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: createUserDto.email },
+      });
+  
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+  
+      // Check if phone number already exists (only if phone is provided)
+      if (createUserDto.phone) {
+        const phoneExists = await this.prisma.user.findFirst({
+          where: { phone: createUserDto.phone },
+        });
+  
+        if (phoneExists) {
+          throw new ConflictException('Phone number already exists');
+        }
+      }
+  
+      // Validate password
+      if (!createUserDto.password || createUserDto.password.length < 6) {
+        throw new BadRequestException('Password must be at least 6 characters long');
+      }
+  
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+  
+      // Extract permissions and routes from DTO
+      const { permissions, routes, ...userDataWithoutPermissionsAndRoutes } = createUserDto;
+      
+      // Set default permissions and routes based on user type
+      let userPermissions: PermissionType[] = [];
+      let userRoutes: RouteType[] = [];
+  
+      if (createUserDto.utype === 'ADMIN' || createUserDto.utype === 'SUBADMIN') {
+        // For ADMIN and SUBADMIN, use provided permissions or set defaults
+        userPermissions = permissions && permissions.length > 0 ? permissions : [PermissionType.APPROVAL];
+        userRoutes = routes && routes.length > 0 ? routes : [RouteType.Package]; // Assuming PACKAGES is the correct enum value
+        
+        // Validate that permissions and routes are provided for ADMIN/SUBADMIN
+        if (!permissions || permissions.length === 0) {
+          throw new BadRequestException('Admin and Sub Admin users must have at least one permission');
+        }
+        if (!routes || routes.length === 0) {
+          throw new BadRequestException('Admin and Sub Admin users must have at least one route');
+        }
+      }
+      // For VENDOR users, no permissions or routes are needed
+  
+      // Create user with permissions and routes in a transaction
       const result = await this.prisma.$transaction(async (prisma) => {
         // Create the user
         const newUser = await prisma.user.create({
           data: {
-            ...userDataWithoutPermissions,
+            ...userDataWithoutPermissionsAndRoutes,
             password: hashedPassword,
             email_verification_at: new Date(),
           },
         });
-
-        // Create multiple permissions for the user
-        await prisma.permission.createMany({
-          data: userPermissions.map(permission => ({
-            userId: newUser.id,
-            name: permission,
-          })),
-        });
-
+  
+        // Create permissions only for ADMIN and SUBADMIN users
+        if (userPermissions.length > 0) {
+          await prisma.permission.createMany({
+            data: userPermissions.map(permission => ({
+              userId: newUser.id,
+              name: permission,
+            })),
+            skipDuplicates: true, // Prevents duplicate permission entries
+          });
+        }
+  
+        // Create routes only for ADMIN and SUBADMIN users
+        if (userRoutes.length > 0) {
+          await prisma.route.createMany({
+            data: userRoutes.map(route => ({
+              userId: newUser.id,
+              name: route,
+            })),
+            skipDuplicates: true, // Prevents duplicate route entries
+          });
+        }
+  
         return newUser;
       });
-
+  
+      // Return success response without sensitive data
       return {
         message: 'User created successfully',
         status: 'success',
@@ -317,14 +356,28 @@ export class UserService {
           id: result.id,
           name: result.name,
           email: result.email,
+          phone: result.phone,
           utype: result.utype,
           status: result.status,
           permissions: userPermissions,
+          routes: userRoutes,
         },
       };
     } catch (error) {
-      // Handle transaction errors
-      throw new ConflictException('Failed to create user and permissions');
+      // Handle specific Prisma errors
+      if (error.code === 'P2002') {
+        // Unique constraint violation
+        throw new ConflictException('User with this email or phone already exists');
+      }
+      
+      // Re-throw known exceptions
+      if (error instanceof ConflictException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      // Handle unexpected errors
+      console.error('Error creating user:', error);
+      throw new InternalServerErrorException('Failed to create user. Please try again.');
     }
   }
 
@@ -332,7 +385,9 @@ export class UserService {
     // Check if user exists
     const existingUser = await this.prisma.user.findUnique({
       where: { id },
-      include: { permissions: true },
+      include: { permissions: true,
+        routes:true
+       },
     });
 
     if (!existingUser) {
@@ -362,12 +417,12 @@ export class UserService {
     }
 
     // Extract permissions from update DTO
-    const { permissions, password, ...userDataWithoutPermissions } = updateUserDto;
+    const { routes,permissions, password, ...userDataWithoutPermissionsAndRoutes } = updateUserDto;
 
     try {
       const result = await this.prisma.$transaction(async (prisma) => {
         // Prepare user data
-        const userData: any = { ...userDataWithoutPermissions };
+        const userData: any = { ...userDataWithoutPermissionsAndRoutes };
 
         // Hash password if provided
         if (password) {
@@ -395,6 +450,20 @@ export class UserService {
             })),
           });
         }
+        if (routes && routes.length > 0) {
+          // Delete existing permissions
+          await prisma.route.deleteMany({
+            where: { userId: id },
+          });
+
+          // Create new permissions
+          await prisma.route.createMany({
+            data: routes.map(route => ({
+              userId: id,
+              name: route,
+            })),
+          });
+        }
 
         return updatedUser;
       });
@@ -409,6 +478,7 @@ export class UserService {
           utype: result.utype,
           status: result.status,
           permissions: permissions || existingUser.permissions.map(p => p.name),
+          routes: routes || existingUser.routes.map(p => p.name),
         },
       };
     } catch (error) {
@@ -503,6 +573,37 @@ export class UserService {
       message: 'Permission removed successfully',
       status: 'success',
     };
+  }
+  async getAdminUsers() {
+    try {
+      const adminUsers = await this.prisma.user.findMany({
+        where: {
+          utype: {
+            in: ["ADMIN", "SUBADMIN"]
+          }
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          utype: true,
+          createdAt: true,
+          updatedAt: true
+        },
+        orderBy: {
+          name: 'asc'
+        }
+      });
+  
+      return {
+        status: "success",
+        message: "Retrieved admin users successfully",
+        data: adminUsers
+      };
+    } catch (error) {
+      console.error('Get admin users error:', error);
+      throw new BadRequestException('Failed to retrieve admin users');
+    }
   }
 }
 

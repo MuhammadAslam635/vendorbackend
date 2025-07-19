@@ -39,10 +39,22 @@ model User {
   zipcodes              ZipCode[]
   gallery               Gallery[]
   permissions           Permission[]
+  routes                Route[]
   chats                 Chat[]             @relation("UserChats")
   messages              Message[]
   adminChats            Chat[]             @relation("AdminChats")
   createdPromos         Promo[]
+}
+model Route{
+  id        Int            @id @default(autoincrement())
+  userId    Int     
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String @default("/admin/packages")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  
+  @@unique([userId, name])
+  @@map("routes")
 }
 
 model Permission {

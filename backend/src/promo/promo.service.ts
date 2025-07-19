@@ -182,26 +182,16 @@ export class PromoService {
     return this.prisma.promo.findMany({
       where: {
         isActive: true,
-        startDate: { lte: now },
         endDate: { gte: now },
       }
     });
   }
 
-  async validatePromoCode(code: string, userId?: number, amount?: number) {
+  async validatePromoCode(code: string) {
     const now = new Date();
     
     const promo = await this.prisma.promo.findUnique({
-      where: { code },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          }
-        }
-      }
+      where: { code }
     });
 
     if (!promo) {

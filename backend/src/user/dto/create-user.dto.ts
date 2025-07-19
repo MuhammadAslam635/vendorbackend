@@ -19,6 +19,14 @@ enum PermissionType {
     EDITING = "Editing",
     DELETION = "Deletion"
 }
+enum RouteType {
+    Promo = "/admin/promos",
+    Admin = "/admin/create-user",
+    Package = "/admin/packages",
+    User = "/admin/users",
+    Ticket="/admin/tickets",
+}
+
 
 export class CreateUserDto {
     @IsString()
@@ -48,8 +56,13 @@ export class CreateUserDto {
     @ArrayMinSize(1)
     @IsOptional()
     permissions?: PermissionType[];
+    @IsArray()
+    @IsEnum(RouteType, { each: true })
+    @ArrayMinSize(1)
+    @IsOptional()
+    routes?: RouteType[];
 
 }
 
 // Export enums for use in other files
-export { UserType, UserStatus, PermissionType };
+export { UserType, UserStatus, PermissionType,RouteType };

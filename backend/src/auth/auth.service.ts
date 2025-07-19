@@ -68,13 +68,16 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+   
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
+    if(user.status != 'ACTIVE'){
+      throw new UnauthorizedException('Invalid credentials or Account not Active.');
+    }
     // Ensure payload matches JwtStrategy validate method structure
     const payload = {
       sub: user.id,
@@ -93,7 +96,8 @@ export class AuthService {
         status: user.status,
         emailVerified: user.email_verification_at,
         packageActive: user.packageActive,
-        permissions:user.permissions
+        permissions:user.permissions,
+        routes:user.routes
       },
     };
   }

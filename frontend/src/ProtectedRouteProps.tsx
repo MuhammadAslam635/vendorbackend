@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 export type UserRole = 'ADMIN' | 'VENDOR' | 'SUBADMIN' | 'SUPERADMIN';
 export type Roles = 'Approval' | 'Editing' | 'Deletion'; 
+export type Routes = '/admin/create-user' | '/admin/packages' | '/admin/promos' | '/admin/users'; 
 export interface Zipcode {
     id: number;
     zipcode: string;
@@ -46,7 +47,8 @@ export interface User {
   zipcodes?: Zipcode[];
   package?: Package;
   gallery?: Gallery[];
-  permissions?:Permission[]
+  permissions?:Permission[];
+  routes?:Route[];
 }
 
 export interface Gallery {
@@ -60,6 +62,13 @@ export interface Permission {
   id: number;
   userId: number;
   name: Roles;
+  createdAt: Date;
+  updatedAt: Date;
+}
+export interface Route {
+  id: number;
+  userId: number;
+  name: Routes;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -127,3 +136,4 @@ export interface AuthState {
   };
   
   export default PromoLink;
+  

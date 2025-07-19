@@ -37,6 +37,12 @@ import TicketMessages from './pages/vendor/TicketMessages'
 import CreatePromo from './pages/admin/promo/CreatePromo'
 import ShowPromos from './pages/admin/promo/ShowPromos'
 import EditPromo from './pages/admin/promo/EditPromo'
+import AllTickets from './pages/admin/tickets/AllTickets'
+import ChatTicket from './pages/admin/tickets/ChatTicket'
+import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
+import Code from './pages/Code'
+import PromoPage from './pages/PromoPage'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -65,6 +71,10 @@ function App() {
         <Route path="/core-aeration" element={<CoreAeration />} />
         <Route path="/core-aeration-caution" element={<CoreAerationCaution />} />
         <Route path="/core-aeration-tips" element={<CoreAerationTips />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy-policy" element={<Privacy />} />
+        <Route path="/conduct-code" element={<Code />} />
+        <Route path="/Promos" element={<PromoPage />} />
         {/* Public routes */}
         <Route
           path="/register"
@@ -122,6 +132,8 @@ function App() {
               <Route path="create-promo" element={<CreatePromo />} />
               <Route path="promos" element={<ShowPromos />} />
               <Route path="edit-promo/:id" element={<EditPromo />} />
+              <Route path="tickets" element={<AllTickets />} />
+              <Route path="ticket/:id" element={<ChatTicket />} />
 
             </Routes>
           </ProtectedRoute>

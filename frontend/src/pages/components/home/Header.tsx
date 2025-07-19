@@ -50,6 +50,11 @@ const Header = () => {
                 </Link>
               </li> */}
               <li>
+                <Link to="/promos" className="text-[#a0b830] hover:text-gray-950">
+                  Get Promo
+                </Link>
+              </li>
+              <li>
                 <Link to="/all-vendors" className="text-[#a0b830] hover:text-gray-950">
                   Find Vendors
                 </Link>

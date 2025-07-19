@@ -21,6 +21,7 @@ import {
 } from "../../../components/ui/dialog";
 import { Input } from '../../../components/ui/input';
 import { AdminDashboardLayout } from '../layout/AdminDashboardLayout';
+import { Roles } from '../../../ProtectedRouteProps';
 
 interface User {
     id: number;
@@ -162,6 +163,32 @@ const Vendors = () => {
     const currentRows = filteredUsers.slice(indexOfFirstRow, indexOfLastRow);
 
     const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+    const hasPermission = (permissionName: Roles): boolean => {
+        if (!user?.permissions) return false;
+        return user.permissions.some(permission => permission.name === permissionName);
+    };
+
+    // Helper function to check if user can perform action
+    const canPerformAction = (action: 'Editing' | 'Deletion' | 'Approval'): boolean => {
+        if (!user) return false;
+
+        // SUPERADMIN can do everything
+        if (user.utype === 'SUPERADMIN') {
+            return true;
+        }
+
+        // ADMIN can do everything
+        if (user.utype === 'ADMIN') {
+            return hasPermission(action);
+        }
+
+        // SUBADMIN needs specific permissions
+        if (user.utype === 'SUBADMIN') {
+            return hasPermission(action);
+        }
+
+        return false;
+    };
 
     return (
         <AdminDashboardLayout title="Manage Vendors" user={user}>
@@ -261,35 +288,37 @@ const Vendors = () => {
                                                         )}
                                                     </DialogContent>
                                                 </Dialog>
-
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleStatusUpdate(user.id, user.status)}
-                                                    title={
-                                                        user.status === 'PENDING'
-                                                            ? 'Approve vendor'
-                                                            : user.status === 'ACTIVE'
-                                                                ? 'Suspend vendor'
-                                                                : 'Activate vendor'
-                                                    }
-                                                >
-                                                    {user.status === 'PENDING' ? (
-                                                        <CheckCircle className="h-4 w-4 text-yellow-500" />
-                                                    ) : user.status === 'ACTIVE' ? (
-                                                        <XCircle className="h-4 w-4 text-red-500" />
-                                                    ) : (
-                                                        <CheckCircle className="h-4 w-4 text-green-500" />
-                                                    )}
-                                                </Button>
-
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(user.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                {canPerformAction('Editing') && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleStatusUpdate(user.id, user.status)}
+                                                        title={
+                                                            user.status === 'PENDING'
+                                                                ? 'Approve vendor'
+                                                                : user.status === 'ACTIVE'
+                                                                    ? 'Suspend vendor'
+                                                                    : 'Activate vendor'
+                                                        }
+                                                    >
+                                                        {user.status === 'PENDING' ? (
+                                                            <CheckCircle className="h-4 w-4 text-yellow-500" />
+                                                        ) : user.status === 'ACTIVE' ? (
+                                                            <XCircle className="h-4 w-4 text-red-500" />
+                                                        ) : (
+                                                            <CheckCircle className="h-4 w-4 text-green-500" />
+                                                        )}
+                                                    </Button>
+                                                )}
+                                                {canPerformAction('Deletion') && (
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(user.id)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

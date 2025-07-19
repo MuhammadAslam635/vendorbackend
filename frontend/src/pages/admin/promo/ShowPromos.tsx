@@ -6,18 +6,19 @@ import { Input } from "../../../components/ui/input";
 import { Card, CardContent, CardHeader } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
-import { 
-    Edit, 
-    Trash2, 
-    Search, 
-    Calendar, 
-    Code, 
+import {
+    Edit,
+    Trash2,
+    Search,
+    Calendar,
+    Code,
     MapPin,
     ToggleLeft,
     ToggleRight,
     Plus,
     RefreshCw
 } from "lucide-react";
+import { Roles } from "../../../ProtectedRouteProps";
 
 interface PromoData {
     id: number;
@@ -71,7 +72,7 @@ const ShowPromos = () => {
             }
 
             const data = await response.json();
-            console.log("object promo",data)
+            console.log("object promo", data)
             setPromos(data.data);
             setError(null);
         } catch (e: any) {
@@ -126,7 +127,7 @@ const ShowPromos = () => {
 
         try {
             setDeleteLoading(id);
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/promo/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/promos/${id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -163,6 +164,32 @@ const ShowPromos = () => {
     const isUpcoming = (startDate: Date) => {
         return new Date(startDate) > new Date();
     };
+    const hasPermission = (permissionName: Roles): boolean => {
+        if (!user?.permissions) return false;
+        return user.permissions.some(permission => permission.name === permissionName);
+    };
+
+    // Helper function to check if user can perform action
+    const canPerformAction = (action: 'Editing' | 'Deletion' | 'Approval'): boolean => {
+        if (!user) return false;
+
+        // SUPERADMIN can do everything
+        if (user.utype === 'SUPERADMIN') {
+            return true;
+        }
+
+        // ADMIN can do everything
+        if (user.utype === 'ADMIN') {
+            return hasPermission(action);
+        }
+
+        // SUBADMIN needs specific permissions
+        if (user.utype === 'SUBADMIN') {
+            return hasPermission(action);
+        }
+
+        return false;
+    };
 
     if (isLoading) {
         return (
@@ -180,13 +207,15 @@ const ShowPromos = () => {
                 <Card className="p-6">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                         <h1 className="text-2xl font-bold">Promos Management</h1>
-                        <Button
-                            onClick={() => window.location.href = '/admin/create-promo'}
-                            className="bg-lime-600 hover:bg-lime-700"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Create Promo
-                        </Button>
+                        {user && user.utype == 'SUPERADMIN' && (
+                            <Button
+                                onClick={() => window.location.href = '/admin/create-promo'}
+                                className="bg-lime-600 hover:bg-lime-700"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Create Promo
+                            </Button>
+                        )}
                     </CardHeader>
                     <CardContent>
                         {/* Search */}
@@ -266,7 +295,7 @@ const ShowPromos = () => {
                                                         )}
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
                                                     <div className="flex items-center space-x-2">
                                                         <Code className="h-4 w-4" />
@@ -287,50 +316,57 @@ const ShowPromos = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                                
+
                                                 {promo.description && (
                                                     <p className="text-gray-600 text-sm mb-2">{promo.description}</p>
                                                 )}
-                                                
+
                                                 <div className="text-xs text-gray-500">
                                                     Created by {promo.creator?.name || 'Unknown'} on {formatDate(promo.createdAt)}
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="flex space-x-2 ml-4">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleToggleStatus(promo.id)}
-                                                    disabled={toggleLoading === promo.id}
-                                                >
-                                                    {toggleLoading === promo.id ? (
-                                                        <RefreshCw className="h-4 w-4 animate-spin" />
-                                                    ) : promo.isActive ? (
-                                                        <ToggleRight className="h-4 w-4" />
-                                                    ) : (
-                                                        <ToggleLeft className="h-4 w-4" />
-                                                    )}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => window.location.href = `/admin/edit-promo/${promo.id}`}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(promo.id)}
-                                                    disabled={deleteLoading === promo.id}
-                                                >
-                                                    {deleteLoading === promo.id ? (
-                                                        <RefreshCw className="h-4 w-4 animate-spin" />
-                                                    ) : (
-                                                        <Trash2 className="h-4 w-4" />
-                                                    )}
-                                                </Button>
+                                                {canPerformAction('Editing') && (
+                                                    <>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handleToggleStatus(promo.id)}
+                                                            disabled={toggleLoading === promo.id}
+                                                        >
+                                                            {toggleLoading === promo.id ? (
+                                                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                                            ) : promo.isActive ? (
+                                                                <ToggleRight className="h-4 w-4" />
+                                                            ) : (
+                                                                <ToggleLeft className="h-4 w-4" />
+                                                            )}
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => window.location.href = `/admin/edit-promo/${promo.id}`}
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                    </>
+                                                )}
+
+                                                {canPerformAction('Deletion') && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(promo.id)}
+                                                        disabled={deleteLoading === promo.id}
+                                                    >
+                                                        {deleteLoading === promo.id ? (
+                                                            <RefreshCw className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                     </Card>

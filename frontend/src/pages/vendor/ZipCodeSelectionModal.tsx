@@ -147,7 +147,7 @@ const fetchExistingZipcodes = async () => {
     setNewZipcode("");
     
     // Show success message with progress
-    if (newSelection.length === maxZipcodes) {
+    if (newSelection.length === maxZipcodes ) {
       toast.success(`Perfect! All ${maxZipcodes} ZIP codes added. Ready to proceed to payment!`);
     } else {
       toast.success(`ZIP code added! ${maxZipcodes - newSelection.length} more needed to complete.`);

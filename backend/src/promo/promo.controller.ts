@@ -21,11 +21,11 @@ import { UpdatePromoDto } from './dto/update-promo.dto';
 
 @ApiTags('Promos')
 @Controller('promos')
-@UseGuards(JwtAuthGuard)
+
 @ApiBearerAuth()
 export class PromoController {
   constructor(private readonly promoService: PromoService) {}
-
+  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new promo' })
   @ApiResponse({ status: 201, description: 'Promo created successfully' })
@@ -34,7 +34,7 @@ export class PromoController {
   async create(@Body() createPromoDto: CreatePromoDto, @Request() req) {
     return this.promoService.create(createPromoDto);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all promos with pagination and filters' })
   @ApiResponse({ status: 200, description: 'Promos retrieved successfully' })
@@ -48,7 +48,7 @@ export class PromoController {
   async getActivePromos() {
     return this.promoService.getActivePromos();
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get('validate/:code')
   @ApiOperation({ summary: 'Validate promo code' })
   @ApiResponse({ status: 200, description: 'Promo code is valid' })
@@ -56,12 +56,10 @@ export class PromoController {
   @ApiResponse({ status: 404, description: 'Promo code not found' })
   async validatePromoCode(
     @Param('code') code: string,
-    @Query('amount') amount?: number,
-    @Request() req?,
   ) {
-    return this.promoService.validatePromoCode(code, req?.user?.id, amount);
+    return this.promoService.validatePromoCode(code);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get promo by ID' })
   @ApiResponse({ status: 200, description: 'Promo retrieved successfully' })
@@ -69,7 +67,7 @@ export class PromoController {
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.promoService.findOne(id);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Update promo' })
   @ApiResponse({ status: 200, description: 'Promo updated successfully' })
@@ -80,7 +78,7 @@ export class PromoController {
   ) {
     return this.promoService.update(id, updatePromoDto);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/toggle-status')
   @ApiOperation({ summary: 'Toggle promo status' })
   @ApiResponse({ status: 200, description: 'Promo status toggled successfully' })
@@ -88,7 +86,7 @@ export class PromoController {
   async toggleStatus(@Param('id', ParseIntPipe) id: number) {
     return this.promoService.toggleStatus(id);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete promo' })

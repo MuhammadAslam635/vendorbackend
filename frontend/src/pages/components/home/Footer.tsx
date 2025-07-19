@@ -1,4 +1,5 @@
 import { Mail} from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   
@@ -25,6 +26,11 @@ const Footer = () => {
                             <Mail className="h-4 w-4 mr-2" />
                             Meekoslink@gmail.com
                         </p>
+                        <ul className="space-y-2">
+                            <li><Link to="/terms" className="text-gray-400 hover:text-white transition">Terms</Link></li>
+                            <li><Link to="/privacy-policy" className="text-gray-400 hover:text-white transition">Privacy Policy</Link></li>
+                            <li><Link to="/conduct-code" className="text-gray-400 hover:text-white transition">Code Of Conduct</Link></li>
+                        </ul>
                     </div>
                 </div>
                 <div className="border-t border-gray-700 mt-8 pt-6 text-center">

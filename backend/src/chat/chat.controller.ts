@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Req, Put } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
@@ -44,7 +44,7 @@ export class ChatController {
   remove(@Param('id') id: string) {
     return this.chatService.remove(+id);
   }
-  @Post(':id')
+  @Put('/update/:id')
   updateAdmin(@Param('id') id: string, @Body() addAdminDeto: AddAdminDto) {
     const chatId = id;
     if (!chatId) {
@@ -55,7 +55,7 @@ export class ChatController {
     }
      return this.chatService.assignAdmin(+chatId,addAdminDeto);
   }
-  @Post(':id')
+  @Patch('/update/status/:id')
   updateStatus(@Param('id') id: string, @Body() updateStatusDto:UpdateStatusDto){
     const chatId = id;
     if (!chatId) {

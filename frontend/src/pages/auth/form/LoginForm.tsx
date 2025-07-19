@@ -29,7 +29,7 @@ interface ApiError {
 
 const LoginForm = () => {
     const navigate = useNavigate();
-    const { login } = useAuth(); // Use the hook properly
+    const { login, user: currentUser, isAuthenticated } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState<LoginFormData>({
         email: "",
@@ -52,9 +52,35 @@ const LoginForm = () => {
         }));
     };
 
+    const getRedirectPath = (userType: string): string => {
+        console.log('🔍 Getting redirect path for userType:', userType);
+        
+        switch (userType) {
+            case "SUPERADMIN":
+                console.log('➡️ Redirecting SUPERADMIN to /admin/dashboard');
+                return "/admin/dashboard";
+            case "ADMIN":
+                console.log('➡️ Redirecting ADMIN to /admin/dashboard');
+                return "/admin/dashboard";
+            case "SUBADMIN":
+                console.log('➡️ Redirecting SUBADMIN to /admin/dashboard');
+                return "/admin/dashboard";
+            case "VENDOR":
+                console.log('➡️ Redirecting VENDOR to /vendor/dashboard');
+                return "/vendor/dashboard";
+            default:
+                console.log('➡️ Redirecting default user to /');
+                return "/";
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
+
+        console.log('🚀 Login attempt started');
+        console.log('📧 Email:', formData.email);
+        console.log('🔐 Remember me:', formData.remember);
 
         try {
             const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/login`, {
@@ -62,55 +88,74 @@ const LoginForm = () => {
                 password: formData.password
             });
 
+            console.log('✅ Login API response:', response.data);
+            console.log('👤 User data:', response.data?.user);
+            console.log('🎫 Access token present:', !!response.data?.access_token);
+            console.log('🏷️ User type:', response.data?.user?.utype);
+
             if (response.data?.access_token && response.data?.user) {
-                // Store token in localStorage if remember me is checked
-                if (formData.remember) {
-                    localStorage.setItem('token', response.data.access_token);
-                } else {
-                    // Use sessionStorage if remember me is not checked
-                    sessionStorage.setItem('token', response.data.access_token);
-                }
+                const { access_token, user } = response.data;
                 
-                // Update auth state using the hook properly
-                login(response.data.user, response.data.access_token);
+                // Store token based on remember me preference
+                if (formData.remember) {
+                    console.log('💾 Storing token in localStorage');
+                    localStorage.setItem('token', access_token);
+                    sessionStorage.removeItem('token');
+                } else {
+                    console.log('💾 Storing token in sessionStorage');
+                    sessionStorage.setItem('token', access_token);
+                    localStorage.removeItem('token');
+                }
+
+                // Update auth state
+                console.log('🔄 Updating auth state with user:', user);
+                await login(user, access_token);
+                
+                // Small delay to ensure state update completes
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                console.log('🔍 Auth state after login - isAuthenticated:', isAuthenticated);
+                console.log('🔍 Auth state after login - currentUser:', currentUser);
+
+                // Determine redirect path
+                const redirectPath = getRedirectPath(user.utype);
+                console.log('🎯 Determined redirect path:', redirectPath);
                 
                 toast.success("Login successful!");
                 
-                // Redirect based on user type
-                console.log("user", response.data.user);
+                // Navigate with replace to avoid history issues
+                console.log('🚀 Navigating to:', redirectPath);
+                navigate(redirectPath, { replace: true });
                 
-                // Use setTimeout to ensure state updates complete before navigation
+                // Additional logging after navigation
                 setTimeout(() => {
-                    switch (response.data.user.utype) {
-                        case "ADMIN":
-                            navigate("/admin/dashboard");
-                            break;
-                        case "SUBADMIN":
-                            navigate("/admin/dashboard");
-                            break;
-                        case "VENDOR":
-                            navigate("/vendor/dashboard");
-                            break;
-                        default:
-                            navigate("/");
-                    }
+                    console.log('📍 Current location after navigation:', window.location.pathname);
                 }, 100);
+            } else {
+                console.error('❌ Missing access_token or user in response');
+                toast.error("Login failed. Invalid response from server.");
             }
         } catch (error) {
-            console.error("Login error:", error);
+            console.error("❌ Login error:", error);
             const apiError = error as ApiError;
 
             if (apiError.response?.data?.message) {
                 toast.error(apiError.response.data.message);
             } else if (apiError.response?.status === 401) {
                 toast.error("Invalid email or password. Please try again.");
-            }else {
+            } else {
                 toast.error("Login failed. Please check your credentials and try again.");
             }
         } finally {
             setIsLoading(false);
+            console.log('🏁 Login process completed');
         }
     };
+
+    // Debug current auth state
+    console.log('🔍 Current auth state - isAuthenticated:', isAuthenticated);
+    console.log('🔍 Current auth state - user:', currentUser);
+    console.log('🔍 Current location:', window.location.pathname);
 
     return (
         <main className="flex-grow container mx-auto px-4 py-12">
@@ -119,7 +164,7 @@ const LoginForm = () => {
                     <ArrowLeft className="h-4 w-4 mr-1" />
                     Back to Home
                 </Link>
-                
+
                 <Card className="shadow-lg rounded-lg border border-gray-200">
                     <form onSubmit={handleSubmit}>
                         <CardHeader className="space-y-1 text-center">
@@ -136,18 +181,18 @@ const LoginForm = () => {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input 
-                                    id="email" 
-                                    type="email" 
+                                <Input
+                                    id="email"
+                                    type="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    placeholder="john.doe@example.com" 
+                                    placeholder="john.doe@example.com"
                                     className="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200"
-                                    required 
+                                    required
                                     disabled={isLoading}
                                 />
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password">Password</Label>
@@ -155,20 +200,20 @@ const LoginForm = () => {
                                         Forgot password?
                                     </Link>
                                 </div>
-                                <Input 
-                                    id="password" 
+                                <Input
+                                    id="password"
                                     type="password"
                                     value={formData.password}
                                     onChange={handleInputChange}
                                     className="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200"
-                                    required 
+                                    required
                                     disabled={isLoading}
                                 />
                             </div>
-                            
+
                             <div className="flex items-center space-x-2">
                                 <Checkbox
-                                    id="remember" 
+                                    id="remember"
                                     checked={formData.remember}
                                     onCheckedChange={handleCheckboxChange}
                                     disabled={isLoading}
@@ -177,7 +222,7 @@ const LoginForm = () => {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button 
+                            <Button
                                 type="submit"
                                 disabled={isLoading}
                                 className="w-full bg-[#a0b830] hover:bg-[#8fa029] text-white transition duration-300 disabled:opacity-50"
@@ -187,7 +232,7 @@ const LoginForm = () => {
                         </CardFooter>
                     </form>
                 </Card>
-                
+
                 <div className="text-center mt-6">
                     <p className="text-sm text-gray-600">
                         Don't have an account?{' '}

@@ -7,6 +7,7 @@ import { Plus, Pencil, MapPin} from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import { AdminDashboardLayout } from '../layout/AdminDashboardLayout';
 import { Link } from 'react-router-dom';
+import { Roles } from '../../../ProtectedRouteProps';
 
 interface Package {
   id: number;
@@ -42,6 +43,32 @@ const AdminPackages = () => {
       setLoading(false);
     }
   };
+  const hasPermission = (permissionName: Roles): boolean => {
+    if (!user?.permissions) return false;
+    return user.permissions.some(permission => permission.name === permissionName);
+  };
+  
+  // Helper function to check if user can perform action
+  const canPerformAction = (action: 'Editing' | 'Deletion'| 'Approval'): boolean => {
+    if (!user) return false;
+    
+    // SUPERADMIN can do everything
+    if (user.utype === 'SUPERADMIN') {
+      return true;
+    }
+    
+    // ADMIN can do everything
+    if (user.utype === 'ADMIN') {
+      return hasPermission(action);
+    }
+    
+    // SUBADMIN needs specific permissions
+    if (user.utype === 'SUBADMIN') {
+      return hasPermission(action);
+    }
+    
+    return false;
+  };
 
 
   return (
@@ -49,11 +76,13 @@ const AdminPackages = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Packages</h2>
+          {user && user.utype =="SUPERADMIN" &&(
           <Button className="bg-[#a0b830] hover:bg-[#8fa029]">
             <Link to="/admin/create-package" className="flex items-center">
               <Plus className="h-4 w-4 mr-2" />
               Add Package</Link>
           </Button>
+          )}
         </div>
 
         {loading ? (
@@ -111,6 +140,7 @@ const AdminPackages = () => {
                   </div>
 
                   {/* Button section with hover effects */}
+                  {canPerformAction('Editing') && (
                   <div className="flex justify-center pt-4">
                     <Link
                       to={`/admin/packages/${pkg.id}/edit`}
@@ -120,6 +150,7 @@ const AdminPackages = () => {
                       Edit Package
                     </Link>
                   </div>
+                  )}
                 </CardContent>
 
                 {/* Subtle corner decoration */}

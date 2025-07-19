@@ -93,17 +93,17 @@ export class UserController {
     return this.userService.updateStatus(+id, updateStatusDto.status);
   }
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id') id: number) {
     return this.userService.deleteUser(+id);
   }
   @Get(':id')
-  async getUser(@Param('id') id: string) {
+  async getUser(@Param('id') id: number) {
     return this.userService.getUser(id);
   }
   @Get('/email/test-email')
   async testActivationEmail() {
     try {
-      const user = await this.userService.getUser('2');
+      const user = await this.userService.getUser(2);
       return await this.mailService.sendMail({
         to: 'muhaffan945@gmail.com',
         subject: 'Test Activation Email',
@@ -123,5 +123,9 @@ export class UserController {
   @Post('/admin/create-user')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
+  }
+  @Get("/all/admin-users")
+  async adminUsers(){
+    return this.userService.getAdminUsers();
   }
 }

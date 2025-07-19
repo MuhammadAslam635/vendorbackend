@@ -10,6 +10,7 @@ import { Button } from '../../components/ui/button';
 import { PaymentModal } from './PaymentModal';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import ZipCodeSelectionModal from './ZipCodeSelectionModal';
+import PromoCodeModal from './PromoCodeModal';
 
 interface Package {
   id: number;
@@ -29,6 +30,8 @@ const Subscription = () => {
   const [have, setHave] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [selectedZipcodes, setSelectedZipcodes] = useState<string[]>([]);
+  const [extraZipcodes, setExtraZipcodes] = useState<number>(0);
+  const [showPromoCodeModal, setShowPromoCodeModal] = useState(false);
   const [showZipCodeSelection, setShowZipCodeSelection] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const location = useLocation();
@@ -87,7 +90,7 @@ const Subscription = () => {
         },
       });
       console.log('my packages',response);
-      if(response.data.packageId){
+      if(response.data.status === 'COMPLETED'){
         setHave(true);
       }
       setActivePackageId(response.data?.packageId || null);
@@ -96,16 +99,30 @@ const Subscription = () => {
     }
   };
 
-  // Step 1: Handle subscribe button click - Open ZIP code selection
+  // Step 1: Handle subscribe button click - Open promo code modal
   const handleSubscribeClick = (pkg: Package) => {
     console.log('Subscribe clicked for package:', pkg.name);
     setSelectedPackage(pkg);
-    setSelectedZipcodes([]); // Reset ZIP codes
-    setShowZipCodeSelection(true);
-    setShowPaymentModal(false); // Ensure payment modal is closed
+    setSelectedZipcodes([]);
+    setExtraZipcodes(0);
+    setShowPromoCodeModal(true);
+    setShowZipCodeSelection(false);
+    setShowPaymentModal(false);
   };
 
-  // Step 2: Handle ZIP code selection completion - Open payment modal
+  // Step 2: Handle promo code completion - Open ZIP code selection
+  const handlePromoCodeComplete = (extraZips: number) => {
+    console.log('Promo code processed, extra ZIP codes:', extraZips);
+    setExtraZipcodes(extraZips);
+    setShowPromoCodeModal(false);
+    
+    // Small delay to ensure smooth transition between modals
+    setTimeout(() => {
+      setShowZipCodeSelection(true);
+    }, 100);
+  };
+
+  // Step 3: Handle ZIP code selection completion - Open payment modal
   const handleZipCodeSelectionComplete = (zipcodes: string[]) => {
     console.log('ZIP codes selected:', zipcodes);
     setSelectedZipcodes(zipcodes);
@@ -120,24 +137,35 @@ const Subscription = () => {
   // Handle payment modal close
   const handlePaymentModalClose = () => {
     setShowPaymentModal(false);
-    setSelectedPackage(null);
-    setSelectedZipcodes([]);
+    resetAllStates();
   };
 
   // Handle ZIP code selection modal close
   const handleZipCodeSelectionClose = () => {
     setShowZipCodeSelection(false);
-    setSelectedPackage(null);
-    setSelectedZipcodes([]);
+    resetAllStates();
+  };
+
+  // Handle promo code modal close
+  const handlePromoCodeModalClose = () => {
+    setShowPromoCodeModal(false);
+    resetAllStates();
   };
 
   // Reset all modal states
-  // const resetModalStates = () => {
-  //   setShowZipCodeSelection(false);
-  //   setShowPaymentModal(false);
-  //   setSelectedPackage(null);
-  //   setSelectedZipcodes([]);
-  // };
+  const resetAllStates = () => {
+    setSelectedPackage(null);
+    setSelectedZipcodes([]);
+    setExtraZipcodes(0);
+    setShowPromoCodeModal(false);
+    setShowZipCodeSelection(false);
+    setShowPaymentModal(false);
+  };
+
+  // Calculate total allowed ZIP codes
+  const getTotalZipcodes = () => {
+    return selectedPackage ? selectedPackage.profiles + extraZipcodes : 0;
+  };
 
   return (
     <DashboardLayout title="Subscriptions" user={user}>
@@ -229,9 +257,6 @@ const Subscription = () => {
                       <ul className="space-y-2">
                         {pkg.description.split('\\n').map((line, index) => (
                           <li key={index} className="flex items-start">
-                            {/* <svg className="h-5 w-5 text-[#a0b830] mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg> */}
                             <span className="text-sm text-gray-700 dark:text-gray-300">{line}</span>
                           </li>
                         ))}
@@ -243,9 +268,9 @@ const Subscription = () => {
                       <Button
                         className="w-full bg-[#a0b830] hover:bg-[#8fa029]"
                         onClick={() => handleSubscribeClick(pkg)}
-                        disabled={showZipCodeSelection || showPaymentModal} // Prevent multiple clicks
+                        disabled={showPromoCodeModal || showZipCodeSelection || showPaymentModal}
                       >
-                        {selectedPackage?.id === pkg.id && (showZipCodeSelection || showPaymentModal) 
+                        {selectedPackage?.id === pkg.id && (showPromoCodeModal || showZipCodeSelection || showPaymentModal) 
                           ? 'Processing...' 
                           : 'Subscribe Now'
                         }
@@ -262,18 +287,29 @@ const Subscription = () => {
         </section>
       </div>
 
-      {/* ZIP Code Selection Modal - Step 1 */}
+      {/* Promo Code Modal - Step 1 */}
+      {showPromoCodeModal && selectedPackage && (
+        <PromoCodeModal
+          isOpen={showPromoCodeModal}
+          onClose={handlePromoCodeModalClose}
+          onProceedToZipCode={handlePromoCodeComplete}
+          packageName={selectedPackage.name}
+          baseZipcodes={selectedPackage.profiles}
+        />
+      )}
+
+      {/* ZIP Code Selection Modal - Step 2 */}
       {showZipCodeSelection && selectedPackage && (
         <ZipCodeSelectionModal
           isOpen={showZipCodeSelection}
           onClose={handleZipCodeSelectionClose}
           onProceedToPayment={handleZipCodeSelectionComplete}
           packageName={selectedPackage.name}
-          maxZipcodes={selectedPackage.profiles}
+          maxZipcodes={getTotalZipcodes()}
         />
       )}
 
-      {/* Payment Modal - Step 2 */}
+      {/* Payment Modal - Step 3 */}
       {showPaymentModal && selectedPackage && selectedZipcodes.length > 0 && (
         <PaymentModal
           isOpen={showPaymentModal}

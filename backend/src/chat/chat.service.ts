@@ -7,7 +7,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(createChatDto: CreateChatDto) {
     try {
@@ -33,24 +33,94 @@ export class ChatService {
       if (!id || id <= 0) {
         throw new BadRequestException('Valid user ID is required');
       }
-
-      const chats = await this.prisma.chat.findMany({
+  
+      const user = await this.prisma.user.findFirst({
         where: {
-          userId: id
-        },
-        include: {
-          messages: {
-            take: 1,
-            orderBy: {
-              createdAt: 'desc'
-            }
-          }
-        },
-        orderBy: {
-          updatedAt: 'desc'
+          id: id
         }
       });
-
+  
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+  
+      let chats;
+  
+      if (user.utype === 'SUPERADMIN') {
+        // SuperAdmin can see all tickets
+        chats = await this.prisma.chat.findMany({
+          include: {
+            messages: {
+              take: 1,
+              orderBy: {
+                createdAt: 'desc'
+              }
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                company: true,
+                utype: true
+              }
+            },
+            admin:true
+          },
+          orderBy: {
+            updatedAt: 'desc'
+          }
+        });
+      } else if (user.utype === 'VENDOR') {
+        // Vendor can only see their own tickets
+        chats = await this.prisma.chat.findMany({
+          where: {
+            userId: id
+          },
+          include: {
+            messages: {
+              take: 1,
+              orderBy: {
+                createdAt: 'desc'
+              }
+            }
+          },
+          orderBy: {
+            updatedAt: 'desc'
+          }
+        });
+      } else if (user.utype === 'ADMIN' || user.utype === 'SUBADMIN') {
+        // Admin/SubAdmin can see tickets assigned to them
+        chats = await this.prisma.chat.findMany({
+          where: {
+            adminId: id // Query against adminId for assigned tickets
+          },
+          include: {
+            messages: {
+              take: 1,
+              orderBy: {
+                createdAt: 'desc'
+              }
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                company: true,
+                utype: true
+              }
+            },
+            admin:true
+          },
+          orderBy: {
+            updatedAt: 'desc'
+          }
+        });
+      } else {
+        throw new BadRequestException('Invalid user type');
+      }
+  
       return {
         status: "success",
         message: "Retrieved all support tickets successfully",
@@ -179,47 +249,47 @@ export class ChatService {
       throw new BadRequestException('Failed to delete chat');
     }
   }
-  async assignAdmin(chatId:number,addAdminDeto:AddAdminDto){
-    try{
+  async assignAdmin(chatId: number, addAdminDeto: AddAdminDto) {
+    try {
       const chat = await this.prisma.chat.update({
-        where:{
-          id:chatId
+        where: {
+          id: chatId
         },
-        data:{
+        data: {
           adminId: addAdminDeto.adminId
         }
       });
       return {
-        status:"success",
-        message:"Admin assigned successfully",
-        data:chat
+        status: "success",
+        message: "Admin assigned successfully",
+        data: chat
       }
-    }catch(error){
+    } catch (error) {
       return {
-        status:"error",
-        message:error.message
+        status: "error",
+        message: error.message
       }
     }
   }
-  async updateStatus(chatId:number, updateStatusDto:UpdateStatusDto){
-    try{
+  async updateStatus(chatId: number, updateStatusDto: UpdateStatusDto) {
+    try {
       const chat = await this.prisma.chat.update({
-        where:{
-          id:chatId
+        where: {
+          id: chatId
         },
-        data:{
-          status:updateStatusDto.status
+        data: {
+          status: updateStatusDto.status
         }
       });
-      return{
-        status:"success",
-        message:"Chat status updated successfully",
-        data:chat
-      }
-    }catch(error){
       return {
-        status:"error",
-        message:error.message
+        status: "success",
+        message: "Chat status updated successfully",
+        data: chat
+      }
+    } catch (error) {
+      return {
+        status: "error",
+        message: error.message
       }
     }
   }
