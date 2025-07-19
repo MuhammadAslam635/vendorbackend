@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Calendar, MapPin, Gift, Sparkles, TrendingUp } from 'lucide-react';
+import { Copy, Check, Calendar, MapPin, Gift, Sparkles } from 'lucide-react';
 import Header from './components/home/Header';
 import Footer from './components/home/Footer';
 
