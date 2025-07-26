@@ -6,24 +6,16 @@ import { useState } from "react";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isPagesDropdownOpen, setIsPagesDropdownOpen] = useState(false); // For mobile dropdown toggle
+ 
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-    setIsMobileMenuOpen(false);
-  };
+  
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
-    setIsPagesDropdownOpen(false); // Reset the dropdown when toggling menu
+    
   };
 
-  const togglePagesDropdown = () => {
-    setIsPagesDropdownOpen(!isPagesDropdownOpen);
-  };
+
 
   return (
     <header className="bg-white text-[#a0b830] shadow-md fixed w-full z-50">
@@ -44,16 +36,7 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:block">
             <ul className="flex space-x-6 items-center">
-              {/* <li>
-                <Link to="/" className="text-[#a0b830] hover:text-gray-950">
-                  VendorLocator
-                </Link>
-              </li> */}
-              {/* <li>
-                <Link to="/promos" className="text-[#a0b830] hover:text-gray-950">
-                  Get Promo
-                </Link>
-              </li> */}
+           
               <li>
                 <Link to="/all-vendors" className="text-[#a0b830] hover:text-gray-950">
                   Find Vendors
@@ -64,27 +47,7 @@ const Header = () => {
                   For Vendors
                 </Link>
               </li>
-              {/* <li>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">Home Pages</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56">
-                    <DropdownMenuItem asChild>
-                      <Link to="/core-aeration">Core Aeration</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/core-aeration-caution">Core Aeration Caution</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/core-aeration-tips">Core Aeration Tips</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/" onClick={() => scrollToSection("faq")}>FAQ</Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </li> */}
+             
               <li>
                 <Button variant="default" asChild>
                   <Link to="/login">Login</Link>
@@ -119,28 +82,7 @@ const Header = () => {
                 Home
               </Link>
             </li>
-            {/* <li>
-              <button
-                onClick={() => {
-                  scrollToSection("about");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left text-[#a0b830] hover:text-gray-950"
-              >
-                About
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => {
-                  scrollToSection("faq");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left text-[#a0b830] hover:text-gray-950"
-              >
-                FAQ
-              </button>
-            </li> */}
+       
             <li>
               <Link
                 to="/all-vendors"
@@ -160,58 +102,7 @@ const Header = () => {
               </Link>
             </li>
 
-            {/* Mobile Dropdown for Pages */}
-            {/* <li>
-              <button
-                onClick={togglePagesDropdown}
-                className="flex justify-between items-center w-full text-[#a0b830] hover:text-gray-950 focus:outline-none"
-              >
-                Pages
-                <svg
-                  className={`w-4 h-4 ml-2 transform transition-transform ${
-                    isPagesDropdownOpen ? "rotate-180" : "rotate-0"
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </button>
-              {isPagesDropdownOpen && (
-                <ul className="mt-2 pl-4 border-l border-gray-300 space-y-1">
-                  <li>
-                    <Link
-                      to="/core-aeration"
-                      className="block text-[#a0b830] hover:text-gray-950"
-                      onClick={toggleMobileMenu}
-                    >
-                      Core Aeration
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/core-aeration-caution"
-                      className="block text-[#a0b830] hover:text-gray-950"
-                      onClick={toggleMobileMenu}
-                    >
-                      Core Aeration Caution
-                    </Link>
-                    </li>
-                  <li>
-                    <Link
-                      to="/core-aeration-tips"
-                      className="block text-[#a0b830] hover:text-gray-950"
-                      onClick={toggleMobileMenu}
-                    >
-                      Core Aeration Tips
-                    </Link>
-                  </li>
-                </ul>
-              )}
-            </li> */}
+           
 
             <li>
               <Button variant="default" asChild className="w-full">
