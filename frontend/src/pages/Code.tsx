@@ -1,7 +1,13 @@
 import Header from './components/home/Header';
 import Footer from './components/home/Footer';
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const Code = () => {
+    const { pathname } = useLocation()
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
     return (
         <div className="min-h-screen bg-gray-50">
             <Header />

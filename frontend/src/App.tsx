@@ -43,6 +43,7 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Code from './pages/Code'
 import PromoPage from './pages/PromoPage'
+import EditAdminUser from './pages/admin/users/EditAdminUser'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -134,6 +135,7 @@ function App() {
               <Route path="edit-promo/:id" element={<EditPromo />} />
               <Route path="tickets" element={<AllTickets />} />
               <Route path="ticket/:id" element={<ChatTicket />} />
+              <Route path="update-user/:id" element={<EditAdminUser />} />
 
             </Routes>
           </ProtectedRoute>

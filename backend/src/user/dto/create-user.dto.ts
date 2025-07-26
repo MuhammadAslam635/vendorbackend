@@ -16,6 +16,7 @@ enum UserStatus {
 
 enum PermissionType {
     APPROVAL = "Approval",
+    CREATE = "Create",
     EDITING = "Editing",
     DELETION = "Deletion"
 }

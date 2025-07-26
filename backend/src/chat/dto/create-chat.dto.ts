@@ -1,5 +1,6 @@
 import { IsEnum, IsNumber, IsString } from "class-validator";
 enum ChatStatus {
+    REVIEW = 'REVIEW',
     OPEN = 'OPEN',
     INPROGRESS = 'INPROGRESS',
     RESOLVED = 'RESOLVED',

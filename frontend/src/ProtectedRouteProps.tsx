@@ -2,7 +2,7 @@ import { Gem } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export type UserRole = 'ADMIN' | 'VENDOR' | 'SUBADMIN' | 'SUPERADMIN';
-export type Roles = 'Approval' | 'Editing' | 'Deletion'; 
+export type Roles = 'Approval' | 'Create' | 'Editing' | 'Deletion'; 
 export type Routes = '/admin/create-user' | '/admin/packages' | '/admin/promos' | '/admin/users'; 
 export interface Zipcode {
     id: number;
@@ -102,13 +102,13 @@ export interface AuthState {
       if (!user) return false;
       
       // ADMIN and SUPERADMIN have full access
-      if (user.utype === 'ADMIN' || user.utype === 'SUPERADMIN') {
+      if (user.utype === 'SUPERADMIN') {
         return true;
       }
       
       // SUBADMIN needs specific permissions
-      if (user.utype === 'SUBADMIN') {
-        return hasPermission('Approval') && 
+      if (user.utype === 'ADMIN' || user.utype === 'SUBADMIN') {
+        return hasPermission('Approval') && hasPermission('Create') && 
                hasPermission('Editing') && 
                hasPermission('Deletion');
       }

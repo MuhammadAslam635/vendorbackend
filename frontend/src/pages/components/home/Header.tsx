@@ -49,11 +49,11 @@ const Header = () => {
                   VendorLocator
                 </Link>
               </li> */}
-              <li>
+              {/* <li>
                 <Link to="/promos" className="text-[#a0b830] hover:text-gray-950">
                   Get Promo
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link to="/all-vendors" className="text-[#a0b830] hover:text-gray-950">
                   Find Vendors
@@ -119,7 +119,7 @@ const Header = () => {
                 Home
               </Link>
             </li>
-            <li>
+            {/* <li>
               <button
                 onClick={() => {
                   scrollToSection("about");
@@ -140,7 +140,7 @@ const Header = () => {
               >
                 FAQ
               </button>
-            </li>
+            </li> */}
             <li>
               <Link
                 to="/all-vendors"
@@ -161,7 +161,7 @@ const Header = () => {
             </li>
 
             {/* Mobile Dropdown for Pages */}
-            <li>
+            {/* <li>
               <button
                 onClick={togglePagesDropdown}
                 className="flex justify-between items-center w-full text-[#a0b830] hover:text-gray-950 focus:outline-none"
@@ -211,7 +211,7 @@ const Header = () => {
                   </li>
                 </ul>
               )}
-            </li>
+            </li> */}
 
             <li>
               <Button variant="default" asChild className="w-full">

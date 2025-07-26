@@ -4,17 +4,41 @@ import { UpdateChatDto } from './dto/update-chat.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddAdminDto } from './dto/add-admin.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
-
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailerService
+  ) { }
 
   async create(createChatDto: CreateChatDto) {
     try {
       const newChat = await this.prisma.chat.create({
         data: {
           ...createChatDto,
-          status: createChatDto.status || ChatStatus.OPEN,
+          status: createChatDto.status || ChatStatus.REVIEW,
+        }
+      });
+      const user = await this.prisma.user.findUnique({
+        where: { id: createChatDto.userId }
+      });
+      if (!user) {
+        throw new NotFoundException('Admin user not found');
+      }
+      const frontendUrl = process.env.FRONTEND_URL || 'https://coreaeration.com';
+      const supportEmail = process.env.SUPPORT_EMAIL || 'meekoslink@gmail.com';
+
+      this.mailService.sendMail({
+        to: user.email,
+        subject: 'Ticket Created Successfully.',
+        template: 'ticket-creation',
+        context: {
+          name: user.name || 'Valued Customer',
+          ticket_id: newChat.id,
+          date: newChat.createdAt.toLocaleDateString(),
+          supportEmail: supportEmail,
+          status:newChat.status
         }
       });
       return {
@@ -33,19 +57,19 @@ export class ChatService {
       if (!id || id <= 0) {
         throw new BadRequestException('Valid user ID is required');
       }
-  
+
       const user = await this.prisma.user.findFirst({
         where: {
           id: id
         }
       });
-  
+
       if (!user) {
         throw new BadRequestException('User not found');
       }
-  
+
       let chats;
-  
+
       if (user.utype === 'SUPERADMIN') {
         // SuperAdmin can see all tickets
         chats = await this.prisma.chat.findMany({
@@ -65,7 +89,7 @@ export class ChatService {
                 utype: true
               }
             },
-            admin:true
+            admin: true
           },
           orderBy: {
             updatedAt: 'desc'
@@ -111,7 +135,7 @@ export class ChatService {
                 utype: true
               }
             },
-            admin:true
+            admin: true
           },
           orderBy: {
             updatedAt: 'desc'
@@ -120,7 +144,7 @@ export class ChatService {
       } else {
         throw new BadRequestException('Invalid user type');
       }
-  
+
       return {
         status: "success",
         message: "Retrieved all support tickets successfully",
@@ -259,6 +283,26 @@ export class ChatService {
           adminId: addAdminDeto.adminId
         }
       });
+      const user = await this.prisma.user.findUnique({
+        where: { id: addAdminDeto.adminId }
+      });
+      if (!user) {
+        throw new NotFoundException('Admin user not found');
+      }
+      const frontendUrl = process.env.FRONTEND_URL || 'https://coreaeration.com';
+      const supportEmail = process.env.SUPPORT_EMAIL || 'meekoslink@gmail.com';
+
+      this.mailService.sendMail({
+        to: user.email,
+        subject: 'Ticket Assigned Successfully.',
+        template: 'ticket-assign',
+        context: {
+          name: user.name || 'Admin',
+          ticket_id: chat.id,
+          date: chat.createdAt.toLocaleDateString(),
+          supportEmail: supportEmail
+        }
+      });
       return {
         status: "success",
         message: "Admin assigned successfully",
@@ -278,6 +322,50 @@ export class ChatService {
           id: chatId
         },
         data: {
+          status: updateStatusDto.status
+        }
+      });
+      const user = await this.prisma.user.findUnique({
+        where: { id: chat.userId }
+      });
+      if (chat.adminId) {
+        const admin = await this.prisma.user.findUnique({
+          where: { id: chat.adminId }
+        });
+        if (!admin) {
+          throw new NotFoundException('Admin not found');
+        }
+        const frontendUrl = process.env.FRONTEND_URL || 'https://coreaeration.com';
+        const supportEmail = process.env.SUPPORT_EMAIL || 'meekoslink@gmail.com';
+
+        this.mailService.sendMail({
+          to: admin.email,
+          subject: 'Ticket Status Updated.',
+          template: 'ticket-status',
+          context: {
+            name: admin.name || 'Customer',
+            ticket_id: chat.id,
+            date: chat.createdAt.toLocaleDateString(),
+            supportEmail: supportEmail,
+            status: updateStatusDto.status
+          }
+        });
+      }
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      const frontendUrl = process.env.FRONTEND_URL || 'https://coreaeration.com';
+      const supportEmail = process.env.SUPPORT_EMAIL || 'meekoslink@gmail.com';
+
+      this.mailService.sendMail({
+        to: user.email,
+        subject: 'Ticket Status Updated.',
+        template: 'ticket-status',
+        context: {
+          name: user.name || 'Customer',
+          ticket_id: chat.id,
+          date: chat.createdAt.toLocaleDateString(),
+          supportEmail: supportEmail,
           status: updateStatusDto.status
         }
       });

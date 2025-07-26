@@ -27,6 +27,7 @@ const Footer = () => {
                             Meekoslink@gmail.com
                         </p>
                         <ul className="space-y-2">
+                            <li><Link to="/promos" className="text-gray-400 hover:text-white transition">Get Promos</Link></li>
                             <li><Link to="/terms" className="text-gray-400 hover:text-white transition">Terms</Link></li>
                             <li><Link to="/privacy-policy" className="text-gray-400 hover:text-white transition">Privacy Policy</Link></li>
                             <li><Link to="/conduct-code" className="text-gray-400 hover:text-white transition">Code Of Conduct</Link></li>
@@ -34,7 +35,7 @@ const Footer = () => {
                     </div>
                 </div>
                 <div className="border-t border-gray-700 mt-8 pt-6 text-center">
-                    <p className="text-gray-400">&copy; 2025 VendorLocator. All rights reserved.</p>
+                    <p className="text-gray-400">&copy; 2025 Meekos Links LLC. All rights reserved.</p>
                 </div>
             </div>
         </footer>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ticket Assignment Notification</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .assignment-box { 
+            background-color: #e3f2fd; 
+            border: 1px solid #2196F3; 
+            border-radius: 5px; 
+            padding: 15px; 
+            margin: 20px 0; 
+        }
+        .ticket-info { margin: 20px 0; }
+        .agent-info { 
+            background-color: #f5f5f5; 
+            padding: 10px; 
+            border-radius: 3px; 
+            margin: 10px 0; 
+        }
+        .steps { margin: 20px 0; padding-left: 20px; }
+        .footer { margin-top: 30px; color: #666; }
+        .status-assigned { color: #2196F3; font-weight: bold; }
+        .contact-info { color: #1976D2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hello {{name}}!</h2>
+        <p>Good news! Your ticket has been assigned to one of our support specialists who will be handling your request.</p>
+        
+        <div class="assignment-box">
+            <h3>Ticket Assignment Update</h3>
+            <div class="ticket-info">
+                <p><strong>Ticket ID:</strong> {{ticket_id}}</p>
+                <p><strong>Status:</strong> <span class="status-assigned">{{status}}</span></p>
+                <p><strong>Assigned on:</strong> {{date}}</p>
+            </div>
+            
+            <div class="agent-info">
+                <h4>Your Assigned Support Agent:</h4>
+                <p><strong>Name:</strong> {{name}}</p>
+            </div>
+        </div>
+        
+        <p>Your assigned support agent will begin working on your request and will contact you directly for any additional information or updates needed.</p>
+
+        <h3>What to expect:</h3>
+        <ol class="steps">
+            <li>Your agent will review your ticket details thoroughly</li>
+            <li>They may contact you for additional information if needed</li>
+            <li>You'll receive regular updates on the progress</li>
+            <li>Your agent will work towards a resolution based on your request</li>
+            <li>You'll be notified once your ticket is resolved</li>
+        </ol>
+
+        <p>If you have any immediate questions or need to provide more information, you can reach out to your assigned agent directly.</p>
+        
+        <p>You can reply directly to this email or contact your assigned agent using the information provided above. Please always reference your Ticket ID when communicating about this request.</p>
+        
+        <p>If you need urgent assistance or have concerns about your ticket, you can also reach our support team directly.</p>
+
+        <div class="footer">
+            <p>Best regards,<br>CoreAeration Team Support</p>
+        </div>
+    </div>
+</body>
+</html>

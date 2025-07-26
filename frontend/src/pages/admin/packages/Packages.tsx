@@ -49,7 +49,7 @@ const AdminPackages = () => {
   };
   
   // Helper function to check if user can perform action
-  const canPerformAction = (action: 'Editing' | 'Deletion'| 'Approval'): boolean => {
+  const canPerformAction = (action: 'Editing' | 'Create' | 'Deletion'| 'Approval'): boolean => {
     if (!user) return false;
     
     // SUPERADMIN can do everything
@@ -76,7 +76,7 @@ const AdminPackages = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Packages</h2>
-          {user && user.utype =="SUPERADMIN" &&(
+          {canPerformAction('Create') && (
           <Button className="bg-[#a0b830] hover:bg-[#8fa029]">
             <Link to="/admin/create-package" className="flex items-center">
               <Plus className="h-4 w-4 mr-2" />

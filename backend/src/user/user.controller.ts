@@ -10,6 +10,7 @@ import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -66,7 +67,7 @@ export class UserController {
     }
   ) {
     const companyLogo = files?.companyLogo?.[0];
-    const backendUrl = this.configService.get<string>('BACKENDImg') || 'http://localhost:3000/public';
+    const backendUrl = this.configService.get<string>('BACKENDImg') || 'https://coreaeration.com/public';
     console.log(updateUserDto)
     return this.userService.updateProfile(
       updateUserDto,
@@ -98,7 +99,7 @@ export class UserController {
   }
   @Get(':id')
   async getUser(@Param('id') id: number) {
-    return this.userService.getUser(id);
+    return this.userService.getUser(+id);
   }
   @Get('/email/test-email')
   async testActivationEmail() {
@@ -123,6 +124,10 @@ export class UserController {
   @Post('/admin/create-user')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
+  }
+  @Patch('/admin/update-user:id')
+  async updateUser(@Param('id') id:number, @Body() updateUserDto: UpdateAdminUserDto) {
+    return this.userService.updateUser(+id,updateUserDto);
   }
   @Get("/all/admin-users")
   async adminUsers(){

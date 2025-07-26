@@ -170,7 +170,7 @@ const ShowPromos = () => {
     };
 
     // Helper function to check if user can perform action
-    const canPerformAction = (action: 'Editing' | 'Deletion' | 'Approval'): boolean => {
+    const canPerformAction = (action: 'Editing' | 'Create' | 'Deletion' | 'Approval'): boolean => {
         if (!user) return false;
 
         // SUPERADMIN can do everything
@@ -207,7 +207,7 @@ const ShowPromos = () => {
                 <Card className="p-6">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                         <h1 className="text-2xl font-bold">Promos Management</h1>
-                        {user && user.utype == 'SUPERADMIN' && (
+                        {canPerformAction('Create') && (
                             <Button
                                 onClick={() => window.location.href = '/admin/create-promo'}
                                 className="bg-lime-600 hover:bg-lime-700"

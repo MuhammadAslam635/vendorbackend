@@ -1,8 +1,14 @@
 import { Card, CardContent, CardHeader } from '../components/ui/card'
 import Header from './components/home/Header'
 import Footer from './components/home/Footer'
+import { useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 
 const Privacy = () => {
+    const { pathname } = useLocation()
+    useEffect(() => {
+        window.scrollTo(0, 0);
+      }, [pathname]);
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <Header />

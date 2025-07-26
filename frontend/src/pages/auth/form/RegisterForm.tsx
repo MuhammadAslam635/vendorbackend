@@ -10,7 +10,6 @@ import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { useAuth } from "../../../useAuth";
-
 interface FormData {
     firstName: string;
     lastName: string;
@@ -318,18 +317,15 @@ const RegisterForm = () => {
                                 <div className="grid gap-1.5 leading-none">
                                     <label
                                         htmlFor="agreeToTerms"
-                                        className="text-sm text-gray-600"
+                                        className="text-sm "
                                     >
-                                        Accept terms and conditions
+                                        <Link to="/terms" className="text-green-500">Accept terms & conditions</Link> and <Link to="/privacy-policy" className="text-green-500">Privacy Policy</Link>
                                     </label>
-                                    <p className="text-sm text-gray-500">
-                                        You agree to our Terms of Service and Privacy Policy.
-                                    </p>
                                 </div>
                             </div>
                             {errors.agreeToTerms && <p className="text-xs text-red-500">{errors.agreeToTerms}</p>}
                         </CardContent>
-                        <CardFooter>
+                        <CardFooter className="mt-2">
                             <Button
                                 type="submit"
                                 className="w-full bg-[#a0b830] hover:bg-[#8fa029] text-white transition duration-300"

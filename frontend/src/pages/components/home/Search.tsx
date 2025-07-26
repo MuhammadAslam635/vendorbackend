@@ -18,7 +18,7 @@ const Search = () => {
       <div className="flex flex-col sm:flex-row items-center justify-center mb-8 w-full max-w-md mx-auto">
         <Input
           type="text"
-          placeholder="Enter your ZIP code, city, or state"
+          placeholder="Enter your ZIP code..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full mb-2 sm:mb-0 sm:mr-2 sm:rounded-r-none bg-white text-gray-800 shadow-md"

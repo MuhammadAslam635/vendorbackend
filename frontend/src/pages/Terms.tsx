@@ -1,11 +1,17 @@
 import { Card, CardContent, CardHeader } from '../components/ui/card'
 import Header from './components/home/Header'
 import Footer from './components/home/Footer'
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 // Mock Header and Footer components for demonstration
 
 
 const Terms = () => {
+    const { pathname } = useLocation()
+    useEffect(() => {
+        window.scrollTo(0, 0);
+      }, [pathname]);
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <Header />
