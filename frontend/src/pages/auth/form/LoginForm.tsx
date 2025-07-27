@@ -56,21 +56,15 @@ const LoginForm = () => {
         console.log('🔍 Getting redirect path for userType:', userType);
         
         switch (userType) {
-            case "SUPERADMIN":
+            case "GUEST":
                 console.log('➡️ Redirecting SUPERADMIN to /admin/dashboard');
-                return "/admin/dashboard";
-            case "ADMIN":
-                console.log('➡️ Redirecting ADMIN to /admin/dashboard');
-                return "/admin/dashboard";
-            case "SUBADMIN":
-                console.log('➡️ Redirecting SUBADMIN to /admin/dashboard');
-                return "/admin/dashboard";
+                return "/";
             case "VENDOR":
                 console.log('➡️ Redirecting VENDOR to /vendor/dashboard');
                 return "/vendor/dashboard";
             default:
                 console.log('➡️ Redirecting default user to /');
-                return "/";
+                return "/admin/dashboard";
         }
     };
 
