@@ -144,14 +144,40 @@ export class ZipcodeService {
   }
 
   async getAllZipcode() {
-    return this.prisma.zipCode.findMany({
-      include: {
-        user: {
-          include: {
-            gallery: true,
+    try {
+      const now = new Date();
+      
+      // Update expired packages to INACTIVE status
+      await this.prisma.subscribePackage.updateMany({
+        where: {
+          endDate: { lte: now },
+          status: 'ACTIVE' // Only update currently active packages
+        },
+        data: { // Use 'data' instead of 'update'
+          status: 'INACTIVE'
+        }
+      });
+
+      // Return active packages with their zip codes and user information
+      return await this.prisma.subscribePackage.findMany({
+        where: {
+          status: "ACTIVE"
+        },
+        include: {
+          zipCodes: {
+            include: {
+              user: {
+                include: {
+                  gallery: true,
+                }
+              },
+            }
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.error('Error in getAllZipcode:', error);
+      throw error;
+    }
   }
 }

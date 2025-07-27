@@ -331,12 +331,12 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Close button */}
-                        <button
+                        <Button
                             className="absolute -top-10 right-0 text-white hover:text-gray-300 z-50"
                             onClick={() => setShowGalleryModal(false)}
                         >
                             <X className="w-6 h-6" />
-                        </button>
+                        </Button>
 
                         {/* Image slider */}
                         <div className="relative">
@@ -363,7 +363,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                             {/* Navigation arrows */}
                             {selectedVendorGallery.length > 1 && (
                                 <>
-                                    <button
+                                    <Button
                                         className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -373,8 +373,8 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                         }}
                                     >
                                         <ChevronLeft className="w-6 h-6" />
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -384,14 +384,14 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                         }}
                                     >
                                         <ChevronRight className="w-6 h-6" />
-                                    </button>
+                                    </Button>
                                 </>
                             )}
 
                             {/* Dots navigation */}
                             <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
                                 {selectedVendorGallery.map((_, index) => (
-                                    <button
+                                    <Button
                                         key={index}
                                         className={`w-2 h-2 rounded-full transition-all ${currentImageIndex === index ? 'bg-white w-4' : 'bg-white/50'
                                             }`}
