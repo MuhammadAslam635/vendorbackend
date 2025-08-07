@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, Loader } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { 
@@ -38,20 +38,20 @@ interface NotificationResponse {
   };
 }
 
-export const AdminHeader = ({ title, user }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ title, user }: DashboardHeaderProps) => {
   const [notifications, setNotifications] = useState<NotificationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Function to fetch notifications
   const fetchNotifications = async () => {
     try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
       setIsLoading(true);
-      const response = await fetch('/api/notify/me', {
+      const response = await fetch(`${baseUrl}/message/notify/me`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          // Add your auth headers here if needed
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Adjust based on your auth setup
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
@@ -68,12 +68,41 @@ export const AdminHeader = ({ title, user }: DashboardHeaderProps) => {
     }
   };
 
+  // Complete function to update message as read
+  const updateMessageIsRead = async (messageId: number) => {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(`${baseUrl}/message/notification/update/by/${messageId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update message as read');
+      }
+
+      const result = await response.json();
+      console.log('Message marked as read:', result);
+      
+      // Refresh notifications after marking as read
+      await fetchNotifications();
+      
+      return result;
+    } catch (error) {
+      console.error('Error updating message as read:', error);
+      throw error;
+    }
+  };
+
   // Fetch notifications on component mount and set up polling
   useEffect(() => {
     fetchNotifications();
     
     // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    const interval = setInterval(fetchNotifications, 3000);
     
     return () => clearInterval(interval);
   }, []);
@@ -92,12 +121,40 @@ export const AdminHeader = ({ title, user }: DashboardHeaderProps) => {
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  const handleNotificationClick = (chatId: number) => {
-    // Navigate to specific chat or handle notification click
-    // You can use your router here to navigate to the chat
-    console.log('Navigate to chat:', chatId);
-    // Example: router.push(`/chat/${chatId}`);
+  // Enhanced handler for notification clicks
+   const handleNotificationClick = async (messageId: number) => {
+    try {
+      // Mark the message as read when clicked
+      await updateMessageIsRead(messageId);
+      
+      // Navigate to specific chat or handle notification click
+      console.log('Navigate to chat:', messageId);
+      
+      // Example navigation (uncomment and modify based on your routing setup):
+      // router.push(`/chat/${chatId}`);
+      // or
+      // window.location.href = `/chat/${chatId}`;
+      
+    } catch (error) {
+      console.error('Error handling notification click:', error);
+      // You might want to show a toast notification here
+    }
   };
+
+  // Handler for marking all messages as read
+  // const handleMarkAllAsRead = async () => {
+  //   try {
+  //     const markAllPromises = notificationList.map(notification => 
+  //       updateMessageIsRead(notification.chatId)
+  //     );
+      
+  //     await Promise.all(markAllPromises);
+  //     console.log('All messages marked as read');
+      
+  //   } catch (error) {
+  //     console.error('Error marking all messages as read:', error);
+  //   }
+  // };
 
   return (
     <header className="border-b">
@@ -120,12 +177,26 @@ export const AdminHeader = ({ title, user }: DashboardHeaderProps) => {
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel className="flex justify-between items-center">
                 <span>Notifications</span>
-                {isLoading && (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
-                )}
+                {/* <div className="flex items-center gap-2">
+                  {totalUnreadMessages > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 px-2"
+                      onClick={handleMarkAllAsRead}
+                    >
+                      Mark all read
+                    </Button>
+                  )}
+                  {isLoading && (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                  )}
+                </div> */}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              
+             {isLoading && (
+                <Loader />
+               )}
               {notificationList.length === 0 ? (
                 <DropdownMenuItem disabled>
                   <div className="text-center py-4 text-gray-500">
@@ -137,8 +208,8 @@ export const AdminHeader = ({ title, user }: DashboardHeaderProps) => {
                   {notificationList.slice(0, 5).map((notification) => (
                     <DropdownMenuItem
                       key={notification.chatId}
-                      className="cursor-pointer p-3 hover:bg-gray-50"
-                      onClick={() => handleNotificationClick(notification.chatId)}
+                      className="cursor-pointer p-3 hover:bg-gray-50 focus:bg-gray-50"
+                      onClick={() => handleNotificationClick(notification.latestMessage.id)}
                     >
                       <div className="flex flex-col gap-1 w-full">
                         <div className="flex justify-between items-start">
@@ -161,14 +232,22 @@ export const AdminHeader = ({ title, user }: DashboardHeaderProps) => {
                     </DropdownMenuItem>
                   ))}
                   
-                  {notificationList.length > 5 && (
+                  {/* {notificationList.length > 5 && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-center text-blue-600 cursor-pointer">
+                      <DropdownMenuItem 
+                        className="text-center text-blue-600 cursor-pointer hover:bg-blue-50"
+                        onClick={() => {
+                          // Handle "View all notifications" click
+                          console.log('View all notifications clicked');
+                          // Navigate to notifications page
+                          // router.push('/notifications');
+                        }}
+                      >
                         View all notifications
                       </DropdownMenuItem>
                     </>
-                  )}
+                  )} */}
                 </>
               )}
             </DropdownMenuContent>

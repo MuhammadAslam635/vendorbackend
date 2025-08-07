@@ -234,7 +234,9 @@ export class UserService {
         zipcodes: true,
         transactions: true,
         gallery: true,
-        subscribe_packages: true
+        subscribe_packages: true,
+        permissions:true,
+        routes:true
       }
     });
 
@@ -349,6 +351,20 @@ export class UserService {
   
         return newUser;
       });
+      const frontendUrl = process.env.FRONTEND_URL || 'https://coreaeration.com/';
+    const supportEmail = process.env.SUPPORT_EMAIL || 'meekoslinks@gmail.com';
+
+    this.mailService.sendMail({
+        to: createUserDto.email,
+        subject: 'Account Created Successfully.',
+        template: 'account-created',
+        context: {
+            name: createUserDto.name || 'Valued Customer',
+            loginUrl: `${frontendUrl}/login`,
+            packagesUrl: `${frontendUrl}/packages`,
+            supportEmail: supportEmail
+        }
+    });
   
       // Return success response without sensitive data
       return {

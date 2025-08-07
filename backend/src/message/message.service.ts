@@ -112,21 +112,21 @@ export class MessageService {
             }> = [];
 
             // Check user type and get appropriate chats
-            if (user.utype === 'admin' || user.utype === 'subadmin') {
+            if (user.utype === 'ADMIN' || user.utype === 'SUBADMIN') {
                 // For admin/subadmin: find chats where they are the admin and status is not closed
                 chats = await this.prisma.chat.findMany({
                     where: {
                         AND: [
                             { adminId: id },
-                            { status: { not: 'closed' } }
+                            { status: { not: 'CLOSED' } }
                         ]
                     },
                     include: {
                         messages: {
                             where: {
                                 AND: [
-                                    { messageBy: 'user' }, // Messages sent by users
-                                    { isRead: 0 }           // Unread messages
+                                    { messageBy: 'USER' }, // Messages sent by users
+                                    { isRead: false }           // Unread messages
                                 ]
                             },
                             orderBy: {
@@ -150,20 +150,20 @@ export class MessageService {
                     }
                 });
 
-            } else if (user.utype === 'vendor') {
+            } else if (user.utype === 'VENDOR') {
                 // For vendor: find chats against their userId and status is not closed
                 chats = await this.prisma.chat.findMany({
                     where: {
                         AND: [
                             { userId: id },
-                            { status: { not: 'closed' } }
+                            { status: { not: 'CLOSED' } }
                         ]
                     },
                     include: {
                         messages: {
                             where: {
                                 AND: [
-                                    { messageBy: 'admin' }, // Messages sent by admin/subadmin
+                                    { messageBy: 'ADMIN' }, // Messages sent by admin/subadmin
                                     { isRead: false }            // Unread messages
                                 ]
                             },
@@ -209,6 +209,27 @@ export class MessageService {
 
         } catch (e) {
             console.error('Notification Error:', e);
+            return {
+                status: "failed",
+                message: `Get Error: ${e.message}`
+            };
+        }
+    }
+    async updateMessages(id:number,userId:number){
+        try{
+           const status= await this.prisma.message.update({
+                where:{
+                    id:id
+                },
+                data:{
+                    isRead:true
+                }
+            });
+            return {
+                status:"successful",
+                message:"Message Status Updated"
+            }
+        }catch(e){
             return {
                 status: "failed",
                 message: `Get Error: ${e.message}`

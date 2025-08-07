@@ -91,7 +91,7 @@ const CreateUser = () => {
         setIsLoading(true);
 
         // Basic validation
-        if (!userData.name || !userData.email || !userData.phone || !userData.utype || !userData.status || !userData.password) {
+        if (!userData.name || !userData.email || !userData.utype || !userData.status || !userData.password) {
             setError('All fields are required');
             setIsLoading(false);
             return;
@@ -211,7 +211,7 @@ const CreateUser = () => {
                                         onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
                                         className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                         disabled={isLoading}
-                                        required
+                                        
                                     />
                                 </div>
 

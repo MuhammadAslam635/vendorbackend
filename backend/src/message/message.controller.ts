@@ -99,4 +99,9 @@ export class MessageController {
     const id = request.user.userId;
     return this.messageService.notifyMe(+id);
   }
+  @Patch("/notification/update/by/:id")
+  updatIsRead(@Request() request,@Param('id') id:string){
+    const userId =request.user.userId;
+    return this.messageService.updateMessages(+id,userId);
+  }
 }
