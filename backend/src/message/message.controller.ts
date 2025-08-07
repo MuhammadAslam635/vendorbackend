@@ -93,4 +93,10 @@ export class MessageController {
       }
     };
   }
+
+  @Get('/notify/me')
+  getNotify(@Request() request){
+    const id = request.user.userId;
+    return this.messageService.notifyMe(+id);
+  }
 }
