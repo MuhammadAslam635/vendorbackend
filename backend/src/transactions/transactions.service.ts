@@ -483,37 +483,197 @@ export class TransactionsService {
     }
   }
 
+  // private async handlePaymentCompleted(resource: any) {
+  //   const customId = resource.id; // This contains our transaction ID
+  //    console.log("first customeId",customId, resource.status);
+  //   if (customId) {
+  //     await this.prisma.$transaction(async (prisma) => {
+  //       const transaction = await prisma.transaction.findUnique({
+  //         where: { transactionId: customId },
+  //         include: {
+  //           subscribe_package: true
+  //         }
+  //       });
+  //       console.log("Transaction Find");
+
+  //       if (transaction) {
+  //         await prisma.transaction.update({
+  //           where: { id: transaction.id },
+  //           data: { paymentStatus: resource.status }
+  //         });
+  //         console.log("Transaction status updated");
+  //         await prisma.subscribePackage.update({
+  //           where: { id: transaction.subscribe_package.id },
+  //           data: { status: 'ACTIVE' }
+  //         });
+  //         console.log("Transaction Find");
+  //         await prisma.user.update({
+  //           where: { id: transaction.userId },
+  //           data: { packageActive: 'YES' }
+  //         });
+  //         console.log("Package Updated");
+  //       }
+  //     });
+  //   }
+  // }
   private async handlePaymentCompleted(resource: any) {
-    const customId = resource.id; // This contains our transaction ID
-     console.log("first customeId",customId, resource.status);
-    if (customId) {
-      await this.prisma.$transaction(async (prisma) => {
-        const transaction = await prisma.transaction.findUnique({
-          where: { transactionId: customId },
-          include: {
-            subscribe_package: true
+    const orderId = resource.id; // PayPal Order ID
+    console.log("Processing order ID:", orderId, "Initial status:", resource.status);
+    
+    if (orderId) {
+      try {
+        // Step 1: Verify payment status with PayPal API
+        const paypalOrderDetails = await this.verifyPaymentWithPayPal(orderId);
+        
+        if (!paypalOrderDetails || paypalOrderDetails.status !== 'COMPLETED') {
+          console.log("Payment verification failed or not completed:", paypalOrderDetails?.status);
+          return;
+        }
+
+        // Step 2: Extract custom_id from PayPal response
+        const customId = paypalOrderDetails.purchase_units?.[0]?.custom_id;
+        if (!customId) {
+          console.log("No custom_id found in PayPal response");
+          return;
+        }
+
+        // Step 3: Update database in transaction
+        await this.prisma.$transaction(async (prisma) => {
+          const transaction = await prisma.transaction.findUnique({
+            where: { transactionId: customId },
+            include: {
+              subscribe_package: true
+            }
+          });
+          
+          console.log("Transaction found:", transaction?.id);
+
+          if (transaction && transaction.paymentStatus !== 'COMPLETED') {
+            // Update transaction status
+            await prisma.transaction.update({
+              where: { id: transaction.id },
+              data: { 
+                paymentStatus: 'COMPLETED'
+              }
+            });
+            console.log("Transaction status updated to COMPLETED");
+
+            // Activate subscription package
+            await prisma.subscribePackage.update({
+              where: { id: transaction.subscribe_package.id },
+              data: { 
+                status: 'ACTIVE'
+              }
+            });
+            console.log("Package activated");
+
+            // Update user package status
+            await prisma.user.update({
+              where: { id: transaction.userId },
+              data: { 
+                packageActive: 'YES'
+              }
+            });
+            console.log("User package status updated");
+          } else if (transaction?.paymentStatus === 'COMPLETED') {
+            console.log("Payment already processed for transaction:", customId);
           }
         });
-        console.log("Transaction Find");
+      } catch (error) {
+        console.error("Error processing payment completion:", error);
+        throw error;
+      }
+    }
+  }
 
-        if (transaction) {
-          await prisma.transaction.update({
-            where: { id: transaction.id },
-            data: { paymentStatus: resource.status }
-          });
-          console.log("Transaction status updated");
-          await prisma.subscribePackage.update({
-            where: { id: transaction.subscribe_package.id },
-            data: { status: 'ACTIVE' }
-          });
-          console.log("Transaction Find");
-          await prisma.user.update({
-            where: { id: transaction.userId },
-            data: { packageActive: 'YES' }
-          });
-          console.log("Package Updated");
+  private async verifyPaymentWithPayPal(orderId: string) {
+    try {
+      // Get PayPal access token
+      const accessToken = await this.getPayPalAccessToken();
+      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL');
+      
+      // Call PayPal API to get order details
+      const response = await axios.get(`${paypalBaseUrl}/v2/checkout/orders/${orderId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
+
+      const orderDetails = response.data;
+      console.log("PayPal order verification:", {
+        id: orderDetails.id,
+        status: orderDetails.status,
+        intent: orderDetails.intent,
+        customId: orderDetails.purchase_units?.[0]?.custom_id
+      });
+
+      return orderDetails;
+    } catch (error) {
+      console.error("Error verifying payment with PayPal:", error);
+      return null;
+    }
+  }
+
+  private async getPayPalAccessToken(): Promise<string> {
+    try {
+      const paypalClientId = this.configService.get('PAYPAL_CLIENT_ID');
+      const paypalClientSecret = this.configService.get('PAYPAL_CLIENT_SECRET');
+      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL');
+
+      const auth = Buffer.from(`${paypalClientId}:${paypalClientSecret}`).toString('base64');
+
+      const response = await axios.post(
+        `${paypalBaseUrl}/v1/oauth2/token`,
+        'grant_type=client_credentials',
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Accept-Language': 'en_US',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${auth}`
+          }
+        }
+      );
+
+      return response.data.access_token;
+    } catch (error) {
+      console.error("Error getting PayPal access token:", error);
+      throw error;
+    }
+  }
+
+  // Alternative method if you want to capture the payment as well
+  private async captureAndVerifyPayment(orderId: string) {
+    try {
+      const accessToken = await this.getPayPalAccessToken();
+      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL');
+      
+      // Capture the payment
+      const captureResponse = await axios.post(
+        `${paypalBaseUrl}/v2/checkout/orders/${orderId}/capture`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      const captureDetails = captureResponse.data;
+      console.log("Payment captured:", {
+        id: captureDetails.id,
+        status: captureDetails.status,
+        captureId: captureDetails.purchase_units?.[0]?.payments?.captures?.[0]?.id
+      });
+
+      return captureDetails;
+    } catch (error) {
+      console.error("Error capturing payment:", error);
+      return null;
     }
   }
 
