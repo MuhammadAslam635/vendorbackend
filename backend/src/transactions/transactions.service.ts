@@ -483,7 +483,7 @@ export class TransactionsService {
 
   private async handlePaymentCompleted(resource: any) {
     const customId = resource.custom_id; // This contains our transaction ID
-
+     console.log("first customeId",customId);
     if (customId) {
       await this.prisma.$transaction(async (prisma) => {
         const transaction = await prisma.transaction.findUnique({
@@ -492,22 +492,24 @@ export class TransactionsService {
             subscribe_package: true
           }
         });
+        console.log("Transaction Find");
 
         if (transaction) {
           await prisma.transaction.update({
             where: { id: transaction.id },
             data: { paymentStatus: 'COMPLETED' }
           });
-
+          console.log("Transaction status updated");
           await prisma.subscribePackage.update({
             where: { id: transaction.subscribe_package.id },
             data: { status: 'ACTIVE' }
           });
-
+          console.log("Transaction Find");
           await prisma.user.update({
             where: { id: transaction.userId },
             data: { packageActive: 'YES' }
           });
+          console.log("Package Updated");
         }
       });
     }

@@ -14,7 +14,7 @@ const PaymentCancelHandler = () => {
       const orderId = searchParams.get('transactionId') || searchParams.get('orderId');
       if (!orderId) {
         toast.error('No transaction ID provided');
-        navigate('/vendor/dashboard/subscriptions');
+        navigate('/vendor/subscriptions');
         return;
       }
       
