@@ -484,12 +484,12 @@ export class TransactionsService {
   }
 
   private async handlePaymentCompleted(resource: any) {
-    const customId = resource.custom_id; // This contains our transaction ID
-     console.log("first customeId",customId);
+    const customId = resource.id; // This contains our transaction ID
+     console.log("first customeId",customId, resource.status);
     if (customId) {
       await this.prisma.$transaction(async (prisma) => {
         const transaction = await prisma.transaction.findUnique({
-          where: { id: parseInt(customId) },
+          where: { transactionId: customId },
           include: {
             subscribe_package: true
           }
@@ -518,12 +518,12 @@ export class TransactionsService {
   }
 
   private async handlePaymentFailed(resource: any) {
-    const customId = resource.custom_id;
+    const customId = resource.id;
 
     if (customId) {
       await this.prisma.$transaction(async (prisma) => {
         const transaction = await prisma.transaction.findUnique({
-          where: { id: parseInt(customId) },
+          where: { transactionId:customId },
           include: {
             subscribe_package: true
           }
