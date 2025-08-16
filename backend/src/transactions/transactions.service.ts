@@ -460,6 +460,7 @@ export class TransactionsService {
       switch (eventType) {
         case 'CHECKOUT.ORDER.APPROVED':
           console.log('PayPal order approved:', resource.id);
+          await this.handlePaymentCompleted(resource);
           break;
 
         case 'PAYMENT.CAPTURE.COMPLETED':
@@ -467,6 +468,7 @@ export class TransactionsService {
           break;
 
         case 'PAYMENT.CAPTURE.DENIED':
+        case 'PAYMENT.CAPTURE.PENDING':
         case 'PAYMENT.CAPTURE.FAILED':
           await this.handlePaymentFailed(resource);
           break;
@@ -497,7 +499,7 @@ export class TransactionsService {
         if (transaction) {
           await prisma.transaction.update({
             where: { id: transaction.id },
-            data: { paymentStatus: 'COMPLETED' }
+            data: { paymentStatus: resource.status }
           });
           console.log("Transaction status updated");
           await prisma.subscribePackage.update({

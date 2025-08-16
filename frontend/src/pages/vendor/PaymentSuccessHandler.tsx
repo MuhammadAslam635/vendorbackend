@@ -12,9 +12,9 @@ const PaymentSuccessHandler = () => {
     useEffect(() => {
       const searchParams = new URLSearchParams(location.search);
       const orderId = searchParams.get('transactionId') || searchParams.get('orderId');
-      
+      console.log("first orderId",orderId);
       if (orderId) {
-        axios.post(`${import.meta.env.VITE_BACKEND_URL}/transactions/payment-success`, { orderId })
+        axios.post(`${import.meta.env.VITE_BACKEND_URL}/transactions/payment-success`, {transactionId: orderId })
           .then(response => {
             console.log("first response",response);
             navigate(response.data.redirectUrl || '/vendor/subscriptions');
