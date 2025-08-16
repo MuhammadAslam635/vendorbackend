@@ -525,7 +525,7 @@ export class TransactionsService {
         // Step 1: Verify payment status with PayPal API
         const paypalOrderDetails = await this.verifyPaymentWithPayPal(orderId);
         
-        if (!paypalOrderDetails || paypalOrderDetails.status !== 'COMPLETED') {
+        if (!paypalOrderDetails || paypalOrderDetails.status !== 'COMPLETED' || paypalOrderDetails.status !== 'APPROVED') {
           console.log("Payment verification failed or not completed:", paypalOrderDetails?.status);
           return;
         }
@@ -540,7 +540,7 @@ export class TransactionsService {
         // Step 3: Update database in transaction
         await this.prisma.$transaction(async (prisma) => {
           const transaction = await prisma.transaction.findUnique({
-            where: { transactionId: customId },
+            where: { id: customId },
             include: {
               subscribe_package: true
             }
