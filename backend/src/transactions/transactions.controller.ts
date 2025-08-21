@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException, Headers, HttpCode, Query, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException, Headers, HttpCode, Query, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -29,6 +29,36 @@ export class TransactionsController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
     return this.transactionsService.update(+id, updateTransactionDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('admin/complete/:id')
+  async adminMarkTransactionComplete(
+    @Param('id') id: string,
+    @Request() req
+  ) {
+    const transactionId = parseInt(id);
+    const adminUserId = req.user.userId;
+
+    if (isNaN(transactionId)) {
+      throw new BadRequestException('Invalid transaction ID');
+    }
+
+    try {
+      const result = await this.transactionsService.adminUpdateTransactionToComplete(transactionId, adminUserId);
+      
+      return {
+        status: 'success',
+        message: 'Transaction marked as completed successfully',
+        data: result.data
+      };
+    } catch (error) {
+      console.error('Admin transaction completion failed:', error);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to mark transaction as complete');
+    }
   }
   @UseGuards(JwtAuthGuard)
   @Post('create-session/:packageId')
@@ -231,6 +261,65 @@ async getPaymentStatus(
   //   // Redirect back to the subscription page
   //   return result;
   // }
+
+  // Delete transaction and all related records
+  @UseGuards(JwtAuthGuard)
+  @Delete('admin/:id')
+  async adminDeleteTransaction(
+    @Param('id') id: string,
+    @Request() req
+  ) {
+    const transactionId = parseInt(id);
+    const userId = req.user.userId;
+
+    if (isNaN(transactionId)) {
+      throw new BadRequestException('Invalid transaction ID');
+    }
+   
+
+    try {
+      const result = await this.transactionsService.adminDeleteTransaction(transactionId,userId);
+      
+      return {
+        status: 'success',
+        message: 'Transaction and all related records deleted successfully by admin',
+        data: result
+      };
+    } catch (error) {
+      console.error('Admin transaction deletion failed:', error);
+      throw new BadRequestException('Failed to delete transaction');
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteTransaction(
+    @Param('id') id: string,
+    @Request() req
+  ) {
+    const transactionId = parseInt(id);
+    if (isNaN(transactionId)) {
+      throw new BadRequestException('Invalid transaction ID');
+    }
+
+    try {
+      console.log("Hello")
+
+      const result = await this.transactionsService.deleteTransaction(
+        transactionId,
+        req.user.userId
+      );
+      
+      return {
+        status: 'success',
+        message: 'Transaction and all related records deleted successfully',
+        data: result
+      };
+    } catch (error) {
+      console.error('Transaction deletion failed:', error);
+      throw new BadRequestException('Failed to delete transaction');
+    }
+  }
 
   // Helper method to map QuickPay status to your application's status format
   private mapQuickPayStatus(accepted: boolean): string {

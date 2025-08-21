@@ -6,6 +6,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Label } from "../../../components/ui/label";
 import { Input } from "../../../components/ui/input";
+import { PasswordInput } from "../../../components/ui/password-input";
 import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { useAuth } from "../../../useAuth";
@@ -194,9 +195,9 @@ const LoginForm = () => {
                                         Forgot password?
                                     </Link>
                                 </div>
-                                <Input
+                                <PasswordInput
                                     id="password"
-                                    type="password"
+                                    name="password"
                                     value={formData.password}
                                     onChange={handleInputChange}
                                     className="border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200"

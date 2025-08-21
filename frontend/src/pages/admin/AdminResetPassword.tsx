@@ -8,6 +8,7 @@ import { Card } from "../../components/ui/card";
 import { ShieldCheck } from "lucide-react";
 import { Label } from "../../components/ui/label";
 import { Input } from "../../components/ui/input";
+import { PasswordInput } from "../../components/ui/password-input";
 import { Button } from "../../components/ui/button";
 interface ResetFormData {
     password: string;
@@ -85,10 +86,9 @@ const onSubmit = async () => {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="password">New Password</Label>
-                            <Input 
+                            <PasswordInput 
                                 id="password" 
                                 name="password" 
-                                type="password" 
                                 value={formData.password} 
                                 onChange={handleInputChange} 
                             />
@@ -96,10 +96,9 @@ const onSubmit = async () => {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                            <Input 
+                            <PasswordInput 
                                 id="confirmPassword" 
                                 name="confirmPassword" 
-                                type="password" 
                                 value={formData.confirmPassword} 
                                 onChange={handleInputChange} 
                             />

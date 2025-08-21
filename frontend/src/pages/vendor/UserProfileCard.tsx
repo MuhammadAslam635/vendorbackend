@@ -255,6 +255,8 @@ const ImageModal = ({ image, onClose }: { image: string; onClose: () => void }) 
     <div className="relative max-w-4xl max-h-[90vh] mx-4">
       <img src={image} alt="Gallery" className="max-w-full max-h-[85vh] object-contain" />
       <button 
+        title="Close"
+
         className="absolute top-4 right-4 text-white hover:text-gray-300"
         onClick={onClose}
       >

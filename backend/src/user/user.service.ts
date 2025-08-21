@@ -8,6 +8,8 @@ import * as fs from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto, PermissionType, RouteType, UserStatus } from './dto/create-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
+import { CsvUserRow } from './dto/csv-import-user.dto';
+import * as csv from 'csv-parser';
 
 @Injectable()
 export class UserService {
@@ -593,35 +595,146 @@ export class UserService {
     };
   }
   async getAdminUsers() {
-    try {
-      const adminUsers = await this.prisma.user.findMany({
-        where: {
-          utype: {
-            in: ["ADMIN", "SUBADMIN"]
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { utype: 'ADMIN' },
+          { utype: 'SUBADMIN' }
+        ]
+      },
+      include: {
+        permissions: {
+          select: {
+            name: true,
           }
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          utype: true,
-          createdAt: true,
-          updatedAt: true
-        },
-        orderBy: {
-          name: 'asc'
+        routes: {
+          select: {
+            name: true,
+          }
         }
-      });
-  
-      return {
-        status: "success",
-        message: "Retrieved admin users successfully",
-        data: adminUsers
-      };
-    } catch (error) {
-      console.error('Get admin users error:', error);
-      throw new BadRequestException('Failed to retrieve admin users');
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+  }
+
+  async importUsersFromCsv(csvData: CsvUserRow[]) {
+    const results: {
+      successful: Array<{ row: CsvUserRow; user: any }>;
+      failed: Array<{ row: CsvUserRow; error: string }>;
+      totalProcessed: number;
+    } = {
+      successful: [],
+      failed: [],
+      totalProcessed: csvData.length
+    };
+
+    for (const row of csvData) {
+      try {
+        // Validate required fields
+        if (!row.name || !row.email || !row.password || !row.utype) {
+          results.failed.push({
+            row,
+            error: 'Missing required fields: name, email, password, or utype'
+          });
+          continue;
+        }
+
+        // Validate user type
+        if (!['ADMIN', 'SUBADMIN'].includes(row.utype)) {
+          results.failed.push({
+            row,
+            error: 'Invalid user type. Must be ADMIN or SUBADMIN'
+          });
+          continue;
+        }
+
+        // Parse permissions and routes
+        const permissions = row.permissions 
+          ? row.permissions.split(',').map(p => p.trim() as PermissionType)
+          : [];
+        const routes = row.routes 
+          ? row.routes.split(',').map(r => r.trim() as RouteType)
+          : [];
+
+        // Validate permissions
+        const validPermissions = Object.values(PermissionType);
+        const invalidPermissions = permissions.filter(p => !validPermissions.includes(p));
+        if (invalidPermissions.length > 0) {
+          results.failed.push({
+            row,
+            error: `Invalid permissions: ${invalidPermissions.join(', ')}`
+          });
+          continue;
+        }
+
+        // Validate routes
+        const validRoutes = Object.values(RouteType);
+        const invalidRoutes = routes.filter(r => !validRoutes.includes(r));
+        if (invalidRoutes.length > 0) {
+          results.failed.push({
+            row,
+            error: `Invalid routes: ${invalidRoutes.join(', ')}`
+          });
+          continue;
+        }
+
+        // Create user DTO
+        const createUserDto: CreateUserDto = {
+          name: row.name,
+          email: row.email,
+          phone: row.phone || undefined,
+          password: row.password,
+          utype: row.utype as any,
+          status: (row.status as any) || UserStatus.PENDING,
+          permissions: permissions.length > 0 ? permissions : [PermissionType.APPROVAL],
+          routes: routes.length > 0 ? routes : [RouteType.Package]
+        };
+
+        // Create the user
+        const result = await this.createUser(createUserDto);
+        results.successful.push({
+          row,
+          user: result.data
+        });
+
+      } catch (error) {
+        results.failed.push({
+          row,
+          error: error.message || 'Unknown error occurred'
+        });
+      }
     }
+
+    return {
+      message: `CSV import completed. ${results.successful.length} users created successfully, ${results.failed.length} failed.`,
+      status: 'success',
+      data: results
+    };
+  }
+
+  parseCsvData(csvContent: string): Promise<CsvUserRow[]> {
+    return new Promise((resolve, reject) => {
+      const results: CsvUserRow[] = [];
+      const stream = require('stream');
+      const readable = new stream.Readable();
+      readable.push(csvContent);
+      readable.push(null);
+
+      readable
+        .pipe(csv())
+        .on('data', (data) => {
+          results.push(data);
+        })
+        .on('end', () => {
+          resolve(results);
+        })
+        .on('error', (error) => {
+          reject(error);
+        });
+    });
   }
 }
 

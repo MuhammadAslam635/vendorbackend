@@ -6,6 +6,7 @@ import { AdminDashboardLayout } from '../layout/AdminDashboardLayout';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
+import { Trash2, CheckCircle } from 'lucide-react';
 
 interface Transaction {
   id: number;
@@ -121,6 +122,54 @@ const Transactions = () => {
     setSearchFilters({ ...searchFilters, [column]: e.target.value });
   };
 
+  const handleDeleteTransaction = async (transactionId: number) => {
+    if (!window.confirm('Are you sure you want to delete this transaction? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/transactions/admin/${transactionId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      toast.success('Transaction deleted successfully');
+      
+      // Refresh the transactions list
+      fetchTransactions();
+    } catch (error: any) {
+      console.error('Error deleting transaction:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete transaction');
+    }
+  };
+
+  const handleMarkComplete = async (transactionId: number) => {
+    if (!window.confirm('Are you sure you want to mark this transaction as completed? This will activate the subscription package.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${import.meta.env.VITE_BACKEND_URL}/transactions/admin/complete/${transactionId}`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success('Transaction marked as completed successfully');
+      fetchTransactions(); // Refresh the list
+    } catch (error) {
+      console.error('Error marking transaction as complete:', error);
+      toast.error('Failed to mark transaction as complete');
+    }
+  };
+
+  const canDeleteTransaction = (paymentStatus: string) => {
+    return ['PENDING', 'FAILED', 'CANCELLED'].includes(paymentStatus);
+  };
+
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredTransactions.slice(indexOfFirstRow, indexOfLastRow);
@@ -197,6 +246,7 @@ const Transactions = () => {
                       className="w-full"
                     />
                   </TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -215,7 +265,37 @@ const Transactions = () => {
                       </span>
                     </TableCell>
                     <TableCell>{new Date(transaction.createdAt).toLocaleDateString()}</TableCell>
-                   
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-2">
+                        {transaction.paymentStatus === 'PENDING'  && (
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleMarkComplete(transaction.id)}
+                            className="h-8 w-8 p-0"
+                            title="Mark as Complete"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeleteTransaction(transaction.paymentStatus) ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteTransaction(transaction.id)}
+                            className="h-8 w-8 p-0"
+                            title="Delete Transaction"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          !['PENDING'].includes(transaction.paymentStatus) && (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -44,6 +44,8 @@ import Privacy from './pages/Privacy'
 import Code from './pages/Code'
 import PromoPage from './pages/PromoPage'
 import EditAdminUser from './pages/admin/users/EditAdminUser'
+import ImportUsers from './pages/admin/users/ImportUsers'
+import CertificationBadge from './pages/vendor/CertificationBadge'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated } = useAuth();
 
@@ -109,6 +111,7 @@ function App() {
               <Route path="/payment-cancel" element={<PaymentCancelHandler />} />
               <Route path="add/gallery" element={<AddGallery />} />
               <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="certification-badge" element={<CertificationBadge />} />
               <Route path="/support-chats" element={<Chat />} />
               <Route path="/createticket" element={<CreateTicket />} />
               <Route path="/ticket/:id" element={<TicketMessages />} />
@@ -136,6 +139,7 @@ function App() {
               <Route path="tickets" element={<AllTickets />} />
               <Route path="ticket/:id" element={<ChatTicket />} />
               <Route path="update-user/:id" element={<EditAdminUser />} />
+              <Route path="import-users" element={<ImportUsers />} />
 
             </Routes>
           </ProtectedRoute>

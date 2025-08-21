@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "../../../components/ui/card";
 import { Label } from "../../../components/ui/label";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Textarea } from "../../../components/ui/textarea";
+import * as moment from 'moment-timezone';
 
 interface CreatePromoProps {
     title: string;
@@ -26,8 +27,8 @@ const CreatePromo = () => {
         title: '',
         description: '',
         code: '',
-        startDate: '',
-        endDate: '',
+        startDate: moment.tz('America/Chicago').format('YYYY-MM-DDTHH:mm'),
+        endDate: moment.tz('America/Chicago').add(1, 'week').format('YYYY-MM-DDTHH:mm'),
         maxZipCode: null,
         isActive: true,
         isSiteWide: false,
@@ -96,8 +97,8 @@ const CreatePromo = () => {
                 title: '',
                 description: '',
                 code: '',
-                startDate: '',
-                endDate: '',
+                startDate: moment.tz('America/Chicago').format('YYYY-MM-DDTHH:mm'),
+                endDate: moment.tz('America/Chicago').add(1, 'week').format('YYYY-MM-DDTHH:mm'),
                 maxZipCode: null,
                 isActive: true,
                 isSiteWide: false,
@@ -150,7 +151,7 @@ const CreatePromo = () => {
                                 </div>
 
                                 <div>
-                                    <Label className="block text-sm font-medium text-gray-700">Start Date *</Label>
+                                    <Label className="block text-sm font-medium text-gray-700">Start Date * (Central Time)</Label>
                                     <Input
                                         type="datetime-local"
                                         value={promoData.startDate}
@@ -159,10 +160,11 @@ const CreatePromo = () => {
                                         disabled={isLoading}
                                         required
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">Time zone: Central Time (CT)</p>
                                 </div>
 
                                 <div>
-                                    <Label className="block text-sm font-medium text-gray-700">End Date *</Label>
+                                    <Label className="block text-sm font-medium text-gray-700">End Date * (Central Time)</Label>
                                     <Input
                                         type="datetime-local"
                                         value={promoData.endDate}
@@ -171,6 +173,7 @@ const CreatePromo = () => {
                                         disabled={isLoading}
                                         required
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">Time zone: Central Time (CT)</p>
                                 </div>
 
                                 <div>

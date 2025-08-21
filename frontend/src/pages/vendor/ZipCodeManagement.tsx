@@ -174,6 +174,8 @@ const ZipCodeManagement = ({ zipcodes, totalZipcodes, onZipcodesChange }: ZipCod
                 >
                   <span>{zipcode.zipcode}</span>
                   <button
+                    title="Remove ZIP code"
+
                     type="button"
                     onClick={() => handleRemoveZipcode(zipcode)}
                     className="text-gray-500 hover:text-red-500"

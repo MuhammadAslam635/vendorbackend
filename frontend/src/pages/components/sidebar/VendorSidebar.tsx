@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../useAuth";
-import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Ticket, Lock } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Ticket, Lock, Badge } from "lucide-react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -91,6 +91,18 @@ const VendorSidebar = () => {
                         <Ticket className="mr-2 h-4 w-4" />
                         Support Ticket</Link>
                     </Button>
+                    {user  && (
+                        <Button
+                            variant={isActiveRoute("/vendor/certification-badge") ? "secondary" : "ghost"}
+                            className="w-full justify-start"
+                        >
+                            <Link to="/vendor/certification-badge" className="flex items-center">
+                                <Badge className="mr-2 h-4 w-4" />
+                                Appreciation Badge
+                            </Link>
+                        </Button>
+                    )}
+
                     <Button
                         variant={isActiveRoute("/vendor/reset-password") ? "secondary" : "ghost"}
                         className="w-full justify-start"

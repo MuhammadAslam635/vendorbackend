@@ -19,6 +19,7 @@ import {
     RefreshCw
 } from "lucide-react";
 import { Roles } from "../../../ProtectedRouteProps";
+import * as moment from 'moment-timezone';
 
 interface PromoData {
     id: number;
@@ -148,21 +149,17 @@ const ShowPromos = () => {
     };
 
     const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        return moment.tz(date, 'America/Chicago').format('MMM DD, YYYY hh:mm A [CT]');
     };
 
     const isExpired = (endDate: Date) => {
-        return new Date(endDate) < new Date();
+        const nowCT = moment.tz('America/Chicago').toDate();
+        return new Date(endDate) < nowCT;
     };
 
     const isUpcoming = (startDate: Date) => {
-        return new Date(startDate) > new Date();
+        const nowCT = moment.tz('America/Chicago').toDate();
+        return new Date(startDate) > nowCT;
     };
     const hasPermission = (permissionName: Roles): boolean => {
         if (!user?.permissions) return false;

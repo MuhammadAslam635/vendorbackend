@@ -1,0 +1,5 @@
+name,email,password,utype,permissions,routes
+John Admin,john.admin@example.com,password123,ADMIN,"USER_MANAGEMENT,PACKAGE_MANAGEMENT","users,packages"
+Jane SubAdmin,jane.subadmin@example.com,password456,SUBADMIN,USER_MANAGEMENT,users
+Bob Manager,bob.manager@example.com,password789,ADMIN,"USER_MANAGEMENT,PACKAGE_MANAGEMENT,STATS_MANAGEMENT","users,packages,stats"
+Alice Support,alice.support@example.com,passwordabc,SUBADMIN,"USER_MANAGEMENT","users"

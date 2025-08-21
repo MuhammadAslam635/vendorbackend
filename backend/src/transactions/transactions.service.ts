@@ -38,26 +38,53 @@ export class TransactionsService {
   }
 
   async findOne(id: number) {
-    console.log("Transaction ID:", id);
-    const transaction = await this.prisma.transaction.findUnique({
-      where: {
-        id: id
-      },
-      include: {
-        subscribe_package: true,
-        user: true
+    try {
+      console.log("Transaction ID:", id);
+      const transaction = await this.prisma.transaction.findUnique({
+        where: {
+          id: id
+        },
+        include: {
+          subscribe_package: {
+            include: {
+              zipCodes: true,
+              package: true
+            }
+          },
+          user: true
+        }
+      });
+
+      if (!transaction) {
+        throw new NotFoundException(`Transaction with ID ${id} not found`);
       }
-    });
 
-    if (!transaction) {
-      throw new NotFoundException(`Transaction with ID ${id} not found`);
+      return transaction;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error retrieving transaction');
     }
-
-    return transaction;
   }
+  // This method is replaced by the comprehensive deleteTransaction method below
 
   update(id: number, updateTransactionDto: UpdateTransactionDto) {
-    return `This action updates a #${id} transaction`;
+    try{
+      return this.prisma.transaction.update({
+        where: { id },
+        data: {
+          paymentStatus: updateTransactionDto.paymentStatus
+        }
+      });
+      return {
+        status: 'success',
+        message: 'Transaction updated successfully',
+      };
+
+    }catch(e){
+      throw new BadRequestException('Failed to update transaction');
+    }
   }
   async createPaymentSession(userId: number, packageId: number, createZipcodeDto: ZipcodeDto) {
     try {
@@ -333,8 +360,17 @@ export class TransactionsService {
       console.log('PayPal capture response:', captureResponse.data);
 
       // Update transaction status based on capture result
-      const paypalStatus = captureResponse.data.status;
-      const transactionStatus = paypalStatus === 'COMPLETED' ? 'COMPLETED' : 'FAILED';
+      // Check if the capture was successful by looking at the capture details
+      const captureDetails = captureResponse.data.purchase_units?.[0]?.payments?.captures?.[0];
+      const captureStatus = captureDetails?.status;
+      const orderStatus = captureResponse.data.status;
+      
+      console.log('Capture details:', { captureStatus, orderStatus, captureDetails });
+      
+      // Transaction is completed if order is completed and capture is completed
+      const transactionStatus = (orderStatus === 'COMPLETED' && captureStatus === 'COMPLETED') ? 'COMPLETED' : 'FAILED';
+      
+      console.log('Final transaction status:', transactionStatus);
 
       // Find and update our transaction
       const transaction = await this.prisma.transaction.findFirst({
@@ -525,7 +561,7 @@ export class TransactionsService {
         // Step 1: Verify payment status with PayPal API
         const paypalOrderDetails = await this.verifyPaymentWithPayPal(orderId);
         
-        if (!paypalOrderDetails || paypalOrderDetails.status !== 'COMPLETED' || paypalOrderDetails.status !== 'APPROVED') {
+        if (!paypalOrderDetails || (paypalOrderDetails.status !== 'COMPLETED' && paypalOrderDetails.status !== 'APPROVED')) {
           console.log("Payment verification failed or not completed:", paypalOrderDetails?.status);
           return;
         }
@@ -542,7 +578,11 @@ export class TransactionsService {
           const transaction = await prisma.transaction.findUnique({
             where: { id: customId },
             include: {
-              subscribe_package: true
+              subscribe_package: {
+                include: {
+                  package: true
+                }
+              }
             }
           });
           
@@ -567,14 +607,26 @@ export class TransactionsService {
             });
             console.log("Package activated");
 
-            // Update user package status
+            // Get the zipcodes associated with this subscription package
+            const zipcodes = await prisma.zipCode.findMany({
+              where: { subscribePackageId: transaction.subscribe_package.id }
+            });
+
+            // Update user package status and zipcode counts
             await prisma.user.update({
               where: { id: transaction.userId },
               data: { 
-                packageActive: 'YES'
+                packageActive: 'YES',
+                addedzipcodes: {
+                  increment: zipcodes.length
+                },
+                totalzipcodes: {
+                  increment: transaction.subscribe_package.package.profiles
+                }
               }
             });
             console.log("User package status updated");
+            console.log(`Updated user zipcode counts: added ${zipcodes.length} zipcodes, total profiles ${transaction.subscribe_package.package.profiles}`);
           } else if (transaction?.paymentStatus === 'COMPLETED') {
             console.log("Payment already processed for transaction:", customId);
           }
@@ -644,39 +696,6 @@ export class TransactionsService {
     }
   }
 
-  // Alternative method if you want to capture the payment as well
-  private async captureAndVerifyPayment(orderId: string) {
-    try {
-      const accessToken = await this.getPayPalAccessToken();
-      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL');
-      
-      // Capture the payment
-      const captureResponse = await axios.post(
-        `${paypalBaseUrl}/v2/checkout/orders/${orderId}/capture`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        }
-      );
-
-      const captureDetails = captureResponse.data;
-      console.log("Payment captured:", {
-        id: captureDetails.id,
-        status: captureDetails.status,
-        captureId: captureDetails.purchase_units?.[0]?.payments?.captures?.[0]?.id
-      });
-
-      return captureDetails;
-    } catch (error) {
-      console.error("Error capturing payment:", error);
-      return null;
-    }
-  }
-
   private async handlePaymentFailed(resource: any) {
     const customId = resource.id;
 
@@ -711,6 +730,95 @@ export class TransactionsService {
     });
   }
 
+  async adminUpdateTransactionToComplete(transactionId: number, adminUserId: number) {
+    try {
+      // Find the transaction with related data
+      const transaction = await this.prisma.transaction.findUnique({
+        where: { id: transactionId },
+        include: {
+          subscribe_package: {
+            include: {
+              package: true
+            }
+          },
+          user: true
+        }
+      });
+
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found');
+      }
+
+      // Check if transaction is in PENDING status
+      if (transaction.paymentStatus !== 'PENDING' && transaction.paymentStatus !== 'FAILED' && transaction.paymentStatus !== 'CANCELLED') {
+
+        throw new BadRequestException(`Transaction is not in PENDING status. Current status: ${transaction.paymentStatus}`);
+      }
+
+      // Use database transaction to ensure consistency
+      await this.prisma.$transaction(async (prisma) => {
+        // Update transaction status to COMPLETED
+        await prisma.transaction.update({
+          where: { id: transactionId },
+          data: { 
+            paymentStatus: 'COMPLETED',
+            updatedAt: new Date()
+          }
+        });
+
+        // Activate subscription package
+        await prisma.subscribePackage.update({
+          where: { id: transaction.subscribe_package.id },
+          data: { 
+            status: 'ACTIVE',
+            updatedAt: new Date()
+          }
+        });
+
+        // Get the zipcodes associated with this subscription package
+        const zipcodes = await prisma.zipCode.findMany({
+          where: { subscribePackageId: transaction.subscribe_package.id }
+        });
+
+        // Update user package status and zipcode counts
+        await prisma.user.update({
+          where: { id: transaction.userId },
+          data: { 
+            packageActive: 'YES',
+            addedzipcodes: {
+              increment: zipcodes.length
+            },
+            totalzipcodes: {
+              increment: transaction.subscribe_package.package.profiles
+            },
+            updatedAt: new Date()
+          }
+        });
+
+        console.log(`Admin ${adminUserId} marked transaction ${transactionId} as COMPLETED`);
+        console.log(`Updated user zipcode counts: added ${zipcodes.length} zipcodes, total profiles ${transaction.subscribe_package.package.profiles}`);
+      });
+
+      return {
+        status: 'success',
+        message: 'Transaction marked as completed successfully',
+        data: {
+          transactionId: transactionId,
+          newStatus: 'COMPLETED',
+          packageActivated: true,
+          userPackageActive: true
+        }
+      };
+
+    } catch (error) {
+      console.error('Error updating transaction to complete:', error);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update transaction status');
+    }
+  }
+
   async getTransactionStatus(transactionId: number, userId: number) {
     return this.prisma.transaction.findFirst({
       where: {
@@ -722,35 +830,280 @@ export class TransactionsService {
       }
     });
   }
-  // Remove or simplify confirmPaymentSuccess since webhook will handle everything
+  // Confirm payment success and complete the transaction
   async confirmPaymentSuccess(orderId: string) {
-    // This method is not needed if using webhooks
-    const transaction = await this.prisma.transaction.findFirst({
-      where: { transactionId: orderId },
-      include: { subscribe_package: true }
-    });
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found');
+    try {
+      console.log('Confirming payment success for order:', orderId);
+      
+      const transaction = await this.prisma.transaction.findFirst({
+        where: { transactionId: orderId },
+        include: { 
+          subscribe_package: {
+            include: {
+              package: true
+            }
+          },
+          user: true
+        }
+      });
+      
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found');
+      }
+      
+      // Check if transaction is already completed
+      if (transaction.paymentStatus === 'COMPLETED') {
+        console.log('Transaction already completed:', transaction.id);
+        const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+        return this.redirect(FRONTEND_URL + '/vendor/dashboard');
+      }
+      
+      // Use database transaction to ensure consistency
+      await this.prisma.$transaction(async (prisma) => {
+        // Update transaction status to completed
+        await prisma.transaction.update({
+          where: { id: transaction.id },
+          data: { paymentStatus: 'COMPLETED' }
+        });
+        
+        // Update subscription status to active
+        await prisma.subscribePackage.update({
+          where: { id: transaction.subscribe_package.id },
+          data: { status: 'ACTIVE' }
+        });
+        
+        // Update user package status
+        await prisma.user.update({
+          where: { id: transaction.userId },
+          data: { packageActive: 'YES' }
+        });
+        
+        console.log('Payment confirmation completed for transaction:', transaction.id);
+      });
+      
+      // Redirect to frontend URL
+      const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+      return this.redirect(FRONTEND_URL + '/vendor/dashboard');
+      
+    } catch (error) {
+      console.error('Error confirming payment success:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to confirm payment success');
     }
-    // Update transaction status to completed
-    await this.prisma.transaction.update({
-      where: { id: transaction.id },
-      data: { paymentStatus: 'COMPLETED' }
-    });
-    // Update subscription status to active
-    await this.prisma.subscribePackage.update({
-      where: { id: transaction.subscribe_package.id },
-      data: { status: 'ACTIVE' }
-    });
-    // Update user package status
-    await this.prisma.user.update({
-      where: { id: transaction.userId },
-      data: { packageActive: 'YES' }
-    });
-    // Redirect to frontend URL
-    // Fixed: Use configService to get frontend URL
-    const FRONTEND_URL = this.configService.get('FRONTEND_URL');
-    return this.redirect(FRONTEND_URL + '/vendor/dashboard');
+  }
+
+  // Delete transaction and all related records
+  async adminDeleteTransaction(transactionId: number, userId: number) {
+    try {
+      // Find the transaction with all related data (admin can delete any transaction)
+      const transaction = await this.prisma.transaction.findFirst({
+        where: {
+          id: transactionId,
+          OR: [
+            { paymentStatus: 'PENDING' },
+            { paymentStatus: 'FAILED' },
+            { paymentStatus: 'CANCELLED' }
+          ]
+        },
+        include: {
+          subscribe_package: {
+            include: {
+              zipCodes: true
+            }
+          },
+          user: true
+        }
+      });
+
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found or cannot be deleted (only pending, failed, or cancelled transactions can be deleted)');
+      }
+
+      // Use database transaction to ensure data consistency
+      const result = await this.prisma.$transaction(async (prisma) => {
+        // Delete the transaction first (to avoid foreign key constraint)
+        await prisma.transaction.delete({
+          where: { id: transactionId }
+        });
+
+        // Delete zip codes associated with the subscribe package
+        if (transaction.subscribe_package?.zipCodes?.length > 0) {
+          await prisma.zipCode.deleteMany({
+            where: {
+              subscribePackageId: transaction.subscribe_package.id
+            }
+          });
+        }
+
+        // Delete the subscribe package
+        if (transaction.subscribe_package) {
+          await prisma.subscribePackage.delete({
+            where: { id: transaction.subscribe_package.id }
+          });
+        }
+
+        // Check if user has any remaining active subscribe packages
+        const remainingActivePackages = await prisma.subscribePackage.findMany({
+          where: {
+            userId: transaction.userId,
+            status: 'ACTIVE'
+          },
+          include: {
+            zipCodes: true,
+            package: true
+
+          }
+        });
+
+        // If no active packages remain, reset user fields
+        if (remainingActivePackages.length === 0) {
+          await prisma.user.update({
+            where: { id: transaction.userId },
+            data: {
+              packageActive: 'NO',
+              totalzipcodes: 0,
+              addedzipcodes: 0
+            }
+          });
+        } else {
+          // Recalculate total zipcodes and added zipcodes based on remaining packages
+          const totalZipcodes = remainingActivePackages.reduce((sum, pkg) => {
+            return sum + (pkg.package?.profiles || 0);
+          }, 0);
+          
+          const addedZipcodes = remainingActivePackages.reduce((sum, pkg) => {
+            return sum + (pkg.zipCodes?.length || 0);
+          }, 0);
+
+          await prisma.user.update({
+            where: { id: transaction.userId },
+            data: {
+              totalzipcodes: totalZipcodes,
+              addedzipcodes: addedZipcodes
+            }
+          });
+        }
+
+        return {
+          deletedTransaction: transaction,
+          remainingActivePackages: remainingActivePackages.length
+        };
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to delete transaction and related records');
+    }
+  }
+
+  async deleteTransaction(transactionId: number, userId: number) {
+    try {
+      // Find the transaction with all related data
+      console.log("Hello")
+      const transaction = await this.prisma.transaction.findFirst({
+        where: {
+          id: transactionId,
+          userId: userId
+        },
+        include: {
+          subscribe_package: {
+            include: {
+              zipCodes: true
+            }
+          }
+        }
+      });
+
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found or access denied');
+      }
+
+      // Use database transaction to ensure data consistency
+      const result = await this.prisma.$transaction(async (prisma) => {
+        // Delete the transaction first (to avoid foreign key constraint)
+        await prisma.transaction.delete({
+          where: { id: transactionId }
+        });
+
+        // Delete zip codes associated with the subscribe package
+        if (transaction.subscribe_package?.zipCodes?.length > 0) {
+          await prisma.zipCode.deleteMany({
+            where: {
+              subscribePackageId: transaction.subscribe_package.id
+            }
+          });
+        }
+
+        // Delete the subscribe package
+        if (transaction.subscribe_package) {
+          await prisma.subscribePackage.delete({
+            where: { id: transaction.subscribe_package.id }
+          });
+        }
+
+        // Check if user has any remaining active subscribe packages
+        const remainingActivePackages = await prisma.subscribePackage.findMany({
+          where: {
+            userId: userId,
+            status: 'ACTIVE'
+          },
+          include: {
+            zipCodes: true,
+            package: true
+
+          }
+        });
+
+        // If no active packages remain, reset user fields
+        if (remainingActivePackages.length === 0) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              packageActive: 'NO',
+              totalzipcodes: 0,
+              addedzipcodes: 0
+            }
+          });
+        } else {
+          // Recalculate total zipcodes and added zipcodes based on remaining packages
+          const totalZipcodes = remainingActivePackages.reduce((sum, pkg) => {
+            return sum + (pkg.package?.profiles || 0);
+
+          }, 0);
+          
+          const addedZipcodes = remainingActivePackages.reduce((sum, pkg) => {
+            return sum + (pkg.zipCodes?.length || 0);
+          }, 0);
+
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              totalzipcodes: totalZipcodes,
+              addedzipcodes: addedZipcodes
+            }
+          });
+        }
+
+        return {
+          deletedTransaction: transaction,
+          remainingActivePackages: remainingActivePackages.length
+        };
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to delete transaction and related records');
+    }
   }
 
   async handlePaymentCancel(orderId: string) {
@@ -871,6 +1224,4 @@ export class TransactionsService {
       body: null
     };
   }
-
-
 }

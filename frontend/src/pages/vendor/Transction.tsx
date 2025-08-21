@@ -159,7 +159,19 @@ const Transaction = () => {
     }
     return 'N/A';
   };
-
+  const deleteTransaction = async (id: number) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/transactions/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      toast.success('Transaction deleted successfully');
+      fetchTransactions();
+    } catch (error) {
+      toast.error('Failed to delete transaction');
+    }
+  };
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredTransactions.slice(indexOfFirstRow, indexOfLastRow);
@@ -251,6 +263,10 @@ const Transaction = () => {
                           className="w-full border border-gray-300 rounded px-2 py-1 text-sm mt-1"
                         />
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Action
+                      </th>
+
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -282,8 +298,18 @@ const Transaction = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {transaction.paymentMethod}
+                          {transaction.paymentMethod || 'N/A'}
                         </td>
+                        {transaction.paymentStatus !== 'COMPLETED' && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => deleteTransaction(transaction.id)}
+                            className="text-red-500 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

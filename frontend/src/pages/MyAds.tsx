@@ -229,6 +229,8 @@ const MyAds = () => {
                         <div className="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden bg-[#a0b830]">
                             {/* Close Button */}
                             <button
+                                title="Close"
+
                                 onClick={() => setModalOpen(false)}
                                 className="absolute top-4 right-4 z-50 text-gray-600 hover:text-gray-800"
                             >
@@ -261,12 +263,17 @@ const MyAds = () => {
                                 {vendor.gallery.length > 1 && (
                                     <>
                                         <button
+                                            title="Previous"
+
                                             onClick={() => setCurrentSlide(prev => prev === 0 ? vendor.gallery.length - 1 : prev - 1)}
                                             className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
                                         >
                                             <ChevronLeft className="w-6 h-6" />
                                         </button>
                                         <button
+                                            title="Next"
+
+
                                             onClick={() => setCurrentSlide(prev => prev === vendor.gallery.length - 1 ? 0 : prev + 1)}
                                             className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg"
                                         >
@@ -279,6 +286,8 @@ const MyAds = () => {
                                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
                                     {vendor.gallery.map((_, index) => (
                                         <button
+                                            title={`Go to slide ${index + 1}`}
+
                                             key={index}
                                             onClick={() => setCurrentSlide(index)}
                                             className={`w-2 h-2 rounded-full transition-all ${currentSlide === index ? 'bg-[#a0b830] w-4' : 'bg-gray-300'

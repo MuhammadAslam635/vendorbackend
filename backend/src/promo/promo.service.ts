@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { CreatePromoDto, PromoResponseDto } from './dto/create-promo.dto';
 import { UpdatePromoDto } from './dto/update-promo.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class PromoService {
@@ -10,15 +11,17 @@ export class PromoService {
   async create(createPromoDto: CreatePromoDto){
     const { startDate, endDate, code, maxZipCode, ...rest } = createPromoDto;
 
-    // Validate dates
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    // Convert dates to Central Time Zone
+    const start = moment.tz(startDate, 'America/Chicago').toDate();
+    const end = moment.tz(endDate, 'America/Chicago').toDate();
     
     if (start >= end) {
       throw new BadRequestException('Start date must be before end date');
     }
 
-    if (start < new Date()) {
+    // Compare with current time in Central Time Zone
+    const nowCT = moment.tz('America/Chicago').toDate();
+    if (start < nowCT) {
       throw new BadRequestException('Start date cannot be in the past');
     }
 
@@ -100,8 +103,8 @@ export class PromoService {
 
     // Validate dates if provided
     if (startDate || endDate) {
-      const start = startDate ? new Date(startDate) : existingPromo.startDate;
-      const end = endDate ? new Date(endDate) : existingPromo.endDate;
+      const start = startDate ? moment.tz(startDate, 'America/Chicago').toDate() : existingPromo.startDate;
+      const end = endDate ? moment.tz(endDate, 'America/Chicago').toDate() : existingPromo.endDate;
       
       if (start >= end) {
         throw new BadRequestException('Start date must be before end date');
@@ -122,8 +125,8 @@ export class PromoService {
     const updateData: any = { ...rest };
     
     if (code) updateData.code = code;
-    if (startDate) updateData.startDate = new Date(startDate);
-    if (endDate) updateData.endDate = new Date(endDate);
+    if (startDate) updateData.startDate = moment.tz(startDate, 'America/Chicago').toDate();
+    if (endDate) updateData.endDate = moment.tz(endDate, 'America/Chicago').toDate();
     if (maxZipCode !== undefined) updateData.maxZipCode = maxZipCode;
 
     const promo = await this.prisma.promo.update({
@@ -177,18 +180,18 @@ export class PromoService {
   }
 
   async getActivePromos() {
-    const now = new Date();
+    const nowCT = moment.tz('America/Chicago').toDate();
     
     return this.prisma.promo.findMany({
       where: {
         isActive: true,
-        endDate: { gte: now },
+        endDate: { gte: nowCT },
       }
     });
   }
 
   async validatePromoCode(code: string) {
-    const now = new Date();
+    const nowCT = moment.tz('America/Chicago').toDate();
     
     const promo = await this.prisma.promo.findUnique({
       where: { code }
@@ -202,11 +205,11 @@ export class PromoService {
       throw new BadRequestException('Promo code is not active');
     }
 
-    if (promo.startDate > now) {
+    if (promo.startDate > nowCT) {
       throw new BadRequestException('Promo code is not yet valid');
     }
 
-    if (promo.endDate < now) {
+    if (promo.endDate < nowCT) {
       throw new BadRequestException('Promo code has expired');
     }
 

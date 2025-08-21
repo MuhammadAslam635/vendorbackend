@@ -19,6 +19,7 @@ import { PermissionModule } from './permission/permission.module';
 import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
 import { PromoModule } from './promo/promo.module';
+import { VendorModule } from './vendor/vendor.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -64,6 +65,7 @@ import { PromoModule } from './promo/promo.module';
     ChatModule,
     MessageModule,
     PromoModule,
+    VendorModule,
   ],
 })
 export class AppModule {}

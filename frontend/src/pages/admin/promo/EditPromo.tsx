@@ -10,6 +10,7 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Textarea } from "../../../components/ui/textarea";
 import { Button } from "../../../components/ui/button";
 import { ArrowLeft, RefreshCw, Save } from "lucide-react";
+import * as moment from 'moment-timezone';
 
 interface EditPromoProps {
     title: string;
@@ -80,18 +81,12 @@ const EditPromo = () => {
             console.log("object promo",data);
             setOriginalPromo(data);
             
-            // Format dates for datetime-local input
-            const formatDateForInput = (dateString: string) => {
-                const date = new Date(dateString);
-                return date.toISOString().slice(0, 16);
-            };
-
             setPromoData({
                 title: data.title,
                 description: data.description || '',
                 code: data.code,
-                startDate: formatDateForInput(data.startDate),
-                endDate: formatDateForInput(data.endDate),
+                startDate: formatDateForInput(new Date(data.startDate)),
+                endDate: formatDateForInput(new Date(data.endDate)),
                 maxZipCode:data.maxZipCode || null,
                 isActive: data.isActive,
                 isSiteWide: data.isSiteWide,
@@ -174,13 +169,11 @@ const EditPromo = () => {
     };
 
     const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        return moment.tz(date, 'America/Chicago').format('MMM DD, YYYY hh:mm A');
+    };
+
+    const formatDateForInput = (date: Date) => {
+        return moment.tz(date, 'America/Chicago').format('YYYY-MM-DDTHH:mm');
     };
 
     if (isLoadingData) {
@@ -256,7 +249,7 @@ const EditPromo = () => {
                                 </div>
                                 
                                 <div>
-                                    <Label className="block text-sm font-medium text-gray-700">Start Date *</Label>
+                                    <Label className="block text-sm font-medium text-gray-700">Start Date * (Central Time)</Label>
                                     <Input
                                         type="datetime-local"
                                         value={promoData.startDate}
@@ -265,10 +258,11 @@ const EditPromo = () => {
                                         disabled={isLoading}
                                         required
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">Time zone: Central Time (CT)</p>
                                 </div>
                                 
                                 <div>
-                                    <Label className="block text-sm font-medium text-gray-700">End Date *</Label>
+                                    <Label className="block text-sm font-medium text-gray-700">End Date * (Central Time)</Label>
                                     <Input
                                         type="datetime-local"
                                         value={promoData.endDate}
@@ -277,6 +271,7 @@ const EditPromo = () => {
                                         disabled={isLoading}
                                         required
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">Time zone: Central Time (CT)</p>
                                 </div>
 
                                 <div>

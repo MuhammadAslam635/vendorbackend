@@ -126,6 +126,20 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    const frontendUrl = process.env.FRONTEND_URL || 'http://default-frontend-url.com';
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@yourplatform.com';
+
+    this.mailService.sendMail({
+        to: email,
+        subject: 'Account Created Successfully.',
+        template: 'account-created',
+        context: {
+            name: user.name || 'Valued Customer',
+            loginUrl: `${frontendUrl}/login`,
+            packagesUrl: `${frontendUrl}/packages`,
+            supportEmail: supportEmail
+        }
+    });
     return {
       message: 'Password reset email sent',
       success: true,

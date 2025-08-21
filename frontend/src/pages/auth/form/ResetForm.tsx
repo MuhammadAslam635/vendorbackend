@@ -2,6 +2,7 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "../../../components/ui/input";
+import { PasswordInput } from "../../../components/ui/password-input";
 import { Button } from "../../../components/ui/button";
 import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
@@ -88,10 +89,9 @@ const ResetForm = () => {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="password">New Password</Label>
-                            <Input 
+                            <PasswordInput 
                                 id="password" 
                                 name="password" 
-                                type="password" 
                                 value={formData.password} 
                                 onChange={handleInputChange} 
                             />
@@ -99,10 +99,9 @@ const ResetForm = () => {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                            <Input 
+                            <PasswordInput 
                                 id="confirmPassword" 
                                 name="confirmPassword" 
-                                type="password" 
                                 value={formData.confirmPassword} 
                                 onChange={handleInputChange} 
                             />

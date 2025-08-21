@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../useAuth";
-import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users, Lock, Ticket } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users, Lock, Ticket, Upload } from "lucide-react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -94,6 +94,20 @@ const AdminSidebar = () => {
             >
               <Users className="mr-2 h-4 w-4" />
               Admin Management
+            </Link>
+          )}
+
+          {/* Import Users - SUPERADMIN only */}
+          {user?.utype === 'SUPERADMIN' && (
+            <Link
+              to="/admin/import-users"
+              className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/admin/import-users")
+                ? "bg-[#a0b830] text-white"
+                : "hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Import Users
             </Link>
           )}
 

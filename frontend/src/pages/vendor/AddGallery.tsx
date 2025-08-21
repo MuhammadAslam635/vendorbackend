@@ -114,6 +114,8 @@ const AddGallery = () => {
                                         />
                                         <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <button
+                                                title="Remove image"
+
                                                 onClick={() => removeImage(index)}
                                                 className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
                                             >

@@ -1,14 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards, BadRequestException, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards, BadRequestException, UseInterceptors, UploadedFiles, UploadedFile, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
@@ -30,8 +31,8 @@ export class UserController {
 
     // Create directories if they don't exist
     [baseDir, logosDir, profilesDir].forEach(dir => {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      if (!fsSync.existsSync(dir)) {
+        fsSync.mkdirSync(dir, { recursive: true });
       }
     });
   }
@@ -132,5 +133,67 @@ export class UserController {
   @Get("/all/admin-users")
   async adminUsers(){
     return this.userService.getAdminUsers();
+  }
+
+  @Post('/admin/import-csv')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('csvFile', {
+    storage: diskStorage({
+      destination: './uploads/csv',
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `users-import-${uniqueSuffix}${path.extname(file.originalname)}`);
+      },
+    }),
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+        cb(null, true);
+      } else {
+        cb(new BadRequestException('Only CSV files are allowed'), false);
+      }
+    },
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+  }))
+  async importUsersFromCsv(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: any
+  ) {
+    // Check if user is SUPERADMIN
+    if (req.user.utype !== 'SUPERADMIN') {
+      throw new BadRequestException('Only super admins can import users from CSV');
+    }
+
+    if (!file) {
+      throw new BadRequestException('CSV file is required');
+    }
+
+    try {
+      // Read the CSV file
+      const csvContent = await fs.readFile(file.path, 'utf-8');
+      
+      // Parse CSV data
+      const csvData = await this.userService.parseCsvData(csvContent);
+      
+      // Import users
+      const result = await this.userService.importUsersFromCsv(csvData);
+      
+      // Clean up uploaded file
+      await fs.unlink(file.path);
+      
+      return result;
+    } catch (error) {
+      // Clean up uploaded file in case of error
+      if (file && file.path) {
+        try {
+          await fs.unlink(file.path);
+        } catch (unlinkError) {
+          console.error('Error deleting uploaded file:', unlinkError);
+        }
+      }
+      
+      throw new BadRequestException(`Failed to import users: ${error.message}`);
+    }
   }
 }
