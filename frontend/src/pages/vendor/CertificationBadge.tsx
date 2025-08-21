@@ -21,11 +21,13 @@ interface BadgeSettings {
 }
 
 interface BadgeResponse {
-  script: string;
-  instructions: {
-    title: string;
-    steps: string[];
-    notes: string[];
+  data: {
+    script: string;
+    instructions: {
+      title: string;
+      steps: string[];
+      notes: string[];
+    };
   };
 }
 
@@ -52,7 +54,7 @@ const CertificationBadge = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vendor/badge/script`, {
+      const response = await axios.get<BadgeResponse>(`${import.meta.env.VITE_BACKEND_URL}/vendor/badge/script`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

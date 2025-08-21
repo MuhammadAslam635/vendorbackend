@@ -6,7 +6,6 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { Alert, AlertDescription } from '../../../components/ui/alert';
-import { Badge } from '../../../components/ui/badge';
 import { Upload, Download, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axios from 'axios';

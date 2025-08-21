@@ -1,7 +1,6 @@
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Label } from "@radix-ui/react-label";
-import { Input } from "../../../components/ui/input";
 import { PasswordInput } from "../../../components/ui/password-input";
 import { Button } from "../../../components/ui/button";
 import { Link, useParams } from "react-router-dom";
