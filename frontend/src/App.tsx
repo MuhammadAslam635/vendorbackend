@@ -75,11 +75,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Home route */}
+        {/* Public routes - accessible to all users */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/all-vendors" element={<AllVendors />} />
         <Route path="/search-vendors" element={<SearchVendors />} />
-        <Route path="/my-ads" element={<MyAds />} />
         <Route path="/core-aeration" element={<CoreAeration />} />
         <Route path="/core-aeration-caution" element={<CoreAerationCaution />} />
         <Route path="/core-aeration-tips" element={<CoreAerationTips />} />
@@ -87,6 +86,13 @@ function App() {
         <Route path="/privacy-policy" element={<Privacy />} />
         <Route path="/conduct-code" element={<Code />} />
         <Route path="/Promos" element={<PromoPage />} />
+        
+        {/* Protected routes that require authentication */}
+        <Route path="/my-ads" element={
+          <ProtectedRoute allowedRoles={['VENDOR']}>
+            <MyAds />
+          </ProtectedRoute>
+        } />
         {/* Public routes */}
         <Route
           path="/register"

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../useAuth";
-import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Ticket, Lock, Badge } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Ticket, Lock, Badge, Globe } from "lucide-react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -98,10 +98,20 @@ const VendorSidebar = () => {
                         >
                             <Link to="/vendor/certification-badge" className="flex items-center">
                                 <Badge className="mr-2 h-4 w-4" />
-                                Appreciation Badge
+                                Certified Vendor Badge
                             </Link>
                         </Button>
                     )}
+
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                    >
+                        <a href="https://coreaeration.com" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                            <Globe className="mr-2 h-4 w-4" />
+                            Visit Website
+                        </a>
+                    </Button>
 
                     <Button
                         variant={isActiveRoute("/vendor/reset-password") ? "secondary" : "ghost"}

@@ -64,8 +64,8 @@ export class GalleryService {
       // Verify file was written
       const stats = await fs.stat(filePath);
       console.log(`File saved successfully: ${filePath} (${stats.size} bytes)`);
-      const backend = this.configService.get("BACKENDImg");
-      return `/uploads/${subFolder}/${uniqueName}`;
+      const backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
+      return `${backendUrl}/public/uploads/${subFolder}/${uniqueName}`;
     } catch (error) {
       console.error('File save error:', error);
       throw new BadRequestException(`Failed to save file: ${error.message}`);
@@ -88,8 +88,9 @@ export class GalleryService {
       
       // Create an array of gallery entries
       const galleryEntries = files.map(file => {
+        const backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
         const entry = {
-          image: `${backendUrl}/uploads/gallery/${file.filename}`,
+          image: `${backendUrl}/public/uploads/gallery/${file.filename}`,
           userId: user.id // Use the verified user.id
         };
         console.log('Creating gallery entry:', entry);

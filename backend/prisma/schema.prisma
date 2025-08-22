@@ -26,6 +26,7 @@ model User {
   address               String?
   country               String?
   companyLogo           String?
+  vendorType            VendorType?        @default(VENDOR)
   fb                    String?
   ln                    String?
   in                    String?
@@ -254,4 +255,10 @@ enum PermissionType {
   Create
   Editing
   Deletion
+}
+
+enum VendorType {
+  VENDOR
+  RENTAL
+  SALES
 }

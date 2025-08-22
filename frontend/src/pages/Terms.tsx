@@ -1,11 +1,7 @@
 import { Card, CardContent, CardHeader } from '../components/ui/card'
-import Header from './components/home/Header'
-import Footer from './components/home/Footer'
+import PublicLayout from '../components/layout/PublicLayout'
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-
-// Mock Header and Footer components for demonstration
-
 
 const Terms = () => {
     const { pathname } = useLocation()
@@ -13,13 +9,10 @@ const Terms = () => {
         window.scrollTo(0, 0);
       }, [pathname]);
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Header />
-            
-            <main className="flex-grow">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-                    <Card className="shadow-lg border-0 overflow-hidden bg-white">
-                        <CardHeader className="bg-gradient-to-r from-lime-600 to-lime-700 text-white p-6 sm:p-8">
+        <PublicLayout>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                <Card className="shadow-lg border-0 overflow-hidden bg-white">
+                    <CardHeader className="bg-gradient-to-r from-[#a0b830] to-[#8fa029] text-white p-6 sm:p-8">
                             <div className="text-center">
                                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
                                     MEEKOS TERMS OF USE
@@ -33,9 +26,9 @@ const Terms = () => {
                         <CardContent className="p-6 sm:p-8 lg:p-10">
                             <div className="prose prose-gray max-w-none">
                                 {/* Introduction */}
-                                <div className="mb-8 p-4 sm:p-6 bg-lime-50 rounded-lg border-l-4 border-lime-500">
+                                <div className="mb-8 p-4 sm:p-6 bg-[#a0b830]/10 rounded-lg border-l-4 border-[#a0b830]">
                                     <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-4">
-                                        Welcome to the Core Aeration site (defined below). By using it, you are agreeing to these Terms of Use (defined below). Please read them carefully. If you have any questions, send an email to <a href="mailto:meekoslink@gmail.com" className="text-lime-600 hover:text-lime-800 underline">meekoslink@gmail.com</a>. These Terms of Use were last updated on June 17, 2025.
+                                        Welcome to the Core Aeration site (defined below). By using it, you are agreeing to these Terms of Use (defined below). Please read them carefully. If you have any questions, send an email to <a href="mailto:meekoslink@gmail.com" className="text-[#a0b830] hover:text-[#8fa029] underline">meekoslink@gmail.com</a>. These Terms of Use were last updated on June 17, 2025.
                                     </p>
                                 </div>
 
@@ -164,13 +157,13 @@ const Terms = () => {
                                 </section>
 
                                 {/* Contact Information */}
-                                <div className="mt-12 p-4 sm:p-6 bg-lime-50 rounded-lg border-l-4 border-lime-500">
+                                <div className="mt-12 p-4 sm:p-6 bg-[#a0b830]/10 rounded-lg border-l-4 border-[#a0b830]">
                                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                                         Questions or Concerns?
                                     </h3>
                                     <p className="text-sm sm:text-base text-gray-700">
                                         If you have any questions about these Terms of Use, please contact us at{' '}
-                                        <a href="mailto:meekoslink@gmail.com" className="text-lime-600 hover:text-lime-800 underline">
+                                        <a href="mailto:meekoslink@gmail.com" className="text-[#a0b830] hover:text-[#8fa029] underline">
                                             meekoslink@gmail.com
                                         </a>
                                     </p>
@@ -179,10 +172,7 @@ const Terms = () => {
                         </CardContent>
                     </Card>
                 </div>
-            </main>
-            
-            <Footer />
-        </div>
+        </PublicLayout>
     )
 }
 

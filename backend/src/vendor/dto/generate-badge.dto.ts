@@ -36,13 +36,7 @@ export class GenerateBadgeDto {
   @IsEnum(BadgeSize)
   size?: BadgeSize = BadgeSize.MEDIUM;
 
-  @ApiProperty({ 
-    description: 'Custom text to display on the badge',
-    required: false
-  })
-  @IsOptional()
-  @IsString()
-  customText?: string;
+
 
   @ApiProperty({ 
     description: 'Whether to show company logo on the badge',

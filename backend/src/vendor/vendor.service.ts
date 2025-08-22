@@ -337,7 +337,7 @@ export class VendorService {
         padding-top: 8px;
         border-top: 1px solid rgba(255, 255, 255, 0.2);
       ">
-        \${vendorData.certified ? '${appName} Vendor' : 'Thank You'}
+        \${vendorData.certified ? 'Certified Vendor' : 'Thank You'}
       </div>
     ` : '';
     
@@ -387,7 +387,7 @@ export class VendorService {
           ${logoHtml}
           <div style="flex: 1; min-width: 0;">
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              ${customizeDto.customText || appName + ' Badge'}
+              Certified Vendor
             </div>
             <div style="font-size: 12px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
               \${vendorData.company || vendorData.name}

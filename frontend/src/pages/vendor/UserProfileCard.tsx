@@ -1,5 +1,5 @@
 import { User, Zipcode, Gallery } from '../../ProtectedRouteProps';
-import { Building2, MapPin, Mail, Phone, Package, Image, ChevronLeft, ChevronRight, X, Trash } from 'lucide-react';
+import { Building2, MapPin, Mail, Phone, Package, Image, ChevronLeft, ChevronRight, X, Trash, Badge } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Link } from 'react-router-dom';
 import CardInfoItem from '../../CardInfoItem';
@@ -56,6 +56,8 @@ const UserProfileCard = ({ user, onCompleteProfile, refreshUserData }: UserProfi
       toast.error('Failed to delete image');
     } 
   };
+
+
 
   if (!isPackageActive) {
     return (
@@ -134,6 +136,43 @@ const UserProfileCard = ({ user, onCompleteProfile, refreshUserData }: UserProfi
           <CardInfoItem label="Country" value={user.country} />
         </div>
       </div>
+
+      {/* Certified Vendor Badge Section - Only show if user has zipcodes */}
+      {user.zipcodes.length > 0 && (
+        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+              <Badge className="w-5 h-5 mr-2 text-[#a0b830]" />
+              Certified Vendor Badge
+            </h3>
+            <Link to="/vendor/certification-badge">
+              <Button size="sm" className="bg-[#a0b830] hover:bg-[#8fa029] text-white">
+                Customize Badge
+              </Button>
+            </Link>
+          </div>
+          <p className="text-gray-600 text-sm mb-4">
+            Display your certified vendor status on your website with our professional badge. 
+            This badge shows visitors that you are a verified and trusted vendor partner.
+          </p>
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#a0b830] to-[#8fa029] rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">CA</span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-800">Certified Vendor</div>
+                  <div className="text-sm text-gray-600">{user.company || user.name}</div>
+                </div>
+              </div>
+              <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                ✓ Verified
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Zipcodes Section */}
       <div className="bg-gray-50 rounded-xl p-6">

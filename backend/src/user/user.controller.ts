@@ -68,12 +68,12 @@ export class UserController {
     }
   ) {
     const companyLogo = files?.companyLogo?.[0];
-    const backendUrl = this.configService.get<string>('BACKENDImg') || 'https://coreaeration.com/public';
     console.log(updateUserDto)
+    const backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
     return this.userService.updateProfile(
       updateUserDto,
       req.user.userId,
-      companyLogo ? `${backendUrl}/uploads/logos/${companyLogo.filename}` : undefined
+      companyLogo ? `${backendUrl}/public/uploads/logos/${companyLogo.filename}` : undefined
     );
   }
   @UseGuards(JwtAuthGuard)

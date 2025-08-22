@@ -1,16 +1,11 @@
-import Header from '../components/home/Header';
-import Footer from '../components/home/Footer';
+import PublicLayout from '../../components/layout/PublicLayout';
 import RegisterForm from './form/RegisterForm';
 
 const RegisterPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-
+    <PublicLayout>
       <RegisterForm />
-
-      <Footer />
-    </div>
+    </PublicLayout>
   );
 };
 

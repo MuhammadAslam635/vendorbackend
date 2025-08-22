@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Building2, Loader2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
@@ -17,6 +18,7 @@ interface VendorProfileForm {
   city: string;
   state: string;
   country: string;
+  vendorType: 'VENDOR' | 'RENTAL' | 'SALES';
   fb: string;
   ln: string;
   in: string;
@@ -46,6 +48,7 @@ const UpdateProfile = () => {
     city: "",
     state: "",
     country: "",
+    vendorType: "VENDOR",
     fb: "",
     ln: "",
     in: "",
@@ -86,6 +89,7 @@ const UpdateProfile = () => {
           city: userData.city || "",
           state: userData.state || "",
           country: userData.country || "",
+          vendorType: userData.vendorType || "VENDOR",
           fb: userData.fb || "",
           ln: userData.ln || "",
           in: userData.in || "",
@@ -279,6 +283,36 @@ const UpdateProfile = () => {
                       placeholder="Enter about"
                       rows={3}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Business Type */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Type</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorType">Service Type</Label>
+                    <Select
+                      value={formData.vendorType}
+                      onValueChange={(value: 'VENDOR' | 'RENTAL' | 'SALES') =>
+                        setFormData({ ...formData, vendorType: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your business type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="VENDOR">Vendor Services</SelectItem>
+                        <SelectItem value="RENTAL">Equipment Rental</SelectItem>
+                        <SelectItem value="SALES">Equipment Sales</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      This will be displayed as a featured banner on your vendor card
+                    </p>
                   </div>
                 </CardContent>
               </Card>

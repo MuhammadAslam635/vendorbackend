@@ -1,5 +1,4 @@
-import Header from './components/home/Header';
-import Footer from './components/home/Footer';
+import PublicLayout from '../components/layout/PublicLayout';
 import BusinessCard from './components/home/BusinessCard';
 import { useAuth } from '../useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -27,13 +26,12 @@ const LandingPage = () => {
       }
     }
   }, [isAuthenticated, user, navigate]);
+  
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <PublicLayout>
       <FAQ />
       <BusinessCard />
-     <Footer />
-    </div>
+    </PublicLayout>
   );
 };
 

@@ -18,38 +18,36 @@ const Header = () => {
 
 
   return (
-    <header className="bg-white text-[#a0b830] shadow-md fixed w-full z-50">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-white shadow-md fixed w-full z-50 border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <div className="text-2xl font-bold text-white flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
             <Link
               to="/"
-              className="text-2xl font-bold text-[#a0b830] flex items-center space-x-3 hover:opacity-90"
+              className="text-2xl font-bold text-[#a0b830] flex items-center space-x-3 hover:opacity-90 transition-opacity"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <img src={`${logo}`} alt="VendorLocator Logo" className="h-8 w-8" />
+              <img src={`${logo}`} alt="Core Aeration Logo" className="h-8 w-8" />
               <h1>Core Aeration</h1>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:block">
-            <ul className="flex space-x-6 items-center">
-           
+            <ul className="flex space-x-8 items-center">
               <li>
-                <Link to="/all-vendors" className="text-[#a0b830] hover:text-gray-950">
+                <Link to="/all-vendors" className="text-gray-700 hover:text-[#a0b830] font-medium transition-colors duration-200">
                   Find Vendors
                 </Link>
               </li>
               <li>
-                <Link to="/register" className="text-[#a0b830] hover:text-gray-950">
+                <Link to="/register" className="text-gray-700 hover:text-[#a0b830] font-medium transition-colors duration-200">
                   For Vendors
                 </Link>
               </li>
-             
               <li>
-                <Button variant="default" asChild>
+                <Button className="bg-[#a0b830] hover:bg-[#8fa029] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200" asChild>
                   <Link to="/login">Login</Link>
                 </Button>
               </li>
@@ -71,22 +69,21 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white shadow-md border-t border-gray-200">
-          <ul className="flex flex-col space-y-2 p-4 text-lg font-medium">
+        <div className="md:hidden bg-white shadow-lg border-t border-gray-200">
+          <ul className="flex flex-col space-y-1 p-4">
             <li>
               <Link
                 to="/"
-                className="block text-[#a0b830] hover:text-gray-950"
+                className="block text-gray-700 hover:text-[#a0b830] font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 onClick={toggleMobileMenu}
               >
                 Home
               </Link>
             </li>
-       
             <li>
               <Link
                 to="/all-vendors"
-                className="block text-[#a0b830] hover:text-gray-950"
+                className="block text-gray-700 hover:text-[#a0b830] font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 onClick={toggleMobileMenu}
               >
                 Find Vendors
@@ -95,7 +92,7 @@ const Header = () => {
             <li>
               <Link
                 to="/register"
-                className="block text-[#a0b830] hover:text-gray-950"
+                className="block text-gray-700 hover:text-[#a0b830] font-medium py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 onClick={toggleMobileMenu}
               >
                 For Vendors

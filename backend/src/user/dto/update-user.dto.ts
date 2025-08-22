@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, MinLength } from "class-validator";
+import { IsEmail, IsOptional, IsString, MinLength, IsEnum } from "class-validator";
+
+export enum VendorType {
+  VENDOR = 'VENDOR',
+  RENTAL = 'RENTAL',
+  SALES = 'SALES'
+}
 
 export class UpdateUserDto {
   @IsEmail()
@@ -65,4 +71,8 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   webUrl?: string;
+
+  @IsEnum(VendorType)
+  @IsOptional()
+  vendorType?: VendorType;
 }

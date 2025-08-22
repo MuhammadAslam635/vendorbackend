@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Building2, Loader2, Mail, Phone, Globe, MapPin, Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Building2, Loader2, Mail, Phone, Globe, MapPin, Facebook, Instagram, Linkedin, Youtube, Tag } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { DashboardLayout } from "./DashboardLayout";
@@ -112,6 +112,7 @@ const Profile = () => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <InfoItem icon={Building2} label="Business Name" value={user.company} />
+                  <InfoItem icon={Tag} label="Service Type" value={user.vendorType} />
                   <InfoItem icon={Building2} label="About" value={user.about} />
                   <InfoItem icon={MapPin} label="Address" value={user.address} />
                   <InfoItem icon={MapPin} label="City" value={user.city} />

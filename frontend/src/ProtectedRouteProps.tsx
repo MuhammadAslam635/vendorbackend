@@ -2,6 +2,7 @@ import { Gem } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export type UserRole = 'ADMIN' | 'VENDOR' | 'SUBADMIN' | 'SUPERADMIN';
+export type VendorType = 'VENDOR' | 'RENTAL' | 'SALES';
 export type Roles = 'Approval' | 'Create' | 'Editing' | 'Deletion'; 
 export type Routes = '/admin/create-user' | '/admin/packages' | '/admin/promos' | '/admin/users'; 
 export interface Zipcode {
@@ -44,6 +45,7 @@ export interface User {
   about?: string;
   createdAt: Date;
   packageActive: string;
+  vendorType?: VendorType;
   zipcodes?: Zipcode[];
   package?: Package;
   gallery?: Gallery[];

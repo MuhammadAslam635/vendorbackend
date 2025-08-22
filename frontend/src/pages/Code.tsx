@@ -1,5 +1,4 @@
-import Header from './components/home/Header';
-import Footer from './components/home/Footer';
+import PublicLayout from '../components/layout/PublicLayout';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
@@ -9,8 +8,7 @@ const Code = () => {
         window.scrollTo(0, 0);
     }, [pathname]);
     return (
-        <div className="min-h-screen bg-gray-50">
-            <Header />
+        <PublicLayout>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 bg-white shadow-md rounded-lg">
 
                 {/* Header */}
@@ -327,8 +325,7 @@ const Code = () => {
                 </div>
 
             </div>
-            <Footer />
-        </div>
+        </PublicLayout>
     )
 }
 

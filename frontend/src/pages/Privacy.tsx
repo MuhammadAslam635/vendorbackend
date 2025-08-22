@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader } from '../components/ui/card'
-import Header from './components/home/Header'
-import Footer from './components/home/Footer'
+import PublicLayout from '../components/layout/PublicLayout'
 import { useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 
@@ -10,11 +9,8 @@ const Privacy = () => {
         window.scrollTo(0, 0);
       }, [pathname]);
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Header />
-            
-            <main className="flex-grow">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <PublicLayout>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                     <Card className="shadow-lg border-0 overflow-hidden bg-white rounded-lg">
                         <CardHeader className="bg-gradient-to-r from-lime-600 to-lime-700 text-white p-6 sm:p-8">
                             <div className="text-center">
@@ -318,10 +314,7 @@ const Privacy = () => {
                         </CardContent>
                     </Card>
                 </div>
-            </main>
-            
-            <Footer />
-        </div>
+        </PublicLayout>
     )
 }
 
