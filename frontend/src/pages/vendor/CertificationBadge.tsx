@@ -191,6 +191,7 @@ const CertificationBadge = () => {
                     <SelectContent>
                       <SelectItem value="BOTTOM_RIGHT">Bottom Right</SelectItem>
                       <SelectItem value="BOTTOM_LEFT">Bottom Left</SelectItem>
+                      <SelectItem value="BOTTOM_CENTER">Bottom Center</SelectItem>
                       <SelectItem value="TOP_RIGHT">Top Right</SelectItem>
                       <SelectItem value="TOP_LEFT">Top Left</SelectItem>
                     </SelectContent>

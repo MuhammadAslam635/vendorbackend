@@ -519,39 +519,6 @@ export class TransactionsService {
     }
   }
 
-  // private async handlePaymentCompleted(resource: any) {
-  //   const customId = resource.id; // This contains our transaction ID
-  //    console.log("first customeId",customId, resource.status);
-  //   if (customId) {
-  //     await this.prisma.$transaction(async (prisma) => {
-  //       const transaction = await prisma.transaction.findUnique({
-  //         where: { transactionId: customId },
-  //         include: {
-  //           subscribe_package: true
-  //         }
-  //       });
-  //       console.log("Transaction Find");
-
-  //       if (transaction) {
-  //         await prisma.transaction.update({
-  //           where: { id: transaction.id },
-  //           data: { paymentStatus: resource.status }
-  //         });
-  //         console.log("Transaction status updated");
-  //         await prisma.subscribePackage.update({
-  //           where: { id: transaction.subscribe_package.id },
-  //           data: { status: 'ACTIVE' }
-  //         });
-  //         console.log("Transaction Find");
-  //         await prisma.user.update({
-  //           where: { id: transaction.userId },
-  //           data: { packageActive: 'YES' }
-  //         });
-  //         console.log("Package Updated");
-  //       }
-  //     });
-  //   }
-  // }
   private async handlePaymentCompleted(resource: any) {
     const orderId = resource.id; // PayPal Order ID
     console.log("Processing order ID:", orderId, "Initial status:", resource.status);
@@ -576,7 +543,7 @@ export class TransactionsService {
         // Step 3: Update database in transaction
         await this.prisma.$transaction(async (prisma) => {
           const transaction = await prisma.transaction.findUnique({
-            where: { id: customId },
+            where: { id: parseInt(customId) },
             include: {
               subscribe_package: {
                 include: {
@@ -1119,7 +1086,11 @@ export class TransactionsService {
           id: orderIdNum
         },
         include: {
-          subscribe_package: true
+          subscribe_package: {
+            include: {
+              zipCodes: true
+            }
+          }
         }
       });
   
@@ -1132,73 +1103,79 @@ export class TransactionsService {
         throw new NotFoundException('Subscription package not found');
       }
   
-      // Update transaction status to cancelled
-      await this.prisma.transaction.update({
-        where: { id: transaction.id },
-        data: { paymentStatus: 'CANCELLED' }
-      });
+      // Use database transaction to ensure consistency
+      await this.prisma.$transaction(async (prisma) => {
+        // Update transaction status to cancelled
+        await prisma.transaction.update({
+          where: { id: transaction.id },
+          data: { paymentStatus: 'CANCELLED' }
+        });
   
-      // Update subscription status to cancelled
-      await this.prisma.subscribePackage.update({
-        where: { id: transaction.subscribe_package.id },
-        data: { status: 'CANCELLED' }
-      });
+        // Update subscription status to cancelled
+        await prisma.subscribePackage.update({
+          where: { id: transaction.subscribe_package.id },
+          data: { status: 'CANCELLED' }
+        });
   
-      // Get zip codes and user data
-      const codes = await this.prisma.zipCode.findMany({
-        where: {
-          subscribePackageId: transaction.subscribe_package.id
+        // Delete zip codes associated with this subscription package
+        if (transaction.subscribe_package.zipCodes && transaction.subscribe_package.zipCodes.length > 0) {
+          await prisma.zipCode.deleteMany({
+            where: {
+              subscribePackageId: transaction.subscribe_package.id
+            }
+          });
         }
-      });
   
-      const user = await this.prisma.user.findUnique({
-        where: { id: transaction.userId }
-      });
+        // Get user data
+        const user = await prisma.user.findUnique({
+          where: { id: transaction.userId }
+        });
   
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
   
-      // Update user data based on conditions
-      if (user.totalzipcodes !== null && user.totalzipcodes !== 0 && codes && codes.length > 0) {
-        if (user.totalzipcodes === codes.length) {
-          // If user's total zipcodes equals codes being cancelled, set packageActive to 'NO'
-          await this.prisma.user.update({
+        // Check if user has any remaining active subscribe packages
+        const remainingActivePackages = await prisma.subscribePackage.findMany({
+          where: {
+            userId: transaction.userId,
+            status: 'ACTIVE'
+          },
+          include: {
+            zipCodes: true,
+            package: true
+          }
+        });
+  
+        // If no active packages remain, reset user fields
+        if (remainingActivePackages.length === 0) {
+          await prisma.user.update({
             where: { id: transaction.userId },
             data: {
               packageActive: 'NO',
-              totalzipcodes: {
-                decrement: codes.length
-              },
-              addedzipcodes: {
-                decrement: codes.length
-              }
+              totalzipcodes: 0,
+              addedzipcodes: 0
             }
           });
-        } else if (user.totalzipcodes > codes.length) {
-          // If user has more zipcodes than being cancelled, only decrement
-          await this.prisma.user.update({
+        } else {
+          // Recalculate total zipcodes and added zipcodes based on remaining packages
+          const totalZipcodes = remainingActivePackages.reduce((sum, pkg) => {
+            return sum + (pkg.package?.profiles || 0);
+          }, 0);
+          
+          const addedZipcodes = remainingActivePackages.reduce((sum, pkg) => {
+            return sum + (pkg.zipCodes?.length || 0);
+          }, 0);
+  
+          await prisma.user.update({
             where: { id: transaction.userId },
             data: {
-              totalzipcodes: {
-                decrement: codes.length
-              },
-              addedzipcodes: {
-                decrement: codes.length
-              }
+              totalzipcodes: totalZipcodes,
+              addedzipcodes: addedZipcodes
             }
           });
         }
-      }
-  
-      // Delete zip codes (always execute if codes exist)
-      if (codes && codes.length > 0) {
-        await this.prisma.zipCode.deleteMany({
-          where: {
-            subscribePackageId: transaction.subscribe_package.id
-          }
-        });
-      }
+      });
   
       const FRONTEND_URL = this.configService.get('FRONTEND_URL');
       return this.redirect(`${FRONTEND_URL}/vendor/subscriptions?canceled=true`);

@@ -57,15 +57,17 @@ const LoginForm = () => {
         console.log('🔍 Getting redirect path for userType:', userType);
         
         switch (userType) {
-            case "GUEST":
-                console.log('➡️ Redirecting SUPERADMIN to /admin/dashboard');
-                return "/";
+            case "SUPERADMIN":
+            case "ADMIN":
+            case "SUBADMIN":
+                console.log('➡️ Redirecting ADMIN to /admin/dashboard');
+                return "/admin/dashboard";
             case "VENDOR":
                 console.log('➡️ Redirecting VENDOR to /vendor/dashboard');
                 return "/vendor/dashboard";
             default:
                 console.log('➡️ Redirecting default user to /');
-                return "/admin/dashboard";
+                return "/";
         }
     };
 
@@ -91,18 +93,7 @@ const LoginForm = () => {
             if (response.data?.access_token && response.data?.user) {
                 const { access_token, user } = response.data;
                 
-                // Store token based on remember me preference
-                if (formData.remember) {
-                    console.log('💾 Storing token in localStorage');
-                    localStorage.setItem('token', access_token);
-                    sessionStorage.removeItem('token');
-                } else {
-                    console.log('💾 Storing token in sessionStorage');
-                    sessionStorage.setItem('token', access_token);
-                    localStorage.removeItem('token');
-                }
-
-                // Update auth state
+                // Update auth state (handles storage automatically)
                 console.log('🔄 Updating auth state with user:', user);
                 await login(user, access_token);
                 

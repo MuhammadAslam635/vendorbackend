@@ -32,8 +32,8 @@ export class VendorService {
     // Always show as appreciated (hardcoded)
     const isCertified = true;
 
-    const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:5173';
-    const backendUrl = this.configService.get('BACKEND_URL') || 'http://localhost:3000';
+    const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://coreaeration.com';
+    const backendUrl = this.configService.get('BACKEND_URL') || 'https://api.coreaeration.com';
     const appName = this.configService.get('APPNAME') || 'Core Aeration';
     
     // Use the existing logo from public/uploads/logo.png
@@ -217,17 +217,249 @@ export class VendorService {
   }
 
   async customizeBadge(vendorId: number, customizeDto: GenerateBadgeDto) {
-    // For future customization options
+    // Get vendor information
     const vendor = await this.prisma.user.findUnique({
       where: { id: vendorId, utype: 'VENDOR' },
+      select: {
+        id: true,
+        name: true,
+        company: true,
+        companyLogo: true,
+        packageActive: true,
+        status: true,
+      },
     });
 
     if (!vendor) {
       throw new NotFoundException('Vendor not found');
     }
 
-    // Here you could save customization preferences to database
-    // For now, just return the updated script
-    return this.generateBadgeScript(vendorId);
+    // Always show as appreciated (hardcoded)
+    const isCertified = true;
+
+    const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://coreaeration.com';
+    const backendUrl = this.configService.get('BACKEND_URL') || 'https://api.coreaeration.com';
+    const appName = this.configService.get('APPNAME') || 'Core Aeration';
+    
+    // Use the existing logo from public/uploads/logo.png
+    const logoUrl = `${backendUrl}/public/uploads/logo.png`;
+    
+    // Generate unique widget ID for this vendor
+    const widgetId = `core-aeration-badge-${vendor.id}`;
+    
+    // Determine position CSS based on customizeDto
+    const getPositionCSS = (position: string) => {
+      switch (position) {
+        case 'BOTTOM_LEFT':
+          return 'bottom: 20px; left: 20px;';
+        case 'BOTTOM_CENTER':
+          return 'bottom: 20px; left: 50%; transform: translateX(-50%);';
+        case 'TOP_RIGHT':
+          return 'top: 20px; right: 20px;';
+        case 'TOP_LEFT':
+          return 'top: 20px; left: 20px;';
+        default:
+          return 'bottom: 20px; right: 20px;';
+      }
+    };
+
+    // Determine size CSS based on customizeDto
+    const getSizeCSS = (size: string) => {
+      switch (size) {
+        case 'SMALL':
+          return 'width: 200px;';
+        case 'LARGE':
+          return 'width: 320px;';
+        default:
+          return 'width: 280px;';
+      }
+    };
+
+    // Build the logo HTML conditionally
+    const logoHtml = customizeDto.showLogo !== false ? `
+      <div style="
+        width: 40px;
+        height: 40px;
+        background: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      ">
+        \${vendorData.logo ? 
+          \`<img src="\${vendorData.logo}" alt="Logo" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">\` : 
+          \`<svg width="24" height="24" fill="#a0b830" viewBox="0 0 24 24"><path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/></svg>\`
+        }
+      </div>
+    ` : '';
+
+    // Build the appreciation status HTML conditionally
+    const appreciationHtml = customizeDto.showAppreciationStatus !== false ? `
+      \${vendorData.certified ? 
+        \`<div style="
+          width: 20px;
+          height: 20px;
+          background: #22c55e;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        ">
+          <svg width="12" height="12" fill="white" viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+        </div>\` : 
+        \`<div style="
+          width: 20px;
+          height: 20px;
+          background: #ef4444;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        ">
+          <svg width="12" height="12" fill="white" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </div>\`
+      }
+    ` : '';
+
+    // Build the footer HTML conditionally
+    const footerHtml = customizeDto.showAppreciationStatus !== false ? `
+      <div style="
+        font-size: 11px;
+        opacity: 0.8;
+        text-align: center;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+      ">
+        \${vendorData.certified ? '${appName} Vendor' : 'Thank You'}
+      </div>
+    ` : '';
+    
+    // Create the JavaScript widget script
+    const script = `
+    <script>
+(function() {
+  // Core Aeration Certificate Vendor Badge Widget
+  var widgetId = '${widgetId}';
+  var vendorData = {
+    id: ${vendor.id},
+    name: '${(vendor.name || '').replace(/'/g, "\\'")}',
+    appName: '${appName}',
+    company: '${appName}',
+    logo: '${logoUrl}',
+    certified: ${isCertified},
+    frontendUrl: '${frontendUrl}',
+  };
+
+  function createBadgeWidget() {
+    // Check if widget already exists
+    if (document.getElementById(widgetId)) {
+      return;
+    }
+
+    // Create widget container
+    var widget = document.createElement('div');
+    widget.id = widgetId;
+    widget.style.cssText = \`
+      position: fixed;
+      ${getPositionCSS(customizeDto.position || 'BOTTOM_RIGHT')}
+      ${getSizeCSS(customizeDto.size || 'MEDIUM')}
+      background: linear-gradient(135deg, #a0b830 0%, #8fa329 100%);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      z-index: 10000;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    \`;
+
+    // Create badge content
+    var badgeContent = \`
+      <div style="padding: 16px; color: white;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          ${logoHtml}
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${customizeDto.customText || appName + ' Badge'}
+            </div>
+            <div style="font-size: 12px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              \${vendorData.company || vendorData.name}
+            </div>
+          </div>
+          ${appreciationHtml}
+        </div>
+        ${footerHtml}
+      </div>
+    \`;
+
+    widget.innerHTML = badgeContent;
+
+    // Add hover effects
+    widget.addEventListener('mouseenter', function() {
+      widget.style.transform = 'translateY(-2px)';
+      widget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.2)';
+    });
+
+    widget.addEventListener('mouseleave', function() {
+      widget.style.transform = 'translateY(0)';
+      widget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
+    });
+
+    // Add click handler to open vendor profile
+    widget.addEventListener('click', function() {
+      window.open(vendorData.frontendUrl + '/vendors/', '_blank');
+    });
+
+    // Append to body
+    document.body.appendChild(widget);
+  }
+
+  // Initialize widget when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createBadgeWidget);
+  } else {
+    createBadgeWidget();
+  }
+})();
+</script>
+`;
+
+    const result = {
+      success: true,
+      message: 'Badge script customized successfully',
+      data: {
+        script,
+        widgetId,
+        vendor: {
+          id: vendor.id,
+          name: vendor.name,
+          company: vendor.company,
+          certified: isCertified,
+        },
+        instructions: {
+          title: 'How to Install Your Appreciation Badge',
+          steps: [
+            'Copy the JavaScript code below',
+            'Paste it before the closing </body> tag in your website HTML',
+            'The badge will automatically appear in the selected position of your website',
+            'Visitors can click the badge to view your vendor profile'
+          ],
+          notes: [
+            'The badge is responsive and will work on all devices',
+            'Shows appreciation for your partnership',
+            'The badge design matches your company branding when possible'
+          ]
+        }
+      },
+    };
+    
+    return result;
   }
 }

@@ -13,17 +13,18 @@ const LandingPage = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       switch (user.utype) {
+        case 'SUPERADMIN':
         case 'ADMIN':
+        case 'SUBADMIN':
           navigate('/admin/dashboard');
           break;
         case 'VENDOR':
           navigate('/vendor/dashboard');
           break;
         default:
-          navigate('/login');
+          // Don't redirect, just stay on landing page
+          break;
       }
-    } else {
-      navigate('/');
     }
   }, [isAuthenticated, user, navigate]);
   return (

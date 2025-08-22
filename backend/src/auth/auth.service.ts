@@ -131,12 +131,11 @@ export class AuthService {
 
     this.mailService.sendMail({
         to: email,
-        subject: 'Account Created Successfully.',
-        template: 'account-created',
+        subject: 'Password reset request.',
+        template: 'reset-password',
         context: {
             name: user.name || 'Valued Customer',
-            loginUrl: `${frontendUrl}/login`,
-            packagesUrl: `${frontendUrl}/packages`,
+            resetUrl: `${frontendUrl}/reset-password`,
             supportEmail: supportEmail
         }
     });

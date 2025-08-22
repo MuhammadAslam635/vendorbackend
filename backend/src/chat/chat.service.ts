@@ -114,11 +114,8 @@ export class ChatService {
           }
         });
       } else if (user.utype === 'ADMIN' || user.utype === 'SUBADMIN') {
-        // Admin/SubAdmin can see tickets assigned to them
+        // Admin/SubAdmin can see all tickets (not just assigned ones)
         chats = await this.prisma.chat.findMany({
-          where: {
-            adminId: id // Query against adminId for assigned tickets
-          },
           include: {
             messages: {
               take: 1,

@@ -79,6 +79,8 @@ export interface AuthState {
     isLoading: boolean;
     login: (userData: User, token: string) => void;
     logout: () => void;
+    setLoading: (loading: boolean) => void;
+    initialize: () => void;
   }
 
   export interface ProtectedRouteProps {

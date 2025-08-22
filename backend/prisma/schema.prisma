@@ -44,6 +44,11 @@ model User {
   messages              Message[]
   adminChats            Chat[]             @relation("AdminChats")
   createdPromos         Promo[]
+
+  @@index([utype])
+  @@index([status])
+  @@index([packageActive])
+  @@index([email])
 }
 model Route{
   id        Int            @id @default(autoincrement())
@@ -170,6 +175,8 @@ model SubscribePackage {
 
   @@index([packageId])
   @@index([userId])
+  @@index([status])
+  @@index([endDate])
 }
 
 model Transaction {
@@ -186,6 +193,9 @@ model Transaction {
   user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([paymentStatus])
+  @@index([transactionId])
+  @@index([createdAt])
 }
 model Promo {
   id          Int         @id @default(autoincrement())
