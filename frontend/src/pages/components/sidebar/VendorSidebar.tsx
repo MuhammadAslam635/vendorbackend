@@ -107,10 +107,54 @@ const VendorSidebar = () => {
                         variant="ghost"
                         className="w-full justify-start"
                     >
-                        <a href="https://coreaeration.com" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                        <Link 
+                            to="/" 
+                            className="flex items-center"
+                            onClick={() => sessionStorage.setItem('stayOnPublic', 'true')}
+                        >
                             <Globe className="mr-2 h-4 w-4" />
                             Visit Website
-                        </a>
+                        </Link>
+                    </Button>
+
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                    >
+                        <Link to="/all-vendors" className="flex items-center">
+                            <Globe className="mr-2 h-4 w-4" />
+                            Find Vendors
+                        </Link>
+                    </Button>
+
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                    >
+                        <Link to="/search-vendors" className="flex items-center">
+                            <Globe className="mr-2 h-4 w-4" />
+                            Search Vendors
+                        </Link>
+                    </Button>
+
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                    >
+                        <Link to="/terms" className="flex items-center">
+                            <Globe className="mr-2 h-4 w-4" />
+                            Terms & Conditions
+                        </Link>
+                    </Button>
+
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                    >
+                        <Link to="/privacy-policy" className="flex items-center">
+                            <Globe className="mr-2 h-4 w-4" />
+                            Privacy Policy
+                        </Link>
                     </Button>
 
                     <Button

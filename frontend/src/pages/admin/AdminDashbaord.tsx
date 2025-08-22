@@ -36,6 +36,8 @@ const AdminDashbaord = () => {
     };
 
     fetchStats();
+    // Clear the stayOnPublic flag when user enters dashboard
+    sessionStorage.removeItem('stayOnPublic');
   }, []);
 
   return (

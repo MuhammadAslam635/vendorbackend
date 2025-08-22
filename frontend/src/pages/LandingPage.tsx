@@ -9,8 +9,13 @@ const LandingPage = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // Only redirect if user is authenticated and this is their first visit
+  // Allow users to stay on public pages if they want to
   useEffect(() => {
-    if (isAuthenticated && user) {
+    // Check if user has explicitly chosen to stay on public pages
+    const stayOnPublic = sessionStorage.getItem('stayOnPublic');
+    
+    if (isAuthenticated && user && !stayOnPublic) {
       switch (user.utype) {
         case 'SUPERADMIN':
         case 'ADMIN':

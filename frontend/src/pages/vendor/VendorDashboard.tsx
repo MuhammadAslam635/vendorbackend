@@ -31,6 +31,8 @@ const VendorDashboard = () => {
 
   useEffect(() => {
     fetchUser();
+    // Clear the stayOnPublic flag when user enters dashboard
+    sessionStorage.removeItem('stayOnPublic');
   }, []);
 
   const handleCompleteProfile = () => {

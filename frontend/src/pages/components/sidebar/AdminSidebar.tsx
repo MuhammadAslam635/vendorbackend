@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { useAuth } from "../../../useAuth";
-import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users, Lock, Ticket, Upload } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, LogOutIcon, Users, Lock, Ticket, Upload, Globe } from "lucide-react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -186,6 +186,69 @@ const AdminSidebar = () => {
             <Lock className="mr-2 h-4 w-4" />
             Reset Password
           </Link>
+
+          {/* Public Pages Navigation */}
+          <div className="border-t border-gray-200 my-4 pt-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">
+              Public Pages
+            </h3>
+            
+            <Link
+              to="/"
+              className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/")
+                ? "bg-[#a0b830] text-white"
+                : "hover:bg-gray-100 text-gray-700"
+                }`}
+              onClick={() => sessionStorage.setItem('stayOnPublic', 'true')}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Visit Website
+            </Link>
+
+            <Link
+              to="/all-vendors"
+              className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/all-vendors")
+                ? "bg-[#a0b830] text-white"
+                : "hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Find Vendors
+            </Link>
+
+            <Link
+              to="/search-vendors"
+              className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/search-vendors")
+                ? "bg-[#a0b830] text-white"
+                : "hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Search Vendors
+            </Link>
+
+            <Link
+              to="/terms"
+              className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/terms")
+                ? "bg-[#a0b830] text-white"
+                : "hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Terms & Conditions
+            </Link>
+
+            <Link
+              to="/privacy-policy"
+              className={`flex items-center w-full px-4 py-2 rounded-md ${isActiveRoute("/privacy-policy")
+                ? "bg-[#a0b830] text-white"
+                : "hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Privacy Policy
+            </Link>
+          </div>
 
         </div>
       </nav>
