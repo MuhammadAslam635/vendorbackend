@@ -69,7 +69,7 @@ export class UserController {
   ) {
     const companyLogo = files?.companyLogo?.[0];
     console.log(updateUserDto)
-    const backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
+    const backendUrl = this.configService.get<string>('BACKEND_URL') || 'https://api.coreaeration.com';
     return this.userService.updateProfile(
       updateUserDto,
       req.user.userId,

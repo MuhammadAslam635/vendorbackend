@@ -24,7 +24,7 @@ export class AuthService {
     
     const { password: _, ...userData } = user;
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://default-frontend-url.com';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://coreaeration.com';
     const supportEmail = process.env.SUPPORT_EMAIL || 'support@yourplatform.com';
 
     this.mailService.sendMail({
@@ -126,7 +126,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const frontendUrl = process.env.FRONTEND_URL || 'http://default-frontend-url.com';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://coreaeration.com';
     const supportEmail = process.env.SUPPORT_EMAIL || 'support@yourplatform.com';
 
     this.mailService.sendMail({

@@ -66,7 +66,7 @@ export class UserService {
       // Verify file was written
       const stats = await fs.stat(filePath);
       console.log(`File saved successfully: ${filePath} (${stats.size} bytes)`);
-      const backendUrl = this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
+      const backendUrl = this.configService.get<string>('BACKEND_URL') || 'https://api.coreaeration.com';
       return `${backendUrl}/public/uploads/${subFolder}/${uniqueName}`;
     } catch (error) {
       console.error('File save error:', error);

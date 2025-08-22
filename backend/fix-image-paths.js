@@ -12,7 +12,7 @@ async function fixImagePaths() {
 
     for (const image of galleryImages) {
       if (image.image && !image.image.includes('/public/uploads/')) {
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+        const backendUrl = process.env.BACKEND_URL || 'https://api.coreaeration.com';
         const newPath = image.image.replace('/uploads/', `${backendUrl}/public/uploads/`);
         await prisma.gallery.update({
           where: { id: image.id },
@@ -34,7 +34,7 @@ async function fixImagePaths() {
 
     for (const user of users) {
       if (user.companyLogo && !user.companyLogo.includes('/public/uploads/')) {
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+        const backendUrl = process.env.BACKEND_URL || 'https://api.coreaeration.com';
         const newPath = user.companyLogo.replace('/uploads/', `${backendUrl}/public/uploads/`);
         await prisma.user.update({
           where: { id: user.id },
