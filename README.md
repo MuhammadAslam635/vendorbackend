@@ -27,7 +27,7 @@ A comprehensive vendor management system with payment processing, support chat, 
 
 #### Environment Configuration
 - **Fixed**: Replaced localhost URLs with production URLs in badge generation
-- **Updated**: Default URLs now point to `https://coreaeration.com` and `https://api.coreaeration.com`
+- **Updated**: Default URLs now point to `https://coreaeration.com` and `https://coreaeration.com/backend`
 - **Enhanced**: Proper environment variable fallbacks
 
 #### Badge Customization

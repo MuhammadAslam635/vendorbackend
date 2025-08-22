@@ -78,7 +78,7 @@ export class MessageController {
     }
 
     // Return the file URL
-    const fileUrl = `${process.env.API_URL || 'https://api.coreaeration.com'}/public/uploads/attachments/${file.filename}`;
+    const fileUrl = `${process.env.API_URL || 'https://coreaeration.com/backend'}/public/uploads/attachments/${file.filename}`;
 
     return {
       status: 'success',

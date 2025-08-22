@@ -64,7 +64,7 @@ export class GalleryService {
       // Verify file was written
       const stats = await fs.stat(filePath);
       console.log(`File saved successfully: ${filePath} (${stats.size} bytes)`);
-      const backendUrl = this.configService.get<string>('BACKEND_URL') || 'https://api.coreaeration.com';
+      const backendUrl = this.configService.get<string>('BACKEND_URL') || 'https://coreaeration.com/backend';
       return `${backendUrl}/public/uploads/${subFolder}/${uniqueName}`;
     } catch (error) {
       console.error('File save error:', error);
@@ -88,7 +88,7 @@ export class GalleryService {
       
       // Create an array of gallery entries
       const galleryEntries = files.map(file => {
-        const backendUrl = this.configService.get<string>('BACKEND_URL') || 'https://api.coreaeration.com';
+        const backendUrl = this.configService.get<string>('BACKEND_URL') || 'https://coreaeration.com/backend';
         const entry = {
           image: `${backendUrl}/public/uploads/gallery/${file.filename}`,
           userId: user.id // Use the verified user.id
