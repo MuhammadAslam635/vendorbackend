@@ -135,7 +135,7 @@ export class AuthService {
         template: 'reset-password',
         context: {
             name: user.name || 'Valued Customer',
-            resetUrl: `${frontendUrl}/reset-password`,
+            resetUrl: `${frontendUrl}/reset-password/${user.id}`,
             supportEmail: supportEmail
         }
     });
