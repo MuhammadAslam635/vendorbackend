@@ -109,8 +109,8 @@ PAYPAL_WEBHOOK_ID="your_webhook_id" # optional
 
 # Application URLs
 FRONTEND_URL="https://coreaeration.com"
-BACKEND_URL="https://api.coreaeration.com"
-API_URL="https://api.coreaeration.com"
+BACKEND_URL="https://coreaeration.com/backend"
+API_URL="https://coreaeration.com/backend"
 
 # Email Configuration
 SUPPORT_EMAIL="meekoslink@gmail.com"
