@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AuthState, User } from './ProtectedRouteProps';
 
-export const useAuth = create<AuthState>((set, get) => ({
+export const useAuth = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true, // Start with loading true

@@ -33,7 +33,7 @@ export class VendorService {
     const isCertified = true;
 
     const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://coreaeration.com';
-    const backendUrl = this.configService.get('BACKEND_URL') || 'https://api.coreaeration.com';
+    const backendUrl = this.configService.get('BACKEND_URL') || 'https://coreaeration.com/backend';
     const appName = this.configService.get('APPNAME') || 'Core Aeration';
     
     // Use the existing logo from public/uploads/logo.png
@@ -238,7 +238,7 @@ export class VendorService {
     const isCertified = true;
 
     const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://coreaeration.com';
-    const backendUrl = this.configService.get('BACKEND_URL') || 'https://api.coreaeration.com';
+    const backendUrl = this.configService.get('BACKEND_URL') || 'https://coreaeration.com/backend';
     const appName = this.configService.get('APPNAME') || 'Core Aeration';
     
     // Use the existing logo from public/uploads/logo.png
