@@ -90,13 +90,18 @@ const SearchVendors = () => {
                                                 className="w-full h-full object-cover"
                                             />
                                             <div className="absolute inset-0  transition-opacity duration-300" />
-                                            {user.packageActive === "YES" && (
-                                                <div className="absolute top-0 right-0 w-[120px] h-[120px] overflow-hidden -mt-1 -mr-1 z-10">
-                                                    <div className="absolute top-[12px] right-[-35px] w-[170px] text-center transform rotate-45 bg-[#a0b830] text-white font-medium text-sm py-2">
-                                                        {user.vendorType}
-                                                    </div>
-                                                </div>
-                                            )}
+                                                                                         {user.packageActive === "YES" && (
+                                                 <div className="absolute top-0 right-0 w-[120px] h-[120px] overflow-hidden -mt-1 -mr-1 z-10">
+                                                     <div className={`absolute top-[12px] right-[-35px] w-[170px] text-center transform rotate-45 text-white font-medium text-sm py-2 ${
+                                                         user.vendorType === 'VENDOR' ? 'bg-green-600' :
+                                                         user.vendorType === 'RENTAL' ? 'bg-blue-600' :
+                                                         user.vendorType === 'SALES' ? 'bg-red-600' :
+                                                         'bg-[#a0b830]'
+                                                     }`}>
+                                                         {user.vendorType}
+                                                     </div>
+                                                 </div>
+                                             )}
                                         </div>
                                                                                  <div className="p-6">
                                              {user.company && (

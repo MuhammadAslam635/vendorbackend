@@ -167,20 +167,7 @@ export class TransactionsService {
         // Wait for all ZIP codes to be created
         await Promise.all(zipcodeCreationPromises);
 
-        // Update user's ZIP code count
-        // await prisma.user.update({
-        //   where: { id: userId },
-        //   data: {
-        //     addedzipcodes: {
-        //       increment: zipcodes.length
-        //     },
-        //     totalzipcodes: {
-        //       increment: pack?.profiles
-        //     },
-        //     packageActive: 'YES'
-        //   }
-        // });
-
+  
         // Create transaction record
         const transaction = await prisma.transaction.create({
           data: {
@@ -235,7 +222,19 @@ export class TransactionsService {
       );
 
       const accessToken = authResponse.data.access_token;
-
+      const response = await axios.get(`${paypalBaseUrl}/v1/identity/oauth2/userinfo`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      console.log('response:', response.data);
+      console.log('pack.price:', pack.price);
+      console.log('pack.price.toFixed(2):', pack.price.toFixed(2));
+      console.log('pack.name:', pack.name);
+      console.log('orderId:', orderId);
+      console.log('subscription.transaction.id:', subscription.transaction.id);
+      console.log('accessToken exists:', !!accessToken);
+      
       // Step 2: Create PayPal Order
       const orderResponse = await axios.post(
         `${paypalBaseUrl}/v2/checkout/orders`,
@@ -245,14 +244,13 @@ export class TransactionsService {
             reference_id: orderId,
             amount: {
               currency_code: 'USD',
-              value: pack.price.toFixed(2)
+              value: pack.price.toFixed(2) 
             },
             description: pack.name,
             custom_id: subscription.transaction.id.toString(),
-            soft_descriptor: pack.name?.substring(0, 22) || 'No description' // PayPal limit
           }],
           application_context: {
-            brand_name: 'App Ceration',
+            brand_name: 'App Core Aeration',
             landing_page: 'BILLING',
             user_action: 'PAY_NOW',
             return_url: `${frontendUrl}/vendor/payment-success?transactionId=${subscription.transaction.id}`,
@@ -267,7 +265,6 @@ export class TransactionsService {
           }
         }
       );
-
       console.log('PayPal order creation response:', orderResponse.data);
 
       // Update user package status
@@ -309,9 +306,15 @@ export class TransactionsService {
       if (axios.isAxiosError(error)) {
         console.error('PayPal API Error:', {
           status: error.response?.status,
-          data: error.response?.data,
+          data: JSON.stringify(error.response?.data, null, 2), // This will show full details
           message: error.message
         });
+        
+        // Also log just the details array specifically
+        if (error.response?.data?.details) {
+          console.error('PayPal Error Details:', JSON.stringify(error.response.data.details, null, 2));
+        }
+        
         throw new BadRequestException(`Payment creation failed: ${error.response?.data?.message || error.message}`);
       }
       console.error('Payment session creation failed:', error);
