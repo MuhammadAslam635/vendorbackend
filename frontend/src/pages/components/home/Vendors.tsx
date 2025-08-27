@@ -34,6 +34,7 @@ interface ZipcodeWithUser {
         addedzipcodes: number;
         totalzipcodes: number;
         gallery: Gallery[];
+        vendorType: string;
     };
 }
 
@@ -144,7 +145,7 @@ const Vendors = ({ vendors }: { vendors: ZipcodeWithUser[] }) => {
                                             {vendor.packageActive === "YES" && (
                                                 <div className="absolute top-0 right-0 w-[120px] h-[120px] overflow-hidden -mt-1 -mr-1 z-10">
                                                     <div className="absolute top-[12px] right-[-35px] w-[170px] text-center transform rotate-45 bg-[#a0b830] text-white font-medium text-sm py-2">
-                                                        Featured
+                                                        {vendor.vendorType}
                                                     </div>
                                                 </div>
                                             )}

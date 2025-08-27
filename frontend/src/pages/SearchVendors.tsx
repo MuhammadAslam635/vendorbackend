@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Building2, CheckCircle, Facebook, Globe, Instagram, Linkedin, MapPin, Pin, Twitter } from "lucide-react";
+import { Building2, CheckCircle, Facebook, Globe, Instagram, Linkedin, MapPin, Phone, Pin, Twitter } from "lucide-react";
 import { Button } from "../components/ui/button";
 import Header from "./components/home/Header";
 import Footer from "./components/home/Footer";
@@ -33,6 +33,7 @@ interface ZipcodeWithUser {
         yt: string;
         webUrl: string;
         about: string;
+        vendorType: string;
     };
 }
 
@@ -88,27 +89,53 @@ const SearchVendors = () => {
                                                 alt={`${user.company} Logo`}
                                                 className="w-full h-full object-cover"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                            <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-sm font-medium text-[#a0b830]">
-                                                {user.packageActive === "YES" ? "Featured" : "Basic"}
-                                            </div>
+                                            <div className="absolute inset-0  transition-opacity duration-300" />
+                                            {user.packageActive === "YES" && (
+                                                <div className="absolute top-0 right-0 w-[120px] h-[120px] overflow-hidden -mt-1 -mr-1 z-10">
+                                                    <div className="absolute top-[12px] right-[-35px] w-[170px] text-center transform rotate-45 bg-[#a0b830] text-white font-medium text-sm py-2">
+                                                        {user.vendorType}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="p-6">
-                                            <CardTitle className="text-xl font-bold bg-[#a0b830] bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
-                                                {user.company}
-                                            </CardTitle>
-                                            <CardDescription className="text-gray-600 mt-2 flex items-center">
-                                                <Building2 className="w-4 h-4 mr-2 text-gray-400" />
-                                                {user.about}
-                                                
-                                                <Pin className="w-4 h-4 mr-2 text-gray-400" />
-                                                {user.address}, {zipcodeResult.zipcode}
-                                            </CardDescription>
-                                            <CardDescription className="text-gray-600 mt-2 flex items-center">
-                                                <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                                                {user.city}, {user.country}
-                                            </CardDescription>
-                                        </div>
+                                                                                 <div className="p-6">
+                                             {user.company && (
+                                                 <CardTitle className="text-xl font-bold bg-[#a0b830] bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
+                                                     {user.company}
+                                                 </CardTitle>
+                                             )}
+                                             <CardDescription className="text-gray-600 mt-2 grid lg:grid-cols-1 sm:grid-cols-1 gap-2">
+                                                 {user.about && (
+                                                     <div className="ml-2 text-sm flex items-center">
+                                                         <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                                         {user.about}
+                                                     </div>
+                                                 )}
+                                                 {user.address ? (
+                                                     <div className="ml-2 text-sm flex items-center">
+                                                         <Pin className="w-4 h-4 mr-2 text-gray-400" />
+                                                         {user.address}, {zipcodeResult.zipcode}
+                                                     </div>
+                                                 ) : (
+                                                     <div className="ml-2 text-sm flex items-center">
+                                                         <Pin className="w-4 h-4 mr-2 text-gray-400" />
+                                                         {zipcodeResult.zipcode}
+                                                     </div>
+                                                 )}
+                                                 {(user.city || user.country) && (
+                                                     <div className="ml-2 text-sm flex items-center">
+                                                         <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                                                         {[user.city, user.country].filter(Boolean).join(', ')}
+                                                     </div>
+                                                 )}
+                                             </CardDescription>
+                                             {user.phone && (
+                                                 <div className="ml-2 mt-2 text-sm flex items-center">
+                                                     <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                                                     {user.phone}
+                                                 </div>
+                                             )}
+                                         </div>
                                     </CardHeader>
                                     {user.webUrl && (
                                         <div className="flex items-center px-6 py-4 bg-gray-50 border-t">
@@ -125,7 +152,7 @@ const SearchVendors = () => {
                                                 <span className="text-sm">Verified Business</span>
                                             </div>
                                         </div>
-                                        <div className="flex gap-1">
+                                                                                 <div className="flex gap-2">
                                             {user.fb && (
                                                 <Button
                                                     variant="outline"

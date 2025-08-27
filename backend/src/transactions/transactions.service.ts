@@ -798,68 +798,93 @@ export class TransactionsService {
     });
   }
   // Confirm payment success and complete the transaction
-  async confirmPaymentSuccess(orderId: string) {
-    try {
-      console.log('Confirming payment success for order:', orderId);
-      
-      const transaction = await this.prisma.transaction.findFirst({
-        where: { transactionId: orderId },
-        include: { 
-          subscribe_package: {
-            include: {
-              package: true
-            }
-          },
-          user: true
-        }
-      });
-      
-      if (!transaction) {
-        throw new NotFoundException('Transaction not found');
+ async confirmPaymentSuccess(internalTransactionId: string) {
+  try {
+    console.log('Confirming payment success for internal transaction:', internalTransactionId);
+    
+    // Find transaction by your internal ID, not PayPal order ID
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { id: parseInt(internalTransactionId) },
+      include: { 
+        subscribe_package: {
+          include: {
+            package: true
+          }
+        },
+        user: true
       }
-      
-      // Check if transaction is already completed
-      if (transaction.paymentStatus === 'COMPLETED') {
-        console.log('Transaction already completed:', transaction.id);
-        const FRONTEND_URL = this.configService.get('FRONTEND_URL');
-        return this.redirect(FRONTEND_URL + '/vendor/dashboard');
-      }
-      
-      // Use database transaction to ensure consistency
-      await this.prisma.$transaction(async (prisma) => {
-        // Update transaction status to completed
-        await prisma.transaction.update({
-          where: { id: transaction.id },
-          data: { paymentStatus: 'COMPLETED' }
-        });
-        
-        // Update subscription status to active
-        await prisma.subscribePackage.update({
-          where: { id: transaction.subscribe_package.id },
-          data: { status: 'ACTIVE' }
-        });
-        
-        // Update user package status
-        await prisma.user.update({
-          where: { id: transaction.userId },
-          data: { packageActive: 'YES' }
-        });
-        
-        console.log('Payment confirmation completed for transaction:', transaction.id);
-      });
-      
-      // Redirect to frontend URL
+    });
+    
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (!transaction.transactionId) {
+      throw new BadRequestException('PayPal order ID not found for this transaction');
+    }
+    
+    // Check if transaction is already completed
+    if (transaction.paymentStatus === 'COMPLETED') {
+      console.log('Transaction already completed:', transaction.id);
       const FRONTEND_URL = this.configService.get('FRONTEND_URL');
       return this.redirect(FRONTEND_URL + '/vendor/dashboard');
-      
-    } catch (error) {
-      console.error('Error confirming payment success:', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to confirm payment success');
     }
+
+    // FIRST: Capture the payment with PayPal using the stored PayPal order ID
+    const captureResult = await this.capturePayPalPayment(transaction.transactionId);
+    console.log('PayPal capture result:', captureResult);
+    
+    // Verify the capture was successful
+    const captureStatus = captureResult.status;
+    const captureDetails = captureResult.purchase_units?.[0]?.payments?.captures?.[0];
+    
+    if (captureStatus !== 'COMPLETED' || captureDetails?.status !== 'COMPLETED') {
+      throw new BadRequestException('Payment capture failed');
+    }
+    
+    // Use database transaction to ensure consistency
+    await this.prisma.$transaction(async (prisma) => {
+      // Update transaction status to completed
+      await prisma.transaction.update({
+        where: { id: transaction.id },
+        data: { paymentStatus: 'COMPLETED' }
+      });
+      
+      // Update subscription status to active
+      await prisma.subscribePackage.update({
+        where: { id: transaction.subscribe_package.id },
+        data: { status: 'ACTIVE' }
+      });
+      
+      // Update user package status
+      await prisma.user.update({
+        where: { id: transaction.userId },
+        data: { packageActive: 'YES' }
+      });
+      
+      console.log('Payment confirmation completed for transaction:', transaction.id);
+    });
+    
+    const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+    return this.redirect(FRONTEND_URL + '/vendor/dashboard');
+    
+  } catch (error) {
+    console.error('Error confirming payment success:', error);
+    
+    // Re-throw known exceptions
+    if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      throw error;
+    }
+    
+    // Handle PayPal API errors specifically
+    if (error.response && error.response.status === 404) {
+      throw new BadRequestException('PayPal order not found - payment may have already been processed or cancelled');
+    }
+    
+    const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+    return this.redirect(FRONTEND_URL + '/vendor/payment-failed');
   }
+}
 
   // Delete transaction and all related records
   async adminDeleteTransaction(transactionId: number, userId: number) {

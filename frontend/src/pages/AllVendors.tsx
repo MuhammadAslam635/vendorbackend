@@ -36,6 +36,7 @@ interface ApiResponse {
       about: string;
       addedzipcodes: number;
       totalzipcodes: number;
+      vendorType: string;
       gallery: {
         id: number;
         image: string;
@@ -76,6 +77,7 @@ interface ZipcodeWithUser {
     addedzipcodes: number;
     totalzipcodes: number;
     gallery: Gallery[];
+    vendorType: string;
   };
 }
 
