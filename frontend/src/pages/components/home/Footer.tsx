@@ -35,7 +35,7 @@ const Footer = () => {
                     </div>
                 </div>
                 <div className="border-t border-gray-700 mt-8 pt-6 text-center">
-                    <p className="text-gray-400">Developed and maintained by Hostzack.com. &copy; 2025 Meekos Links LLC. All rights reserved.</p>
+                    <p className="text-gray-400">Developed and maintained by <a href="https://hostzack.com" target="_blank" rel="noopener noreferrer" className="text-[#a0b830] hover:text-[#a0b830] transition-colors duration-200">hostzack.com</a>. &copy; 2025 Meekos Links LLC. All rights reserved.</p>
                 </div>
             </div>
         </footer>

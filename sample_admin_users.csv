@@ -1,7 +1,0 @@
-name,email,phone,password,utype,status,permissions,routes
-John Admin,john.admin@example.com,1234567890,password123,ADMIN,ACTIVE,"Approval,Create,Editing,Deletion","/admin/create-user,/admin/packages,/admin/users,/admin/promos,/admin/tickets"
-Jane SubAdmin,jane.subadmin@example.com,0987654321,password456,SUBADMIN,PENDING,"Approval,Editing","/admin/users,/admin/tickets"
-Bob Manager,bob.manager@example.com,5551234567,password789,ADMIN,ACTIVE,"Approval,Create,Editing","/admin/packages,/admin/users,/admin/promos"
-Alice Support,alice.support@example.com,5559876543,passwordabc,SUBADMIN,ACTIVE,"Approval","/admin/tickets"
-Mike Supervisor,mike.supervisor@example.com,5555551234,password999,ADMIN,SUSPENDED,"Approval,Create,Editing,Deletion","/admin/create-user,/admin/packages,/admin/users"
-Sarah Moderator,sarah.moderator@example.com,5555559876,passwordxyz,SUBADMIN,BLOCKED,"Approval,Editing","/admin/users"
