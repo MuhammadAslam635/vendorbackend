@@ -206,25 +206,125 @@ export class VendorService {
       message: 'Badge script generated successfully',
       data: {
         script: widgetScript,
-        iframeData: {
-          iframeHtml: `<iframe src="${searchUrl}" width="200" height="80" frameborder="0" scrolling="no" style="border: none; overflow: hidden; width: 200px; height: 80px;" title="Core Aeration Certified Vendor Badge"></iframe>`,
-          imageHtml: `<img src="${svgUrl}" alt="Core Aeration Certified Vendor" style="width: 200px; height: 80px; cursor: pointer;" onclick="window.open('${searchUrl}', '_blank')" />`,
+        badgeData: {
+          badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
+     style="cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            border: 2px solid #7CB342; 
+            border-radius: 12px; 
+            padding: 10px 15px; 
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            transition: all 0.3s ease; 
+            font-family: Arial, sans-serif; 
+            min-width: 200px; 
+            max-width: 280px;"
+     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+     
+    <img src="${svgUrl}" 
+         alt="Core Aeration Certified Vendor" 
+         style="width: 45px; 
+                height: 45px; 
+                border-radius: 8px; 
+                margin-right: 12px; 
+                flex-shrink: 0;" />
+                
+    <div style="display: flex; 
+                flex-direction: column; 
+                align-items: flex-start;">
+        <h3 style="margin: 0; 
+                   font-size: 14px; 
+                   font-weight: bold; 
+                   color: #7CB342; 
+                   line-height: 1.2;">Certificate Badge</h3>
+        <span style="font-size: 10px; 
+                     color: #666; 
+                     margin-top: 2px;">Verified Vendor</span>
+    </div>
+    
+    <div style="margin-left: auto; 
+                width: 16px; 
+                height: 16px; 
+                background: #28a745; 
+                border-radius: 50%; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;">
+        <span style="color: white; 
+                     font-size: 10px; 
+                     font-weight: bold;">✓</span>
+    </div>
+</div>`,
+          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
+     style="cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            border: 2px solid #7CB342; 
+            border-radius: 12px; 
+            padding: 10px 15px; 
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            transition: all 0.3s ease; 
+            font-family: Arial, sans-serif; 
+            min-width: 200px; 
+            max-width: 280px;"
+     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+     
+    <img src="${svgUrl}" 
+         alt="Core Aeration Certified Vendor" 
+         style="width: 45px; 
+                height: 45px; 
+                border-radius: 8px; 
+                margin-right: 12px; 
+                flex-shrink: 0;" />
+                
+    <div style="display: flex; 
+                flex-direction: column; 
+                align-items: flex-start;">
+        <h3 style="margin: 0; 
+                   font-size: 14px; 
+                   font-weight: bold; 
+                   color: #7CB342; 
+                   line-height: 1.2;">Certificate Badge</h3>
+        <span style="font-size: 10px; 
+                     color: #666; 
+                     margin-top: 2px;">Verified Vendor</span>
+    </div>
+    
+    <div style="margin-left: auto; 
+                width: 16px; 
+                height: 16px; 
+                background: #28a745; 
+                border-radius: 50%; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;">
+        <span style="color: white; 
+                     font-size: 10px; 
+                     font-weight: bold;">✓</span>
+    </div>
+</div>`,
           previewUrl: `${searchUrl}`,
           badgeType: 'Vendor Services',
         },
-        iframeInstructions: {
-          title: 'How to Use Your Iframe Badge',
+        badgeInstructions: {
+          title: 'How to Use Your Certificate Badge',
           steps: [
-            'Copy the iframe HTML code below',
+            'Copy the HTML code below',
             'Paste it anywhere in your website HTML where you want the badge to appear',
-            'The badge will display as a small, professional certification badge',
-            'Visitors can click the badge to view your vendor profile'
+            'The badge will display as a professional certification badge with hover effects',
+            'Visitors can click the badge to search for vendors in your area'
           ],
           notes: [
-            'The iframe badge is smaller in height and perfect for sidebars or footers',
-            'Shows your certified vendor status with professional design',
-            'Automatically updates when your certification status changes',
-            'You can also use the direct image HTML for more control'
+            'The badge includes hover animations and professional styling',
+            'Shows your certified vendor status with modern design',
+            'Automatically uses the correct SVG icon based on your vendor type',
+            'Perfect for sidebars, footers, or any prominent location'
           ]
         },
         widgetId,
@@ -633,27 +733,127 @@ export class VendorService {
     const result = {
       success: true,
       message: 'Badge script generated successfully',
-      data: {
-        script: customizeScript,
-        iframeData: {
-          iframeHtml: `<iframe src="${searchUrl}" width="200" height="60" frameborder="0" scrolling="no" style="border: none; overflow: hidden; width: 200px; height: 60px;" title="Core Aeration Certified Vendor Badge"></iframe>`,
-          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 200px; height: 60px; background: linear-gradient(135deg, #a0b830 0%, #8fa329 100%); border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.2s ease;" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.2)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 16px rgba(0, 0, 0, 0.15)'"><img src="${svgUrl}" alt="Vendor Type" style="width: 32px; height: 32px; flex-shrink: 0; object-fit: contain;"><div style="color: white; font-size: 12px; font-weight: 600; text-align: center; flex: 1;">Certified Badge</div></div>`,
+              data: {
+          script: customizeScript,
+          badgeData: {
+          badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
+     style="cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            border: 2px solid #7CB342; 
+            border-radius: 12px; 
+            padding: 10px 15px; 
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            transition: all 0.3s ease; 
+            font-family: Arial, sans-serif; 
+            min-width: 200px; 
+            max-width: 280px;"
+     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+     
+    <img src="${svgUrl}" 
+         alt="Core Aeration Certified Vendor" 
+         style="width: 45px; 
+                height: 45px; 
+                border-radius: 8px; 
+                margin-right: 12px; 
+                flex-shrink: 0;" />
+                
+    <div style="display: flex; 
+                flex-direction: column; 
+                align-items: flex-start;">
+        <h3 style="margin: 0; 
+                   font-size: 14px; 
+                   font-weight: bold; 
+                   color: #7CB342; 
+                   line-height: 1.2;">Certificate Badge</h3>
+        <span style="font-size: 10px; 
+                     color: #666; 
+                     margin-top: 2px;">Verified Vendor</span>
+    </div>
+    
+    <div style="margin-left: auto; 
+                width: 16px; 
+                height: 16px; 
+                background: #28a745; 
+                border-radius: 50%; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;">
+        <span style="color: white; 
+                     font-size: 10px; 
+                     font-weight: bold;">✓</span>
+    </div>
+</div>`,
+          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
+     style="cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            border: 2px solid #7CB342; 
+            border-radius: 12px; 
+            padding: 10px 15px; 
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            transition: all 0.3s ease; 
+            font-family: Arial, sans-serif; 
+            min-width: 200px; 
+            max-width: 280px;"
+     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+     
+    <img src="${svgUrl}" 
+         alt="Core Aeration Certified Vendor" 
+         style="width: 45px; 
+                height: 45px; 
+                border-radius: 8px; 
+                margin-right: 12px; 
+                flex-shrink: 0;" />
+                
+    <div style="display: flex; 
+                flex-direction: column; 
+                align-items: flex-start;">
+        <h3 style="margin: 0; 
+                   font-size: 14px; 
+                   font-weight: bold; 
+                   color: #7CB342; 
+                   line-height: 1.2;">Certificate Badge</h3>
+        <span style="font-size: 10px; 
+                     color: #666; 
+                     margin-top: 2px;">Verified Vendor</span>
+    </div>
+    
+    <div style="margin-left: auto; 
+                width: 16px; 
+                height: 16px; 
+                background: #28a745; 
+                border-radius: 50%; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;">
+        <span style="color: white; 
+                     font-size: 10px; 
+                     font-weight: bold;">✓</span>
+    </div>
+</div>`,
           previewUrl: `${searchUrl}`,
           badgeType,
         },
-        iframeInstructions: {
-          title: 'How to Use Your Iframe Badge',
+        badgeInstructions: {
+          title: 'How to Use Your Certificate Badge',
           steps: [
             'Copy the HTML code below',
             'Paste it anywhere in your website HTML where you want the badge to appear',
-            'The badge will display as a 200x60 pixel certification badge',
+            'The badge will display as a professional certification badge with hover effects',
             'Visitors can click the badge to search for vendors in your area'
           ],
           notes: [
-            'The badge is 200px wide and 60px tall - perfect for sidebars or footers',
-            'Shows your certified vendor status with professional design',
-            'Automatically redirects to search with your zipcode when clicked',
-            'You can also use the direct HTML for more control'
+            'The badge includes hover animations and professional styling',
+            'Shows your certified vendor status with modern design',
+            'Automatically uses the correct SVG icon based on your vendor type',
+            'Perfect for sidebars, footers, or any prominent location'
           ]
         },
         widgetId,
