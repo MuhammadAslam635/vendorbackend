@@ -48,7 +48,7 @@ export class VendorService {
     
     // Get a zipcode for the search URL, fallback to empty string if none available
     const zipcode = vendor.zipcodes && vendor.zipcodes.length > 0 ? vendor.zipcodes[0].zipcode : '';
-    const searchUrl = zipcode ? `${frontendUrl}/vendor-search?search=${zipcode}` : `${frontendUrl}/vendor-search`;
+    const searchUrl = zipcode ? `${frontendUrl}/search-vendors?search=${zipcode}` : `${frontendUrl}/vendor-search`;
     
     // Determine which SVG to show based on vendorType
     const svgFile = vendor.vendorType === 'RENTAL' ? '3.svg' : 
