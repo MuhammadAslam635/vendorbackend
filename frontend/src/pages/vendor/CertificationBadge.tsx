@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Switch } from '../../components/ui/switch';
 import { useAuth } from '../../useAuth';
 import { DashboardLayout } from './DashboardLayout';
+import BadgePreview from '../../components/BadgePreview';
 
 interface BadgeSettings {
   position: 'BOTTOM_RIGHT' | 'BOTTOM_LEFT' | 'TOP_RIGHT' | 'TOP_LEFT' | 'BOTTOM_CENTER';
@@ -19,6 +20,17 @@ interface BadgeSettings {
 interface BadgeResponse {
   data: {
     script: string;
+    iframeData: {
+      iframeHtml: string;
+      imageHtml: string;
+      previewUrl: string;
+      badgeType: string;
+    };
+    iframeInstructions: {
+      title: string;
+      steps: string[];
+      notes: string[];
+    };
     instructions: {
       title: string;
       steps: string[];
@@ -42,6 +54,17 @@ const CertificationBadge = () => {
     showLogo: true,
     showAppreciationStatus: true
   });
+  const [iframeData, setIframeData] = useState<{
+    iframeHtml?: string;
+    imageHtml?: string;
+    previewUrl?: string;
+    badgeType?: string;
+    iframeInstructions?: {
+      title: string;
+      steps: string[];
+      notes: string[];
+    };
+  } | null>(null);
 
   const generateBadge = async () => {
     setLoading(true);
@@ -53,8 +76,10 @@ const CertificationBadge = () => {
           Authorization: `Bearer ${token}`
         }
       });
+      console.log("first data",response.data);
       
       setBadgeScript(response.data.data.script);
+      setIframeData(response.data.data.iframeData);
       setInstructions(response.data.data.instructions);
       toast.success('Certified Vendor Badge script generated successfully!');
     } catch (error) {
@@ -80,7 +105,7 @@ const CertificationBadge = () => {
           }
         }
       );
-      
+      setIframeData(response.data.data.iframeData);
       setBadgeScript(response.data.data.script);
       setInstructions(response.data.data.instructions);
       toast.success('Badge customized successfully!');
@@ -211,6 +236,28 @@ const CertificationBadge = () => {
           </CardContent>
         </Card>
 
+        {/* Debug Section - Remove this in production */}
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-orange-800">Debug Info (Remove in Production)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              <div><strong>Iframe Data:</strong> {iframeData ? 'Present' : 'Not present'}</div>
+              <div><strong>Iframe HTML:</strong> {iframeData?.iframeHtml ? 'Present' : 'Not present'}</div>
+              <div><strong>Badge Script:</strong> {badgeScript ? 'Present' : 'Not present'}</div>
+              <div><strong>Instructions:</strong> {instructions ? 'Present' : 'Not present'}</div>
+              {iframeData && (
+                <div className="mt-2 p-2 bg-white rounded border">
+                  <pre className="text-xs overflow-auto">
+                    {JSON.stringify(iframeData, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Generated Script */}
         <Card>
           <CardHeader>
@@ -265,6 +312,141 @@ const CertificationBadge = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Iframe Badge */}
+        {iframeData?.iframeHtml && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Iframe Badge</CardTitle>
+              <CardDescription>
+                Use this smaller iframe badge for sidebars, footers, or anywhere you need a compact certification display
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-2">Iframe HTML Code:</h4>
+                  <div className="relative">
+                    <textarea
+                      value={iframeData.iframeHtml}
+                      readOnly
+                      className="w-full min-h-[120px] p-3 font-mono text-sm border rounded-md bg-gray-50"
+                      placeholder="Iframe HTML will appear here..."
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="absolute top-2 right-2"
+                      onClick={() => copyToClipboard(iframeData.iframeHtml!)}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={() => copyToClipboard(iframeData.iframeHtml!)}
+                    className="mt-2 w-full"
+                    variant="outline"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Iframe Code
+                  </Button>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Preview:</h4>
+                  <div className="border rounded-md p-4 bg-gray-50 min-h-[120px] flex items-center justify-center">
+                    {iframeData?.badgeType ? (
+                      <BadgePreview
+                        vendorType={
+                          iframeData.badgeType === 'Equipment Rental' ? 'RENTAL' : 
+                          iframeData.badgeType === 'Equipment Sales' ? 'SALES' : 
+                          'VENDOR'
+                        }
+                        vendorId={user?.id || 0}
+                        zipcode={user?.zipcodes?.[0]?.zipcode}
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">
+                          This is a placeholder for the certified vendor badge preview.
+                          The actual badge will display your vendor status.
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Click the "Apply Settings" button to generate the badge script.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 text-center">
+                    <p className="text-xs text-gray-600 mb-2">This is exactly how your badge will appear on your website</p>
+                    <p className="text-xs text-gray-500">Click the badge to see the hover effect and redirect behavior</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Add a section to show the image HTML as well */}
+              {iframeData.imageHtml && (
+                <div className="mt-4 p-4 bg-green-50 rounded-md">
+                  <h4 className="font-medium mb-2 text-green-900">Direct Image HTML (Alternative)</h4>
+                  <p className="text-sm text-green-700 mb-2">
+                    You can also use this direct image HTML instead of the iframe for more control over styling.
+                  </p>
+                  <div className="relative">
+                    <textarea
+                      value={iframeData.imageHtml}
+                      readOnly
+                      className="w-full min-h-[80px] p-3 font-mono text-sm border rounded-md bg-gray-50"
+                      placeholder="Image HTML will appear here..."
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="absolute top-2 right-2"
+                      onClick={() => copyToClipboard(iframeData.imageHtml!)}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={() => copyToClipboard(iframeData.imageHtml!)}
+                    className="mt-2"
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Image HTML
+                  </Button>
+                </div>
+              )}
+
+              {/* Instructions section */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-md">
+                <h4 className="font-medium mb-2 text-blue-900">How to Use Your Iframe Badge</h4>
+                <div className="space-y-2">
+                  <div>
+                    <h5 className="font-medium text-sm text-blue-800 mb-1">Steps:</h5>
+                    <ol className="list-decimal list-inside space-y-1 text-sm text-blue-700">
+                      <li>Copy the iframe HTML code above</li>
+                      <li>Paste it anywhere in your website HTML where you want the badge to appear</li>
+                      <li>The badge will display as a small, professional certification badge</li>
+                      <li>Visitors can click the badge to view your vendor profile</li>
+                    </ol>
+                  </div>
+                  
+                  <div>
+                    <h5 className="font-medium text-sm text-blue-800 mb-1">Notes:</h5>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-blue-700">
+                      <li>The iframe badge is smaller in height and perfect for sidebars or footers</li>
+                      <li>Shows your certified vendor status with professional design</li>
+                      <li>Automatically updates when your certification status changes</li>
+                      <li>You can also use the direct image HTML for more control</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Installation Instructions */}
         {(instructions || badgeScript) && (

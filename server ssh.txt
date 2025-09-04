@@ -1,1 +1,0 @@
-ssh -oHostKeyAlgorithms=+ssh-rsa root@50.6.6.251

@@ -46,6 +46,7 @@ import PromoPage from './pages/PromoPage'
 import EditAdminUser from './pages/admin/users/EditAdminUser'
 import ImportUsers from './pages/admin/users/ImportUsers'
 import CertificationBadge from './pages/vendor/CertificationBadge'
+import Badge from './pages/Badge'
 function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -86,6 +87,7 @@ function App() {
         <Route path="/privacy-policy" element={<Privacy />} />
         <Route path="/conduct-code" element={<Code />} />
         <Route path="/Promos" element={<PromoPage />} />
+        <Route path="/badge/:vendorId" element={<Badge />} />
         
         {/* Protected routes that require authentication */}
         <Route path="/my-ads" element={

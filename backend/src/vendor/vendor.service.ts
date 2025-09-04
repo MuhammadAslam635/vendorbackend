@@ -22,6 +22,13 @@ export class VendorService {
         companyLogo: true,
         packageActive: true,
         status: true,
+        zipcodes: {
+          select: {
+            zipcode: true
+          },
+          take: 1
+        },
+        vendorType: true
       },
     });
 
@@ -39,11 +46,21 @@ export class VendorService {
     // Use the existing logo from public/uploads/logo.png
     const logoUrl = `${backendUrl}/public/uploads/logo.png`;
     
+    // Get a zipcode for the search URL, fallback to empty string if none available
+    const zipcode = vendor.zipcodes && vendor.zipcodes.length > 0 ? vendor.zipcodes[0].zipcode : '';
+    const searchUrl = zipcode ? `${frontendUrl}/vendor-search?search=${zipcode}` : `${frontendUrl}/vendor-search`;
+    
+    // Determine which SVG to show based on vendorType
+    const svgFile = vendor.vendorType === 'RENTAL' ? '3.svg' : 
+                    vendor.vendorType === 'SALES' ? '2.svg' : '1.svg';
+    const svgUrl = `${backendUrl}/public/uploads/${svgFile}`;
+    console.log("first svgUrl",svgUrl)
+    
     // Generate unique widget ID for this vendor
     const widgetId = `core-aeration-badge-${vendor.id}`;
     
     // Create the JavaScript widget script
-    const script = `
+    const widgetScript = `
     <script>
 (function() {
   // Core Aeration Certificate Vendor Badge Widget
@@ -188,7 +205,28 @@ export class VendorService {
       success: true,
       message: 'Badge script generated successfully',
       data: {
-        script,
+        script: widgetScript,
+        iframeData: {
+          iframeHtml: `<iframe src="${searchUrl}" width="200" height="80" frameborder="0" scrolling="no" style="border: none; overflow: hidden; width: 200px; height: 80px;" title="Core Aeration Certified Vendor Badge"></iframe>`,
+          imageHtml: `<img src="${svgUrl}" alt="Core Aeration Certified Vendor" style="width: 200px; height: 80px; cursor: pointer;" onclick="window.open('${searchUrl}', '_blank')" />`,
+          previewUrl: `${searchUrl}`,
+          badgeType: 'Vendor Services',
+        },
+        iframeInstructions: {
+          title: 'How to Use Your Iframe Badge',
+          steps: [
+            'Copy the iframe HTML code below',
+            'Paste it anywhere in your website HTML where you want the badge to appear',
+            'The badge will display as a small, professional certification badge',
+            'Visitors can click the badge to view your vendor profile'
+          ],
+          notes: [
+            'The iframe badge is smaller in height and perfect for sidebars or footers',
+            'Shows your certified vendor status with professional design',
+            'Automatically updates when your certification status changes',
+            'You can also use the direct image HTML for more control'
+          ]
+        },
         widgetId,
         vendor: {
           id: vendor.id,
@@ -217,7 +255,7 @@ export class VendorService {
   }
 
   async customizeBadge(vendorId: number, customizeDto: GenerateBadgeDto) {
-    // Get vendor information
+    // Get vendor information including vendorType and zipcodes
     const vendor = await this.prisma.user.findUnique({
       where: { id: vendorId, utype: 'VENDOR' },
       select: {
@@ -227,6 +265,13 @@ export class VendorService {
         companyLogo: true,
         packageActive: true,
         status: true,
+        vendorType: true,
+        zipcodes: {
+          select: {
+            zipcode: true
+          },
+          take: 1
+        }
       },
     });
 
@@ -241,6 +286,10 @@ export class VendorService {
     const backendUrl = this.configService.get('BACKEND_URL') || 'https://coreaeration.com/backend';
     const appName = this.configService.get('APPNAME') || 'Core Aeration';
     
+    // Get a zipcode for the search URL, fallback to empty string if none available
+    const zipcode = vendor.zipcodes && vendor.zipcodes.length > 0 ? vendor.zipcodes[0].zipcode : '';
+    const searchUrl = zipcode ? `${frontendUrl}/vendor-search?search=${zipcode}` : `${frontendUrl}/vendors/`;
+    console.log("first zipcode",zipcode)
     // Use the existing logo from public/uploads/logo.png
     const logoUrl = `${backendUrl}/public/uploads/logo.png`;
     
@@ -342,7 +391,7 @@ export class VendorService {
     ` : '';
     
     // Create the JavaScript widget script
-    const script = `
+    const customizeScript = `
     <script>
 (function() {
   // Core Aeration Certificate Vendor Badge Widget
@@ -354,7 +403,7 @@ export class VendorService {
     company: '${appName}',
     logo: '${logoUrl}',
     certified: ${isCertified},
-    frontendUrl: '${frontendUrl}',
+    frontendUrl: '${searchUrl}',
   };
 
   function createBadgeWidget() {
@@ -414,7 +463,157 @@ export class VendorService {
 
     // Add click handler to open vendor profile
     widget.addEventListener('click', function() {
-      window.open(vendorData.frontendUrl + '/vendors/', '_blank');
+      window.open(vendorData.frontendUrl, '_blank');
+    });
+
+    // Append to body
+    document.body.appendChild(widget);
+  }
+
+  // Initialize widget when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createBadgeWidget);
+  } else {
+    createBadgeWidget();
+  }
+})();
+</script>
+`;
+
+    // Generate iframe badge based on vendor type
+    const svgFile = vendor.vendorType === 'RENTAL' ? '2.svg' : 
+                    vendor.vendorType === 'SALES' ? '3.svg' : '1.svg';
+    const badgeType = vendor.vendorType === 'RENTAL' ? 'Equipment Rental' : 
+                      vendor.vendorType === 'SALES' ? 'Equipment Sales' : 'Vendor Services';
+    
+    const svgUrl = `${backendUrl}/public/uploads/${svgFile}`;
+    
+    // Create the JavaScript widget script
+    const badgeScript = `
+    <script>
+(function() {
+  // Core Aeration Certificate Vendor Badge Widget
+  var widgetId = '${widgetId}';
+  var vendorData = {
+    id: ${vendor.id},
+    name: '${(vendor.name || '').replace(/'/g, "\'")}',
+    appName: '${appName}',
+    company: '${appName}',
+    logo: '${logoUrl}',
+    certified: ${isCertified},
+    frontendUrl: '${searchUrl}',
+  };
+
+  function createBadgeWidget() {
+    // Check if widget already exists
+    if (document.getElementById(widgetId)) {
+      return;
+    }
+
+    // Create widget container
+    var widget = document.createElement('div');
+    widget.id = widgetId;
+    widget.style.cssText = \`
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 280px;
+      background: linear-gradient(135deg, #a0b830 0%, #8fa329 100%);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      z-index: 10000;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    \`;
+
+    // Create badge content
+    var badgeContent = \`
+      <div style="padding: 16px; color: white;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <div style="
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          ">
+            \${vendorData.logo ? 
+              \`<img src="\${vendorData.logo}" alt="Logo" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">\` : 
+              \`<svg width="24" height="24" fill="#a0b830" viewBox="0 0 24 24"><path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/></svg>\`
+            }
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${appName} Badge
+            </div>
+            <div style="font-size: 12px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              \${vendorData.company || vendorData.name}
+            </div>
+          </div>
+          \${vendorData.certified ? 
+            \`<div style="
+              width: 20px;
+              height: 20px;
+              background: #22c55e;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            ">
+              <svg width="12" height="12" fill="white" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+              </svg>
+            </div>\` : 
+            \`<div style="
+              width: 20px;
+              height: 20px;
+              background: #ef4444;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            ">
+              <svg width="12" height="12" fill="white" viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              </svg>
+            </div>\`
+          }
+        </div>
+        <div style="
+          font-size: 11px;
+          opacity: 0.8;
+          text-align: center;
+          padding-top: 8px;
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
+        ">
+          \${vendorData.certified ? '${appName} Vendor' : 'Thank You'}
+        </div>
+      </div>
+    \`;
+
+    widget.innerHTML = badgeContent;
+
+    // Add hover effects
+    widget.addEventListener('mouseenter', function() {
+      widget.style.transform = 'translateY(-2px)';
+      widget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.2)';
+    });
+
+    widget.addEventListener('mouseleave', function() {
+      widget.style.transform = 'translateY(0)';
+      widget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
+    });
+
+    // Add click handler to open vendor profile
+    widget.addEventListener('click', function() {
+      window.open(vendorData.frontendUrl, '_blank');
     });
 
     // Append to body
@@ -433,15 +632,37 @@ export class VendorService {
 
     const result = {
       success: true,
-      message: 'Badge script customized successfully',
+      message: 'Badge script generated successfully',
       data: {
-        script,
+        script: customizeScript,
+        iframeData: {
+          iframeHtml: `<iframe src="${searchUrl}" width="200" height="60" frameborder="0" scrolling="no" style="border: none; overflow: hidden; width: 200px; height: 60px;" title="Core Aeration Certified Vendor Badge"></iframe>`,
+          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 200px; height: 60px; background: linear-gradient(135deg, #a0b830 0%, #8fa329 100%); border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.2s ease;" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.2)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 16px rgba(0, 0, 0, 0.15)'"><img src="${svgUrl}" alt="Vendor Type" style="width: 32px; height: 32px; flex-shrink: 0; object-fit: contain;"><div style="color: white; font-size: 12px; font-weight: 600; text-align: center; flex: 1;">Certified Badge</div></div>`,
+          previewUrl: `${searchUrl}`,
+          badgeType,
+        },
+        iframeInstructions: {
+          title: 'How to Use Your Iframe Badge',
+          steps: [
+            'Copy the HTML code below',
+            'Paste it anywhere in your website HTML where you want the badge to appear',
+            'The badge will display as a 200x60 pixel certification badge',
+            'Visitors can click the badge to search for vendors in your area'
+          ],
+          notes: [
+            'The badge is 200px wide and 60px tall - perfect for sidebars or footers',
+            'Shows your certified vendor status with professional design',
+            'Automatically redirects to search with your zipcode when clicked',
+            'You can also use the direct HTML for more control'
+          ]
+        },
         widgetId,
         vendor: {
           id: vendor.id,
           name: vendor.name,
           company: vendor.company,
           certified: isCertified,
+          vendorType: vendor.vendorType,
         },
         instructions: {
           title: 'How to Install Your Appreciation Badge',
@@ -461,5 +682,33 @@ export class VendorService {
     };
     
     return result;
+  }
+
+  async getVendorForBadge(vendorId: number) {
+    const vendor = await this.prisma.user.findUnique({
+      where: { id: vendorId, utype: 'VENDOR' },
+      select: {
+        id: true,
+        name: true,
+        company: true,
+        vendorType: true,
+        status: true,
+        zipcodes: {
+          select: {
+            zipcode: true
+          }
+        }
+      },
+    });
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    return {
+      success: true,
+      message: 'Vendor data retrieved successfully',
+      data: vendor
+    };
   }
 }
