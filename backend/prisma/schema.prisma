@@ -32,6 +32,7 @@ model User {
   in                    String?
   yt                    String?
   webUrl                String?
+  stripeCustomerId      String?            @unique
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
   access_tokens         AccessToken[]
@@ -155,29 +156,34 @@ model Package {
   profiles           Int                @default(3)
   description        String?            @default("Best Package for your business \n Optimize and grow your business with our best package \n No 1 Package for your business")
   status             PackageStatus      @default(ACTIVE)
+  stripeProductId    String?            @unique
+  stripePriceId      String?            @unique
+  stripePackageId    String?            @unique
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   subscribe_packages SubscribePackage[]
 }
 
 model SubscribePackage {
-  id          Int          @id @default(autoincrement())
-  startDate   DateTime     @default(now())
-  endDate     DateTime
-  status      String       @default("ACTIVE")
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  packageId   Int
-  userId      Int
-  package     Package      @relation(fields: [packageId], references: [id])
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transaction Transaction?
-  zipCodes    ZipCode[]
+  id                 Int          @id @default(autoincrement())
+  startDate          DateTime     @default(now())
+  endDate            DateTime
+  status             String       @default("ACTIVE")
+  stripeSubscriptionId String?    @unique
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  packageId          Int
+  userId             Int
+  package            Package      @relation(fields: [packageId], references: [id])
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction        Transaction?
+  zipCodes           ZipCode[]
 
   @@index([packageId])
   @@index([userId])
   @@index([status])
   @@index([endDate])
+  @@index([stripeSubscriptionId])
 }
 
 model Transaction {

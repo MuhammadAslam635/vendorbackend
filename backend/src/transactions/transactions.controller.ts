@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException, Headers, HttpCode, Query, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException, Headers, HttpCode, Query, InternalServerErrorException, NotFoundException, Req } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -143,6 +143,83 @@ async handlePayPalWebhook(
   }
 }
 
+// Test endpoint to verify webhook route is accessible
+@Get('webhook/stripe/test')
+@HttpCode(200)
+async testWebhookRoute() {
+  console.log('Webhook test endpoint accessed');
+  return { 
+    status: 'success',
+    message: 'Webhook route is accessible',
+    timestamp: new Date().toISOString()
+  };
+}
+
+// Temporary GET endpoint to debug what's calling it
+@Get('webhook/stripe')
+@HttpCode(200)
+async handleStripeWebhookGet(
+  @Headers() headers: any,
+  @Query() query: any
+) {
+  console.log('=== STRIPE WEBHOOK GET REQUEST ===');
+  console.log('Headers:', JSON.stringify(headers, null, 2));
+  console.log('Query params:', JSON.stringify(query, null, 2));
+  return { 
+    status: 'success',
+    message: 'GET webhook received - this should be POST from Stripe',
+    timestamp: new Date().toISOString()
+  };
+}
+
+// Stripe webhook endpoint (POST - this is what Stripe actually sends)
+@Post('webhook/stripe')
+@HttpCode(200)
+async handleStripeWebhook(
+  @Headers() headers: any,
+  @Body() rawBody: any,
+  @Req() request: any
+) {
+  try {
+    console.log('=== STRIPE WEBHOOK RECEIVED ===');
+    console.log('Headers:', JSON.stringify(headers, null, 2));
+    console.log('Raw body type:', typeof rawBody);
+    console.log('Raw body:', rawBody);
+
+    const signature = headers['stripe-signature'];
+    if (!signature) {
+      console.error('Missing Stripe signature in headers');
+      throw new BadRequestException('Missing Stripe signature');
+    }
+
+    console.log('Stripe signature found:', signature);
+
+    // Get the raw body for signature verification
+    const rawBodyBuffer = request.body;
+    console.log('Raw body buffer:', rawBodyBuffer);
+
+    // Process the Stripe webhook with raw body
+    const result = await this.transactionsService.handleStripeWebhook(rawBodyBuffer, signature);
+    console.log('Webhook processing result:', result);
+
+    console.log('=== STRIPE WEBHOOK COMPLETED ===');
+    return { 
+      status: 'success',
+      message: 'Webhook processed successfully'
+    };
+  } catch (error) {
+    console.error('=== STRIPE WEBHOOK ERROR ===');
+    console.error('Error details:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    // Still return 200 to acknowledge receipt
+    return { 
+      status: 'received',
+      message: 'Webhook received with errors'
+    };
+  }
+}
+
 // Optional: Endpoint to handle payment success redirect
 @Post('payment-success')
 async handlePaymentSuccess(
@@ -173,6 +250,39 @@ async handlePaymentSuccess(
     }
     
     throw new InternalServerErrorException('Payment processing failed');
+  }
+}
+
+// Endpoint to handle Stripe payment success redirect
+@Post('payment-success/stripe')
+async handleStripePaymentSuccess(
+  @Body('session_id') sessionId?: string
+) {
+  try {
+    if (!sessionId) {
+      throw new BadRequestException('Session ID is required');
+    }
+
+    // Call service function to handle Stripe payment success
+    const result = await this.transactionsService.confirmStripePaymentSuccess(
+      sessionId
+    );
+    
+    return {
+      status: 'success',
+      message: 'Stripe payment completed successfully',
+      data: result
+    };
+  } catch (error) {
+    console.error('Stripe payment success handling failed:', error);
+    
+    // Re-throw known exceptions
+    if (error instanceof BadRequestException ||  
+        error instanceof InternalServerErrorException) {
+      throw error;
+    }
+    
+    throw new InternalServerErrorException('Stripe payment processing failed');
   }
 }
 

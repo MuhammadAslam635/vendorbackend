@@ -260,53 +260,73 @@ export class VendorService {
 </div>`,
           imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
      style="cursor: pointer; 
-            display: inline-flex; 
+            display: flex; 
             align-items: center; 
-            justify-content: flex-start; 
+            justify-content: space-between; 
             border: 2px solid #7CB342; 
             border-radius: 12px; 
-            padding: 10px 15px; 
+            padding: 8px 12px; 
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
             box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
             transition: all 0.3s ease; 
             font-family: Arial, sans-serif; 
-            min-width: 200px; 
-            max-width: 280px;"
+            width: 100%;
+            max-width: 280px;
+            min-width: 120px;
+            height: 60px;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
      
     <img src="${svgUrl}" 
          alt="Core Aeration Certified Vendor" 
-         style="width: 45px; 
-                height: 45px; 
-                border-radius: 8px; 
-                margin-right: 12px; 
-                flex-shrink: 0;" />
+         style="width: 36px; 
+                height: 36px; 
+                border-radius: 6px; 
+                flex-shrink: 0;
+                object-fit: cover;" />
                 
     <div style="display: flex; 
                 flex-direction: column; 
-                align-items: flex-start;">
+                align-items: flex-start;
+                justify-content: center;
+                flex: 1;
+                margin-left: 10px;
+                margin-right: 8px;
+                min-width: 0;
+                overflow: hidden;">
         <h3 style="margin: 0; 
-                   font-size: 14px; 
+                   font-size: 12px; 
                    font-weight: bold; 
                    color: #7CB342; 
-                   line-height: 1.2;">Certificate Badge</h3>
-        <span style="font-size: 10px; 
+                   line-height: 1.2;
+                   white-space: nowrap;
+                   overflow: hidden;
+                   text-overflow: ellipsis;
+                   width: 100%;">Certificate Badge</h3>
+        <span style="font-size: 9px; 
                      color: #666; 
-                     margin-top: 2px;">Verified Vendor</span>
+                     margin-top: 1px;
+                     white-space: nowrap;
+                     overflow: hidden;
+                     text-overflow: ellipsis;
+                     width: 100%;">Verified Vendor</span>
     </div>
     
-    <div style="margin-left: auto; 
-                width: 16px; 
-                height: 16px; 
+    <div style="width: 20px; 
+                height: 20px; 
                 background: #28a745; 
                 border-radius: 50%; 
                 display: flex; 
                 align-items: center; 
-                justify-content: center;">
+                justify-content: center;
+                flex-shrink: 0;">
         <span style="color: white; 
-                     font-size: 10px; 
-                     font-weight: bold;">✓</span>
+                     font-size: 12px; 
+                     font-weight: bold;
+                     line-height: 1;">✓</span>
     </div>
 </div>`,
           previewUrl: `${searchUrl}`,

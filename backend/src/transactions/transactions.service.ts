@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { StripeService } from '../stripe/stripe.service';
 import axios from 'axios';
 // import { CreateZipcodeDto } from 'src/zipcode/dto/create-zipcode.dto';
 import { ZipcodeDto } from 'src/zipcode/dto/package-create-zipcode.dto';
@@ -13,8 +14,10 @@ interface WebhookPayload {
 }
 @Injectable()
 export class TransactionsService {
-  constructor(private prisma: PrismaService,
-    private configService: ConfigService
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+    private stripeService: StripeService
   ) { }
 
   async findAll() {
@@ -97,6 +100,10 @@ export class TransactionsService {
         throw new BadRequestException('Package not found');
       }
 
+      if (!pack.stripePriceId) {
+        throw new BadRequestException('Package is not configured for Stripe payments');
+      }
+
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
@@ -137,17 +144,35 @@ export class TransactionsService {
         };
       }
 
+      // Create or get Stripe customer
+      let stripeCustomerId = user.stripeCustomerId || undefined;
+      if (!stripeCustomerId) {
+        const stripeCustomer = await this.stripeService.createCustomer({
+          name: user.name,
+          email: user.email,
+          phone: user.phone || undefined
+        });
+        stripeCustomerId = stripeCustomer.id;
+
+        // Update user with Stripe customer ID
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { stripeCustomerId }
+        });
+      }
+
       // Create subscription and ZIP codes in a single transaction
       const subscription = await this.prisma.$transaction(async (prisma) => {
+        const startDate = new Date();
         const endDate = new Date();
-        endDate.setMonth(endDate.getMonth() + pack.duration);
+        endDate.setFullYear(endDate.getFullYear() + 1); // Always add exactly 1 year from subscription date
 
         // Create subscription first
         const sub = await prisma.subscribePackage.create({
           data: {
             packageId,
             userId,
-            startDate: new Date(),
+            startDate,
             endDate,
             status: 'PENDING'
           }
@@ -167,12 +192,11 @@ export class TransactionsService {
         // Wait for all ZIP codes to be created
         await Promise.all(zipcodeCreationPromises);
 
-  
         // Create transaction record
         const transaction = await prisma.transaction.create({
           data: {
             amount: pack.price,
-            paymentMethod: 'PayPal',
+            paymentMethod: 'Stripe',
             paymentStatus: 'PENDING',
             subscribePackageId: sub.id,
             userId
@@ -184,88 +208,25 @@ export class TransactionsService {
 
       console.log("ZIP codes created:", zipcodes.length);
 
-      // Get PayPal API credentials
-      const paypalClientId = this.configService.get('PAYPAL_CLIENT_ID');
-      const paypalClientSecret = this.configService.get('PAYPAL_CLIENT_SECRET');
-      const paypalBaseUrl = this.configService.get('PAYPAL_BASE_URL'); // sandbox or live
-      const apiUrl = this.configService.get('API_URL');
+      // Get configuration
       const frontendUrl = this.configService.get('FRONTEND_URL');
 
-      if (!paypalClientId || !paypalClientSecret || !paypalBaseUrl) {
-        throw new InternalServerErrorException('PayPal configuration missing');
-      }
-
-      const generateOrderId = () => {
-        const random = Math.floor(1000 + Math.random() * 9000);
-        const timestamp = Date.now().toString().slice(-4);
-        return `SUB${timestamp}${random}`;
-      };
-
-      const orderId = generateOrderId();
-      console.log("Generated Order ID:", orderId,paypalBaseUrl,paypalClientId,paypalClientSecret);
-
-      // Step 1: Get PayPal Access Token
-      const authResponse = await axios.post(
-        `${paypalBaseUrl}/v1/oauth2/token`,
-        'grant_type=client_credentials',
-        {
-          auth: {
-            username: paypalClientId,
-            password: paypalClientSecret
-          },
-          headers: {
-            'Accept': 'application/json',
-            'Accept-Language': 'en_US',
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        }
-      );
-
-      const accessToken = authResponse.data.access_token;
-      const response = await axios.get(`${paypalBaseUrl}/v1/identity/oauth2/userinfo`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
+      // Create Stripe checkout session
+      const checkoutSession = await this.stripeService.createCheckoutSession({
+        customerId: stripeCustomerId,
+        priceId: pack.stripePriceId,
+        successUrl: `${frontendUrl}/vendor/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${frontendUrl}/vendor/payment-cancel?transactionId=${subscription.transaction.id}`,
+        metadata: {
+          transactionId: subscription.transaction.id.toString(),
+          subscriptionId: subscription.sub.id.toString(),
+          userId: userId.toString(),
+          packageId: packageId.toString(),
+          zipcodes: zipcodes.map(z => z.zipcode).join(','),
+          subscriptionStartDate: subscription.sub.startDate.toISOString(),
+          subscriptionEndDate: subscription.sub.endDate.toISOString()
         }
       });
-      console.log('response:', response.data);
-      console.log('pack.price:', pack.price);
-      console.log('pack.price.toFixed(2):', pack.price.toFixed(2));
-      console.log('pack.name:', pack.name);
-      console.log('orderId:', orderId);
-      console.log('subscription.transaction.id:', subscription.transaction.id);
-      console.log('accessToken exists:', !!accessToken);
-      
-      // Step 2: Create PayPal Order
-      const orderResponse = await axios.post(
-        `${paypalBaseUrl}/v2/checkout/orders`,
-        {
-          intent: 'CAPTURE',
-          purchase_units: [{
-            reference_id: orderId,
-            amount: {
-              currency_code: 'USD',
-              value: pack.price.toFixed(2) 
-            },
-            description: pack.name,
-            custom_id: subscription.transaction.id.toString(),
-          }],
-          application_context: {
-            brand_name: 'App Core Aeration',
-            landing_page: 'BILLING',
-            user_action: 'PAY_NOW',
-            return_url: `${frontendUrl}/vendor/payment-success?transactionId=${subscription.transaction.id}`,
-            cancel_url: `${frontendUrl}/vendor/payment-cancel?transactionId=${subscription.transaction.id}`
-          }
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'PayPal-Request-Id': orderId 
-          }
-        }
-      );
-      console.log('PayPal order creation response:', orderResponse.data);
 
       // Update user package status
       await this.prisma.user.update({
@@ -280,43 +241,21 @@ export class TransactionsService {
         }
       });
 
-      // Save PayPal order ID to our transaction for reference
+      // Save Stripe session ID to our transaction for reference
       await this.prisma.transaction.update({
         where: { id: subscription.transaction.id },
         data: {
-          transactionId: orderResponse.data.id
+          transactionId: checkoutSession.id
         }
       });
 
-      // Find the approval URL from PayPal response
-      const approvalUrl = orderResponse.data.links.find(link => link.rel === 'approve')?.href;
-
-      if (!approvalUrl) {
-        throw new InternalServerErrorException('PayPal approval URL not found');
-      }
-
       return {
-        paymentUrl: approvalUrl,
+        paymentUrl: checkoutSession.url,
         transactionId: subscription.transaction.id,
-        orderId: orderId,
-        paypalOrderId: orderResponse.data.id
+        sessionId: checkoutSession.id
       };
 
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('PayPal API Error:', {
-          status: error.response?.status,
-          data: JSON.stringify(error.response?.data, null, 2), // This will show full details
-          message: error.message
-        });
-        
-        // Also log just the details array specifically
-        if (error.response?.data?.details) {
-          console.error('PayPal Error Details:', JSON.stringify(error.response.data.details, null, 2));
-        }
-        
-        throw new BadRequestException(`Payment creation failed: ${error.response?.data?.message || error.message}`);
-      }
       console.error('Payment session creation failed:', error);
       throw new InternalServerErrorException('Failed to create payment session');
     }
@@ -800,12 +739,61 @@ export class TransactionsService {
       }
     });
   }
+  // Confirm Stripe payment success using session ID
+  async confirmStripePaymentSuccess(sessionId: string) {
+    try {
+      console.log('Confirming Stripe payment success for session:', sessionId);
+      
+      // Find transaction by Stripe session ID
+      const transaction = await this.prisma.transaction.findFirst({
+        where: { transactionId: sessionId },
+        include: { 
+          subscribe_package: {
+            include: {
+              package: true
+            }
+          },
+          user: true
+        }
+      });
+      
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found for this session');
+      }
+      
+      // Check if transaction is already completed
+      if (transaction.paymentStatus === 'COMPLETED') {
+        console.log('Transaction already completed:', transaction.id);
+        const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+        return this.redirect(FRONTEND_URL + '/vendor/dashboard');
+      }
+
+      // For Stripe, the webhook should have already processed the payment
+      // Just verify the transaction status and redirect
+      console.log('Stripe payment confirmation - webhook should have processed payment');
+      
+      const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+      return this.redirect(FRONTEND_URL + '/vendor/dashboard');
+      
+    } catch (error) {
+      console.error('Error confirming Stripe payment success:', error);
+      
+      // Re-throw known exceptions
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      const FRONTEND_URL = this.configService.get('FRONTEND_URL');
+      return this.redirect(FRONTEND_URL + '/vendor/payment-failed');
+    }
+  }
+
   // Confirm payment success and complete the transaction
  async confirmPaymentSuccess(internalTransactionId: string) {
   try {
     console.log('Confirming payment success for internal transaction:', internalTransactionId);
     
-    // Find transaction by your internal ID, not PayPal order ID
+    // Find transaction by your internal ID
     const transaction = await this.prisma.transaction.findFirst({
       where: { id: parseInt(internalTransactionId) },
       include: { 
@@ -823,7 +811,7 @@ export class TransactionsService {
     }
 
     if (!transaction.transactionId) {
-      throw new BadRequestException('PayPal order ID not found for this transaction');
+      throw new BadRequestException('Payment transaction ID not found for this transaction');
     }
     
     // Check if transaction is already completed
@@ -833,16 +821,23 @@ export class TransactionsService {
       return this.redirect(FRONTEND_URL + '/vendor/dashboard');
     }
 
-    // FIRST: Capture the payment with PayPal using the stored PayPal order ID
-    const captureResult = await this.capturePayPalPayment(transaction.transactionId);
-    console.log('PayPal capture result:', captureResult);
-    
-    // Verify the capture was successful
-    const captureStatus = captureResult.status;
-    const captureDetails = captureResult.purchase_units?.[0]?.payments?.captures?.[0];
-    
-    if (captureStatus !== 'COMPLETED' || captureDetails?.status !== 'COMPLETED') {
-      throw new BadRequestException('Payment capture failed');
+    // Handle different payment methods
+    if (transaction.paymentMethod === 'PayPal') {
+      // PayPal payment confirmation
+      const captureResult = await this.capturePayPalPayment(transaction.transactionId);
+      console.log('PayPal capture result:', captureResult);
+      
+      // Verify the capture was successful
+      const captureStatus = captureResult.status;
+      const captureDetails = captureResult.purchase_units?.[0]?.payments?.captures?.[0];
+      
+      if (captureStatus !== 'COMPLETED' || captureDetails?.status !== 'COMPLETED') {
+        throw new BadRequestException('Payment capture failed');
+      }
+    } else if (transaction.paymentMethod === 'Stripe') {
+      // For Stripe, the webhook should have already processed the payment
+      // Just verify the transaction status
+      console.log('Stripe payment confirmation - checking webhook status');
     }
     
     // Use database transaction to ensure consistency
@@ -881,7 +876,7 @@ export class TransactionsService {
     
     // Handle PayPal API errors specifically
     if (error.response && error.response.status === 404) {
-      throw new BadRequestException('PayPal order not found - payment may have already been processed or cancelled');
+      throw new BadRequestException('Payment order not found - payment may have already been processed or cancelled');
     }
     
     const FRONTEND_URL = this.configService.get('FRONTEND_URL');
@@ -1228,5 +1223,293 @@ export class TransactionsService {
       headers: { Location: url },
       body: null
     };
+  }
+
+  // Handle Stripe webhooks
+  async handleStripeWebhook(rawBody: any, signature: string) {
+    try {
+      const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET');
+      if (!webhookSecret) {
+        throw new InternalServerErrorException('Stripe webhook secret not configured');
+      }
+
+      console.log('Raw body for verification:', rawBody);
+      console.log('Signature for verification:', signature);
+      console.log('Webhook secret configured:', !!webhookSecret);
+
+      // Verify webhook signature with raw body
+      const event = this.stripeService.constructWebhookEvent(rawBody, signature, webhookSecret);
+
+      console.log('Received Stripe webhook:', event.type);
+      console.log('Event data:', JSON.stringify(event.data, null, 2));
+
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await this.handleCheckoutSessionCompleted(event.data.object);
+          break;
+
+        case 'payment_intent.succeeded':
+          await this.handlePaymentIntentSucceeded(event.data.object);
+          break;
+
+        case 'customer.subscription.created':
+          await this.handleSubscriptionCreated(event.data.object);
+          break;
+
+        case 'customer.subscription.updated':
+          await this.handleSubscriptionUpdated(event.data.object);
+          break;
+
+        case 'customer.subscription.deleted':
+          await this.handleSubscriptionDeleted(event.data.object);
+          break;
+
+        case 'invoice.payment_succeeded':
+          await this.handleInvoicePaymentSucceeded(event.data.object);
+          break;
+
+        case 'invoice.payment_failed':
+          await this.handleInvoicePaymentFailed(event.data.object);
+          break;
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      return { received: true };
+    } catch (error) {
+      console.error('Stripe webhook error:', error);
+      throw new InternalServerErrorException('Webhook processing failed');
+    }
+  }
+
+  private async handlePaymentIntentSucceeded(paymentIntent: any) {
+    try {
+      console.log('Processing payment_intent.succeeded:', paymentIntent.id);
+      console.log('Payment intent customer:', paymentIntent.customer);
+      
+      // Find the transaction by customer ID (since we store checkout session ID in transactionId)
+      // We need to find the most recent PENDING transaction for this customer
+      let transaction = await this.prisma.transaction.findFirst({
+        where: {
+          paymentStatus: 'PENDING',
+          subscribe_package: {
+            user: {
+              stripeCustomerId: paymentIntent.customer
+            }
+          }
+        },
+        include: {
+          subscribe_package: {
+            include: {
+              user: true,
+              package: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      if (!transaction) {
+        console.log('No PENDING transaction found for customer:', paymentIntent.customer);
+        return;
+      }
+
+      console.log('Found transaction:', transaction.id, 'for customer:', paymentIntent.customer);
+
+      // Update transaction status to COMPLETED
+      await this.prisma.transaction.update({
+        where: { id: transaction.id },
+        data: {
+          paymentStatus: 'COMPLETED',
+          transactionId: paymentIntent.id // Store the payment intent ID
+        }
+      });
+
+      // Update subscription status to ACTIVE
+      if (transaction.subscribe_package) {
+        await this.prisma.subscribePackage.update({
+          where: { id: transaction.subscribe_package.id },
+          data: { status: 'ACTIVE' }
+        });
+
+        // Update user's package active status
+        await this.prisma.user.update({
+          where: { id: transaction.subscribe_package.userId },
+          data: { packageActive: 'YES' }
+        });
+
+        console.log('Updated subscription to ACTIVE for user:', transaction.subscribe_package.userId);
+      }
+
+      console.log('Payment intent succeeded processed:', paymentIntent.id);
+    } catch (error) {
+      console.error('Error handling payment intent succeeded:', error);
+    }
+  }
+
+  private async handleCheckoutSessionCompleted(session: any) {
+    try {
+      const transactionId = session.metadata?.transactionId;
+      const subscriptionId = session.metadata?.subscriptionId;
+
+      if (!transactionId || !subscriptionId) {
+        console.error('Missing metadata in checkout session:', session.id);
+        return;
+      }
+
+      // Update transaction status
+      await this.prisma.transaction.update({
+        where: { id: parseInt(transactionId) },
+        data: {
+          paymentStatus: 'COMPLETED',
+          transactionId: session.id
+        }
+      });
+
+      // Update subscription status
+      await this.prisma.subscribePackage.update({
+        where: { id: parseInt(subscriptionId) },
+        data: {
+          status: 'ACTIVE',
+          stripeSubscriptionId: session.subscription
+        }
+      });
+
+      // Update user package status
+      const subscription = await this.prisma.subscribePackage.findUnique({
+        where: { id: parseInt(subscriptionId) },
+        include: { package: true, user: true }
+      });
+
+      if (subscription) {
+        await this.prisma.user.update({
+          where: { id: subscription.userId },
+          data: {
+            packageActive: 'YES'
+          }
+        });
+      }
+
+      console.log('Checkout session completed successfully:', session.id);
+    } catch (error) {
+      console.error('Error handling checkout session completed:', error);
+    }
+  }
+
+  private async handleSubscriptionCreated(subscription: any) {
+    try {
+      console.log('Subscription created:', subscription.id);
+      // Additional logic for subscription creation if needed
+    } catch (error) {
+      console.error('Error handling subscription created:', error);
+    }
+  }
+
+  private async handleSubscriptionUpdated(subscription: any) {
+    try {
+      const dbSubscription = await this.prisma.subscribePackage.findFirst({
+        where: { stripeSubscriptionId: subscription.id }
+      });
+
+      if (dbSubscription) {
+        // Update subscription status based on Stripe status
+        let status = 'ACTIVE';
+        if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
+          status = 'INACTIVE';
+        }
+
+        await this.prisma.subscribePackage.update({
+          where: { id: dbSubscription.id },
+          data: { status }
+        });
+
+        console.log('Subscription updated:', subscription.id);
+      }
+    } catch (error) {
+      console.error('Error handling subscription updated:', error);
+    }
+  }
+
+  private async handleSubscriptionDeleted(subscription: any) {
+    try {
+      const dbSubscription = await this.prisma.subscribePackage.findFirst({
+        where: { stripeSubscriptionId: subscription.id }
+      });
+
+      if (dbSubscription) {
+        await this.prisma.subscribePackage.update({
+          where: { id: dbSubscription.id },
+          data: { status: 'INACTIVE' }
+        });
+
+        console.log('Subscription deleted:', subscription.id);
+      }
+    } catch (error) {
+      console.error('Error handling subscription deleted:', error);
+    }
+  }
+
+  private async handleInvoicePaymentSucceeded(invoice: any) {
+    try {
+      if (invoice.subscription) {
+        const dbSubscription = await this.prisma.subscribePackage.findFirst({
+          where: { stripeSubscriptionId: invoice.subscription }
+        });
+
+        if (dbSubscription) {
+          // Extend subscription end date by exactly 1 year from current end date
+          const newEndDate = new Date(dbSubscription.endDate);
+          newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+
+          await this.prisma.subscribePackage.update({
+            where: { id: dbSubscription.id },
+            data: {
+              endDate: newEndDate,
+              status: 'ACTIVE'
+            }
+          });
+
+          // Create new transaction record for renewal
+          await this.prisma.transaction.create({
+            data: {
+              amount: invoice.amount_paid / 100, // Convert from cents
+              paymentMethod: 'Stripe',
+              paymentStatus: 'COMPLETED',
+              transactionId: invoice.id,
+              subscribePackageId: dbSubscription.id,
+              userId: dbSubscription.userId
+            }
+          });
+
+          console.log('Invoice payment succeeded:', invoice.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling invoice payment succeeded:', error);
+    }
+  }
+
+  private async handleInvoicePaymentFailed(invoice: any) {
+    try {
+      if (invoice.subscription) {
+        const dbSubscription = await this.prisma.subscribePackage.findFirst({
+          where: { stripeSubscriptionId: invoice.subscription }
+        });
+
+        if (dbSubscription) {
+          await this.prisma.subscribePackage.update({
+            where: { id: dbSubscription.id },
+            data: { status: 'PAYMENT_FAILED' }
+          });
+
+          console.log('Invoice payment failed:', invoice.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling invoice payment failed:', error);
+    }
   }
 }

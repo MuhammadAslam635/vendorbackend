@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PackageModule } from './package/package.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { SubscribepackageModule } from './subscribepackage/subscribepackage.module';
+import { StripeModule } from './stripe/stripe.module';
 
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -32,6 +33,7 @@ import { VendorModule } from './vendor/vendor.module';
     PackageModule,
     TransactionsModule,
     SubscribepackageModule,
+    StripeModule,
     ZipcodeModule,
     MailerModule.forRoot({
       transport: {

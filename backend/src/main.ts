@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -12,6 +13,9 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname,'..','..', 'public'), {
     prefix: '/public', // This adds /public prefix to URLs
   });
+
+  // Add raw body middleware for Stripe webhooks
+  app.use('/transactions/webhook/stripe', express.raw({ type: 'application/json' }));
 
   const config = new DocumentBuilder()
     .setTitle('Vendor App')
@@ -23,7 +27,7 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  await app.listen(process.env.PORT ?? 3000);
+  // Add request logging middleware before listening
   app.use((req, res, next) => {
     console.log('Incoming request:', {
       method: req.method,
@@ -33,5 +37,7 @@ async function bootstrap() {
     });
     next();
   });
+
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
