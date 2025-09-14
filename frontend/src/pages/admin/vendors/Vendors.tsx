@@ -291,6 +291,7 @@ const Vendors = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>S.No</TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>UType</TableHead>
@@ -302,8 +303,11 @@ const Vendors = () => {
                             </TableHeader>
                             <TableBody>
                                 {currentRows.length > 0 ? (
-                                    currentRows.map((user) => (
+                                    currentRows.map((user, index) => (
                                         <TableRow key={user.id}>
+                                            <TableCell className="font-medium text-center">
+                                                {filteredUsers.length - (indexOfFirstRow + index)}
+                                            </TableCell>    
                                             <TableCell className="font-medium">{user.name}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>
@@ -453,7 +457,7 @@ const Vendors = () => {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                        <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                                             No users found matching your filters.
                                         </TableCell>
                                     </TableRow>
