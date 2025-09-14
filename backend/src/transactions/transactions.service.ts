@@ -89,6 +89,49 @@ export class TransactionsService {
       throw new BadRequestException('Failed to update transaction');
     }
   }
+  async verifyZipcodes(userId: number, packageId: number, createZipcodeDto: ZipcodeDto) {
+    try {
+      const { zipcodes } = createZipcodeDto;
+      
+      // Validate ZIP codes don't already exist
+      const existingZipcodes = await this.prisma.zipCode.findMany({
+        where: {
+          AND: [
+            {
+              zipcode: {
+                in: zipcodes.map(z => z.zipcode)
+              }
+            },
+            {
+              userId: userId
+            }
+          ]
+        }
+      });
+
+      if (existingZipcodes.length > 0) {
+        const duplicateZipcodes = existingZipcodes.map(z => z.zipcode);
+        return {
+          success: false,
+          error: 'DUPLICATE_ZIPCODES',
+          message: `You already have the following ZIP codes in your account: ${duplicateZipcodes.join(', ')}`,
+          duplicateZipcodes: duplicateZipcodes,
+          availableZipcodes: zipcodes
+            .map(z => z.zipcode)
+            .filter(zipcode => !duplicateZipcodes.includes(zipcode))
+        };
+      }
+
+      return {
+        success: true,
+        message: 'All ZIP codes are available for this package'
+      };
+    } catch (error) {
+      console.error('Error verifying ZIP codes:', error);
+      throw new BadRequestException('Failed to verify ZIP codes');
+    }
+  }
+
   async createPaymentSession(userId: number, packageId: number, createZipcodeDto: ZipcodeDto) {
     try {
       const { zipcodes } = createZipcodeDto;

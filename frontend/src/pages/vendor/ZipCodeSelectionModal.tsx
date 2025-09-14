@@ -13,6 +13,7 @@ interface ZipCodeSelectionModalProps {
   onProceedToPayment: (zipcodes: string[]) => void;
   packageName: string;
   maxZipcodes: number;
+  packageId: number;
 }
 
 const ZipCodeSelectionModal = ({ 
@@ -20,7 +21,8 @@ const ZipCodeSelectionModal = ({
   onClose, 
   onProceedToPayment, 
   packageName, 
-  maxZipcodes
+  maxZipcodes,
+  packageId
 }: ZipCodeSelectionModalProps) => {
   const [newZipcode, setNewZipcode] = useState("");
   const [selectedZipcodes, setSelectedZipcodes] = useState<string[]>([]);
@@ -29,6 +31,7 @@ const ZipCodeSelectionModal = ({
   const [isFetchingZipcodes, setIsFetchingZipcodes] = useState(false);
   const [conflictingZipcodes, setConflictingZipcodes] = useState<string[]>([]);
   const [showConflictAlert, setShowConflictAlert] = useState(false);
+  const [isRemovingZipcode, setIsRemovingZipcode] = useState<string | null>(null);
 
   // Fetch existing ZIP codes from backend
   // Updated code for extracting ZIP codes from the API response
@@ -176,8 +179,53 @@ const fetchExistingZipcodes = async () => {
       toast.error(`Cannot proceed: You already have ${conflicts.join(', ')} in your account. Please remove them and add different ZIP codes.`);
       return;
     }
-    
-    onProceedToPayment(selectedZipcodes);
+
+    // Verify zipcodes with backend before proceeding to payment
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token not found. Please login again.');
+        return;
+      }
+
+      // Use the packageId passed as prop
+
+      const requestBody = {
+        zipcodes: selectedZipcodes.map((zipcode) => ({
+          zipcode: zipcode.trim(),
+        })),
+      };
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/transactions/verify-zipcodes/${packageId}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        // All zipcodes are available, proceed to payment
+        onProceedToPayment(selectedZipcodes);
+      } else if (data.error === 'DUPLICATE_ZIPCODES') {
+        // Show notification that zipcodes already exist
+        toast.error(data.message);
+        return;
+      } else {
+        toast.error('Failed to verify ZIP codes. Please try again.');
+        return;
+      }
+    } catch (error) {
+      console.error('Error verifying ZIP codes:', error);
+      toast.error('Failed to verify ZIP codes. Please try again.');
+      return;
+    }
   };
 
   const handleClose = () => {
@@ -193,6 +241,67 @@ const fetchExistingZipcodes = async () => {
     const cleanedSelection = selectedZipcodes.filter(zipcode => !conflictingZipcodes.includes(zipcode));
     setSelectedZipcodes(cleanedSelection);
     toast.success(`Removed ${conflictingZipcodes.length} conflicting ZIP code${conflictingZipcodes.length > 1 ? 's' : ''}`);
+  };
+
+  // Function to remove existing zipcode from user's account
+  const handleRemoveExistingZipcode = async (zipcode: string) => {
+    try {
+      setIsRemovingZipcode(zipcode);
+      
+      // First, find the zipcode ID from the existing zipcodes
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/subscribepackage/my/all/packages`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      let zipcodeId = null;
+      
+      // Find the zipcode ID
+      if (data.zipCodes && Array.isArray(data.zipCodes)) {
+        const zipcodeObj = data.zipCodes.find((zip: any) => 
+          zip.zipcode === zipcode || zip.code === zipcode
+        );
+        if (zipcodeObj) {
+          zipcodeId = zipcodeObj.id;
+        }
+      }
+      
+      if (!zipcodeId) {
+        throw new Error('ZIP code ID not found');
+      }
+      
+      // Remove the zipcode
+      const deleteResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/zipcode/${zipcodeId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      
+      if (!deleteResponse.ok) {
+        throw new Error(`Failed to delete ZIP code: ${deleteResponse.status}`);
+      }
+      
+      // Update the existing zipcodes list
+      setExistingZipcodes(prev => prev.filter(z => z !== zipcode));
+      
+      // If this zipcode was in the selected list, remove it from there too
+      setSelectedZipcodes(prev => prev.filter(z => z !== zipcode));
+      
+      toast.success(`ZIP code ${zipcode} removed successfully`);
+      
+    } catch (error) {
+      console.error('Error removing ZIP code:', error);
+      toast.error('Failed to remove ZIP code. Please try again.');
+    } finally {
+      setIsRemovingZipcode(null);
+    }
   };
 
   const canAddMore = selectedZipcodes.length < maxZipcodes;
@@ -278,6 +387,54 @@ const fetchExistingZipcodes = async () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Existing ZIP Codes Section */}
+          {existingZipcodes.length > 0 && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-blue-600" />
+                    Your Existing ZIP Codes ({existingZipcodes.length})
+                  </span>
+                  <span className="text-sm font-normal text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                    Click X to remove
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {existingZipcodes.map((zipcode, index) => (
+                    <div
+                      key={`existing-${zipcode}-${index}`}
+                      className="px-3 py-2 rounded-lg flex items-center gap-2 bg-blue-100 border border-blue-300 hover:bg-blue-200 transition-colors"
+                    >
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium text-blue-800">
+                        {zipcode}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingZipcode(zipcode)}
+                        className="transition-colors p-1 rounded text-blue-600 hover:text-red-600 hover:bg-red-100"
+                        disabled={isRemovingZipcode === zipcode}
+                        title="Remove ZIP code from your account"
+                      >
+                        {isRemovingZipcode === zipcode ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-blue-700 mt-2">
+                  These ZIP codes are already in your account. Remove them if you want to add them to this new package.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* ZIP Code Input Section */}
           <Card>
@@ -397,7 +554,7 @@ const fetchExistingZipcodes = async () => {
                             <button
                               type="button"
                               onClick={() => handleRemoveZipcode(zipcode)}
-                              className={`transition-colors p-1 rounded ${
+                              className={`transition-colors p-1 rounded bg-[#fb3936] ${
                                 isConflicting 
                                   ? 'text-red-600 hover:text-red-800 hover:bg-red-200' 
                                   : 'text-[#a0b830] hover:text-red-500 hover:bg-red-50'
@@ -405,7 +562,7 @@ const fetchExistingZipcodes = async () => {
                               disabled={isLoading}
                               title="Remove ZIP code"
                             >
-                              <X className="h-4 w-4" />
+                              <X className="h-4 w-4 text-[#a0b830]" />
                             </button>
                           </div>
                         );

@@ -306,6 +306,7 @@ const Subscription = () => {
           onProceedToPayment={handleZipCodeSelectionComplete}
           packageName={selectedPackage.name}
           maxZipcodes={getTotalZipcodes()}
+          packageId={selectedPackage.id}
         />
       )}
 

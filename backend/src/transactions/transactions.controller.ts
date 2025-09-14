@@ -61,6 +61,29 @@ export class TransactionsController {
     }
   }
   @UseGuards(JwtAuthGuard)
+  @Post('verify-zipcodes/:packageId')
+  async verifyZipcodes(
+    @Param('packageId') packageId: string,
+    @Request() req,
+    @Body() createZipcodeDto: ZipcodeDto
+  ) {
+    if (!packageId) {
+      throw new BadRequestException('Package ID is required');
+    }
+    
+    // Validate zipcodes array
+    if (!createZipcodeDto.zipcodes || !Array.isArray(createZipcodeDto.zipcodes)) {
+      throw new BadRequestException('Invalid zipcodes format');
+    }
+  
+    return this.transactionsService.verifyZipcodes(
+      req.user.userId, 
+      +packageId, 
+      createZipcodeDto
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('create-session/:packageId')
   async createPaymentSession(
     @Param('packageId') packageId: string,

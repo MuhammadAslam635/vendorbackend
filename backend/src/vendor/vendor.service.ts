@@ -51,8 +51,8 @@ export class VendorService {
     const searchUrl = zipcode ? `${frontendUrl}/search-vendors?search=${zipcode}` : `${frontendUrl}/vendor-search`;
     
     // Determine which SVG to show based on vendorType
-    const svgFile = vendor.vendorType === 'RENTAL' ? '3.svg' : 
-                    vendor.vendorType === 'SALES' ? '2.svg' : '1.svg';
+    const svgFile = vendor.vendorType === 'RENTAL' ? '3.png' : 
+                    vendor.vendorType === 'SALES' ? '2.png' : '1.png';
     const svgUrl = `${backendUrl}/public/uploads/${svgFile}`;
     console.log("first svgUrl",svgUrl)
     
