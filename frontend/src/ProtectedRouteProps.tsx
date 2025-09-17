@@ -21,7 +21,7 @@ export interface Package {
     description: string;
 }
 
-export interface User {
+export interface  User {
   id: number;
   email: string;
   name: string;
@@ -46,11 +46,27 @@ export interface User {
   createdAt: Date;
   packageActive: string;
   vendorType?: VendorType;
-  zipcodes?: Zipcode[];
   package?: Package;
   gallery?: Gallery[];
   permissions?:Permission[];
   routes?:Route[];
+  subscribe_packages?: SubscribePackage[];
+}
+
+export interface SubscribePackage {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  zipCodes: Zipcode[];
+  status: string;
+  startDate: string;
+  endDate: string;
+  packageId: number;
+  userId: number;
+  stripeSubscriptionId?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Gallery {

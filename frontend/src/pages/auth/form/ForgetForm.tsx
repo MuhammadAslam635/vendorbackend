@@ -60,15 +60,13 @@ const ForgetForm = () => {
                 localStorage.setItem('passwordResetUserId', userId);
             }
             
-            console.log("Redirecting to reset password page with userId:", userId);
+            console.log("Password reset link sent successfully");
             
             // Small delay to allow the toast to be seen
-            setTimeout(() => {
-                window.location.href = `/reset-password/${userId}`;
-            }, 1500);
+            toast.success("Password reset link sent successfully");
             
         } catch (error: any) {
-            console.error("Forgot password error:", error);
+            console.error("Failed to send reset link");
             const errorMessage = error.response?.data?.message || "Failed to send reset link";
             toast.error(errorMessage);
         } finally {

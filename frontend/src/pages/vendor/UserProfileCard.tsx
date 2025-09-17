@@ -274,7 +274,7 @@ const UserProfileCard = ({ user, onCompleteProfile, refreshUserData }: UserProfi
       )}
 
        {/* Package Status */}
-       <div className="mt-6 text-center mt-1">
+       <div className="mt-6 text-center mb-1">
         <span className="inline-flex items-center px-4 py-2 rounded-full bg-green-50 text-green-700 text-sm font-medium">
           <Package className="w-4 h-4 mr-2" />
           Active Package

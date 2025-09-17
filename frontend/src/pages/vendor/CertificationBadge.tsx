@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Copy, Download, Settings } from 'lucide-react';
+import { Copy,Settings } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
@@ -127,18 +127,18 @@ const CertificationBadge = () => {
     }
   };
 
-  const downloadScript = () => {
-    const blob = new Blob([badgeScript], { type: 'text/javascript' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'certified-vendor-badge.js';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success('Script downloaded!');
-  };
+  // const downloadScript = () => {
+  //   const blob = new Blob([badgeScript], { type: 'text/javascript' });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = 'certified-vendor-badge.js';
+  //   document.body.appendChild(a);
+  //   a.click();
+  //   document.body.removeChild(a);
+  //   URL.revokeObjectURL(url);
+  //   toast.success('Script downloaded!');
+  // };
 
 
 
@@ -237,7 +237,7 @@ const CertificationBadge = () => {
         </Card>
 
         {/* Debug Section - Remove this in production */}
-        <Card className="border-orange-200 bg-orange-50">
+        {/* <Card className="border-orange-200 bg-orange-50">
           <CardHeader>
             <CardTitle className="text-orange-800">Debug Info (Remove in Production)</CardTitle>
           </CardHeader>
@@ -256,10 +256,10 @@ const CertificationBadge = () => {
               )}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Generated Script */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Generated Script</CardTitle>
             <CardDescription>
@@ -311,7 +311,7 @@ const CertificationBadge = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Badge */}
         {badgeData?.badgeHtml && (
@@ -363,7 +363,13 @@ const CertificationBadge = () => {
                           'VENDOR'
                         }
                         vendorId={user?.id || 0}
-                        zipcode={user?.zipcodes?.[0]?.zipcode}
+                        zipcode={(() => {
+                          // Find the first active package that has at least one zipcode
+                          const activePackageWithZipcodes = user?.subscribe_packages?.find(
+                            pkg => pkg.status === 'ACTIVE' && pkg.zipCodes && pkg.zipCodes.length > 0
+                          );
+                          return activePackageWithZipcodes?.zipCodes?.[0]?.zipcode;
+                        })()}
                       />
                     ) : (
                       <div className="text-center">

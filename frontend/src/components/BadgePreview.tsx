@@ -40,15 +40,15 @@ const BadgePreview: React.FC<BadgePreviewProps> = ({ vendorType, zipcode }) => {
     <div
       onClick={handleBadgeClick}
       style={{
-        width: '200px',
-        height: '60px',
+        width: '50px',
+        height: '50px',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        padding: '8px 12px',
+        gap: '10px',
+        padding: '8px 10px',
         backgroundColor: '#ffffff',
-        border: '2px solid #3b82f6',
-        borderRadius: '8px',
+        border: '2px solid #7CB342',
+        borderRadius: '6px',
         cursor: 'pointer',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         transition: 'all 0.2s ease'
@@ -66,20 +66,13 @@ const BadgePreview: React.FC<BadgePreviewProps> = ({ vendorType, zipcode }) => {
         src={getSvgFile()}
         alt={`${vendorType} Badge`}
         style={{
-          width: '32px',
-          height: '32px',
-          flexShrink: 0
+          width: '42px',
+          height: '42px',
+          borderRadius: '6px',
+          flexShrink: 0,
+          objectFit: 'cover',
         }}
       />
-      <span style={{
-        fontSize: '12px',
-        fontWeight: '600',
-        color: '#1e40af',
-        textAlign: 'center',
-        flex: 1
-      }}>
-        Certified Badge
-      </span>
     </div>
   );
 };

@@ -159,8 +159,14 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: {id, },
       include: {
-        zipcodes: true,
-        subscribe_packages: true,
+        subscribe_packages: {
+          where: {
+            status: 'ACTIVE'
+          },
+          include: {
+            zipCodes: true
+          }
+        },
         gallery: true,
         permissions:true,
         routes:true

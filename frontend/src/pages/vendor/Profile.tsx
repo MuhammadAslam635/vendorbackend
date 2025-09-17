@@ -140,20 +140,30 @@ const Profile = () => {
                 <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
                   Service Areas (ZIP Codes)
                 </h3>
-                {user.zipcodes && user.zipcodes.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {user.zipcodes.map((zipcode: Zipcode) => (
-                      <div 
-                        key={zipcode.id}
-                        className="bg-gray-50 rounded-lg p-3 text-center"
-                      >
-                        <span className="font-medium text-gray-700">{zipcode.zipcode}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-600 italic">No ZIP codes added yet.</p>
-                )}
+                {(() => {
+                  // Collect all zipcodes from all active subscribe_packages
+                  const allZipcodes = user.subscribe_packages?.reduce((acc: any[], packageItem) => {
+                    if (packageItem.status === 'ACTIVE' && packageItem.zipCodes && packageItem.zipCodes.length > 0) {
+                      return [...acc, ...packageItem.zipCodes];
+                    }
+                    return acc;
+                  }, []) || [];
+
+                  return allZipcodes.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {allZipcodes.map((zipcode: Zipcode) => (
+                        <div 
+                          key={zipcode.id}
+                          className="bg-gray-50 rounded-lg p-3 text-center"
+                        >
+                          <span className="font-medium text-gray-700">{zipcode.zipcode}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600 italic">No ZIP codes added yet.</p>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>

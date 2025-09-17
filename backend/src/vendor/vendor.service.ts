@@ -207,127 +207,34 @@ export class VendorService {
       data: {
         script: widgetScript,
         badgeData: {
-          badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
-     style="cursor: pointer; 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: flex-start; 
-            border: 2px solid #7CB342; 
-            border-radius: 12px; 
-            padding: 10px 15px; 
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-            transition: all 0.3s ease; 
-            font-family: Arial, sans-serif; 
-            min-width: 200px; 
-            max-width: 280px;"
+          badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 50px; height: 50px;flex-shrink: 0; object-fit: cover;"
      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
      
     <img src="${svgUrl}" 
          alt="Core Aeration Certified Vendor" 
-         style="width: 45px; 
-                height: 45px; 
-                border-radius: 8px; 
-                margin-right: 12px; 
-                flex-shrink: 0;" />
-                
-    <div style="display: flex; 
-                flex-direction: column; 
-                align-items: flex-start;">
-        <h3 style="margin: 0; 
-                   font-size: 14px; 
-                   font-weight: bold; 
-                   color: #7CB342; 
-                   line-height: 1.2;">Certificate Badge</h3>
-        <span style="font-size: 10px; 
-                     color: #666; 
-                     margin-top: 2px;">Verified Vendor</span>
-    </div>
-    
-    <div style="margin-left: auto; 
-                width: 16px; 
-                height: 16px; 
-                background: #28a745; 
-                border-radius: 50%; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center;">
-        <span style="color: white; 
-                     font-size: 10px; 
-                     font-weight: bold;">✓</span>
-    </div>
-</div>`,
-          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
-     style="cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            border: 2px solid #7CB342; 
-            border-radius: 12px; 
-            padding: 8px 12px; 
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-            transition: all 0.3s ease; 
-            font-family: Arial, sans-serif; 
-            width: 100%;
-            max-width: 280px;
-            min-width: 120px;
-            height: 60px;
-            box-sizing: border-box;
-            overflow: hidden;
-            position: relative;
-     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
-     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
-     
-    <img src="${svgUrl}" 
-         alt="Core Aeration Certified Vendor" 
-         style="width: 36px; 
-                height: 36px; 
+         style="width: 42px; 
+                height: 42px; 
                 border-radius: 6px; 
                 flex-shrink: 0;
                 object-fit: cover;" />
                 
-    <div style="display: flex; 
-                flex-direction: column; 
-                align-items: flex-start;
-                justify-content: center;
-                flex: 1;
-                margin-left: 10px;
-                margin-right: 8px;
-                min-width: 0;
-                overflow: hidden;">
-        <h3 style="margin: 0; 
-                   font-size: 12px; 
-                   font-weight: bold; 
-                   color: #7CB342; 
-                   line-height: 1.2;
-                   white-space: nowrap;
-                   overflow: hidden;
-                   text-overflow: ellipsis;
-                   width: 100%;">Certificate Badge</h3>
-        <span style="font-size: 9px; 
-                     color: #666; 
-                     margin-top: 1px;
-                     white-space: nowrap;
-                     overflow: hidden;
-                     text-overflow: ellipsis;
-                     width: 100%;">Verified Vendor</span>
-    </div>
     
-    <div style="width: 20px; 
-                height: 20px; 
-                background: #28a745; 
-                border-radius: 50%; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center;
-                flex-shrink: 0;">
-        <span style="color: white; 
-                     font-size: 12px; 
-                     font-weight: bold;
-                     line-height: 1;">✓</span>
-    </div>
+    
+    
+</div>`,
+          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 50px; height: 50px;flex-shrink: 0; object-fit: cover;" 
+     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+     
+    <img src="${svgUrl}" 
+         alt="Core Aeration Certified Vendor" 
+         style="width: 42px; 
+                height: 42px; 
+                border-radius: 6px; 
+                flex-shrink: 0;
+                object-fit: cover;" />
+     
 </div>`,
           previewUrl: `${searchUrl}`,
           badgeType: 'Vendor Services',
@@ -446,16 +353,7 @@ export class VendorService {
 
     // Build the logo HTML conditionally
     const logoHtml = customizeDto.showLogo !== false ? `
-      <div style="
-        width: 40px;
-        height: 40px;
-        background: white;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      ">
+      <div >
         \${vendorData.logo ? 
           \`<img src="\${vendorData.logo}" alt="Logo" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">\` : 
           \`<svg width="24" height="24" fill="#a0b830" viewBox="0 0 24 24"><path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/></svg>\`
@@ -466,16 +364,7 @@ export class VendorService {
     // Build the appreciation status HTML conditionally
     const appreciationHtml = customizeDto.showAppreciationStatus !== false ? `
       \${vendorData.certified ? 
-        \`<div style="
-          width: 20px;
-          height: 20px;
-          background: #22c55e;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        ">
+        \`<div>
           <svg width="12" height="12" fill="white" viewBox="0 0 24 24">
             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
           </svg>

@@ -23,6 +23,7 @@ const VendorDashboard = () => {
         }
       });
       setUser(response.data);
+      console.log('user',response.data);
       // setZipcodes(response.data.zipcodes || []);
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -41,9 +42,17 @@ const VendorDashboard = () => {
 
   // Function to safely transform User to UserProfile
   const getUserProfile = (user: User): UserProfile => {
+    // Collect all zipcodes from all active subscribe_packages
+    const allZipcodes = user.subscribe_packages?.reduce((acc: any[], packageItem) => {
+      if (packageItem.status === 'ACTIVE' && packageItem.zipCodes && packageItem.zipCodes.length > 0) {
+        return [...acc, ...packageItem.zipCodes];
+      }
+      return acc;
+    }, []) || [];
+
     return {
       ...user,
-      zipcodes: user.zipcodes || [] // Ensure zipcodes is always an array
+      zipcodes: allZipcodes // All zipcodes from all active packages
     };
   };
 
