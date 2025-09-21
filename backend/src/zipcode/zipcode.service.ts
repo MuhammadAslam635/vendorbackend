@@ -136,6 +136,9 @@ export class ZipcodeService {
         user: {
           status: 'ACTIVE',
         },
+        subscribe_package: {
+          status: 'ACTIVE',
+        },
       },
       include: {
         user: true,

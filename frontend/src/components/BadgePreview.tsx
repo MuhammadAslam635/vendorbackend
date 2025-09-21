@@ -40,8 +40,8 @@ const BadgePreview: React.FC<BadgePreviewProps> = ({ vendorType, zipcode }) => {
     <div
       onClick={handleBadgeClick}
       style={{
-        width: '50px',
-        height: '50px',
+        width: '120px',
+        height: '120px',
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
@@ -66,8 +66,8 @@ const BadgePreview: React.FC<BadgePreviewProps> = ({ vendorType, zipcode }) => {
         src={getSvgFile()}
         alt={`${vendorType} Badge`}
         style={{
-          width: '42px',
-          height: '42px',
+          width: '110px',
+          height: '110px',
           borderRadius: '6px',
           flexShrink: 0,
           objectFit: 'cover',
