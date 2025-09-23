@@ -48,11 +48,12 @@ export class VendorService {
     
     // Get a zipcode for the search URL, fallback to empty string if none available
     const zipcode = vendor.zipcodes && vendor.zipcodes.length > 0 ? vendor.zipcodes[0].zipcode : '';
-    const searchUrl = zipcode ? `${frontendUrl}/search-vendors?search=${zipcode}` : `${frontendUrl}/vendor-search`;
+    // const searchUrl = zipcode ? `${frontendUrl}/search-vendors?search=${zipcode}` : `${frontendUrl}/vendor-search`;
+    const searchUrl = 'https://coreaeration.com';
     
     // Determine which SVG to show based on vendorType
     const svgFile = vendor.vendorType === 'RENTAL' ? '3.png' : 
-                    vendor.vendorType === 'SALES' ? '2.png' : '1.png';
+                    vendor.vendorType === 'SALES' ? '1.png' : '2.png';
     const svgUrl = `${backendUrl}/public/uploads/${svgFile}`;
     console.log("first svgUrl",svgUrl)
     
