@@ -8,10 +8,10 @@ export class VendorService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async generateBadgeScript(vendorId: number) {
-    
+
     // Get vendor information
     const vendor = await this.prisma.user.findUnique({
       where: { id: vendorId, utype: 'VENDOR' },
@@ -42,24 +42,24 @@ export class VendorService {
     const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://coreaeration.com';
     const backendUrl = this.configService.get('BACKEND_URL') || 'https://coreaeration.com/backend';
     const appName = this.configService.get('APPNAME') || 'Core Aeration';
-    
+
     // Use the existing logo from public/uploads/logo.png
     const logoUrl = `${backendUrl}/public/uploads/logo.png`;
-    
+
     // Get a zipcode for the search URL, fallback to empty string if none available
     const zipcode = vendor.zipcodes && vendor.zipcodes.length > 0 ? vendor.zipcodes[0].zipcode : '';
     // const searchUrl = zipcode ? `${frontendUrl}/search-vendors?search=${zipcode}` : `${frontendUrl}/vendor-search`;
     const searchUrl = 'https://coreaeration.com';
-    
+
     // Determine which SVG to show based on vendorType
-    const svgFile = vendor.vendorType === 'RENTAL' ? '3.png' : 
-                    vendor.vendorType === 'SALES' ? '1.png' : '2.png';
+    const svgFile = vendor.vendorType === 'RENTAL' ? '3.png' :
+      vendor.vendorType === 'SALES' ? '1.png' : '2.png';
     const svgUrl = `${backendUrl}/public/uploads/${svgFile}`;
-    console.log("first svgUrl",svgUrl)
-    
+    console.log("first svgUrl", svgUrl)
+
     // Generate unique widget ID for this vendor
     const widgetId = `core-aeration-badge-${vendor.id}`;
-    
+
     // Create the JavaScript widget script
     const widgetScript = `
     <script>
@@ -209,34 +209,29 @@ export class VendorService {
         script: widgetScript,
         badgeData: {
           badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 120px; height: 120px;flex-shrink: 0; object-fit: cover;"
-     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
-     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
-     
-    <img src="${svgUrl}" 
-         alt="Core Aeration Certified Vendor" 
-         style="width: 110px; 
-                height: 110px; 
-                border-radius: 6px; 
-                flex-shrink: 0;
-                object-fit: cover;" />
-                
-    
-    
-    
-</div>`,
+                          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+                          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+                          
+                        <img src="${svgUrl}" 
+                            alt="Core Aeration Certified Vendor" 
+                            style="width: 110px; 
+                                    height: 110px; 
+                                    border-radius: 6px; 
+                                    flex-shrink: 0;
+                                    object-fit: cover;" />
+                      </div>`,
           imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 120px; height: 120px;flex-shrink: 0; object-fit: cover;" 
-     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
-     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
-     
-    <img src="${svgUrl}" 
-         alt="Core Aeration Certified Vendor" 
-         style="width: 110px; 
-                height: 110px; 
-                border-radius: 6px; 
-                flex-shrink: 0;
-                object-fit: cover;" />
-     
-</div>`,
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+                        
+                        <img src="${svgUrl}" 
+                            alt="Core Aeration Certified Vendor" 
+                            style="width: 110px; 
+                                    height: 110px; 
+                                    border-radius: 6px; 
+                                    flex-shrink: 0;
+                                    object-fit: cover;" />
+                                    </div>`,
           previewUrl: `${searchUrl}`,
           badgeType: 'Vendor Services',
         },
@@ -278,7 +273,7 @@ export class VendorService {
         }
       },
     };
-    
+
     return result;
   }
 
@@ -313,17 +308,18 @@ export class VendorService {
     const frontendUrl = this.configService.get('FRONTEND_URL') || 'https://coreaeration.com';
     const backendUrl = this.configService.get('BACKEND_URL') || 'https://coreaeration.com/backend';
     const appName = this.configService.get('APPNAME') || 'Core Aeration';
-    
+
     // Get a zipcode for the search URL, fallback to empty string if none available
     const zipcode = vendor.zipcodes && vendor.zipcodes.length > 0 ? vendor.zipcodes[0].zipcode : '';
-    const searchUrl = zipcode ? `${frontendUrl}/vendor-search?search=${zipcode}` : `${frontendUrl}/vendors/`;
-    console.log("first zipcode",zipcode)
+    // const searchUrl = zipcode ? `${frontendUrl}/vendor-search?search=${zipcode}` : `${frontendUrl}/vendors/`;
+    const searchUrl = 'https://coreaeration.com';
+    console.log("first zipcode", zipcode)
     // Use the existing logo from public/uploads/logo.png
     const logoUrl = `${backendUrl}/public/uploads/logo.png`;
-    
+
     // Generate unique widget ID for this vendor
     const widgetId = `core-aeration-badge-${vendor.id}`;
-    
+
     // Determine position CSS based on customizeDto
     const getPositionCSS = (position: string) => {
       switch (position) {
@@ -399,7 +395,7 @@ export class VendorService {
         \${vendorData.certified ? 'Certified Vendor' : 'Thank You'}
       </div>
     ` : '';
-    
+
     // Create the JavaScript widget script
     const customizeScript = `
     <script>
@@ -491,13 +487,13 @@ export class VendorService {
 `;
 
     // Generate iframe badge based on vendor type
-    const svgFile = vendor.vendorType === 'RENTAL' ? '2.svg' : 
-                    vendor.vendorType === 'SALES' ? '3.svg' : '1.svg';
-    const badgeType = vendor.vendorType === 'RENTAL' ? 'Equipment Rental' : 
-                      vendor.vendorType === 'SALES' ? 'Equipment Sales' : 'Vendor Services';
-    
+    const svgFile = vendor.vendorType === 'RENTAL' ? '2.svg' :
+      vendor.vendorType === 'SALES' ? '3.svg' : '1.svg';
+    const badgeType = vendor.vendorType === 'RENTAL' ? 'Equipment Rental' :
+      vendor.vendorType === 'SALES' ? 'Equipment Sales' : 'Vendor Services';
+
     const svgUrl = `${backendUrl}/public/uploads/${svgFile}`;
-    
+
     // Create the JavaScript widget script
     const badgeScript = `
     <script>
@@ -643,9 +639,9 @@ export class VendorService {
     const result = {
       success: true,
       message: 'Badge script generated successfully',
-              data: {
-          script: customizeScript,
-          badgeData: {
+      data: {
+        script: customizeScript,
+        badgeData: {
           badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" 
      style="cursor: pointer; 
             display: inline-flex; 
@@ -790,7 +786,7 @@ export class VendorService {
         }
       },
     };
-    
+
     return result;
   }
 
