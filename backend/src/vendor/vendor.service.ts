@@ -208,26 +208,26 @@ export class VendorService {
       data: {
         script: widgetScript,
         badgeData: {
-          badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 120px; height: 120px;flex-shrink: 0; object-fit: cover;"
+          badgeHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 160px; height: 160px;flex-shrink: 0; object-fit: cover;"
                           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
                           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
                           
                         <img src="${svgUrl}" 
                             alt="Core Aeration Certified Vendor" 
-                            style="width: 110px; 
-                                    height: 110px; 
+                            style="width: 150px; 
+                                    height: 150px; 
                                     border-radius: 6px; 
                                     flex-shrink: 0;
                                     object-fit: cover;" />
                       </div>`,
-          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 120px; height: 120px;flex-shrink: 0; object-fit: cover;" 
+          imageHtml: `<div onclick="window.open('${searchUrl}', '_blank')" style="width: 160px; height: 160px;flex-shrink: 0; object-fit: cover;" 
                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
                         
                         <img src="${svgUrl}" 
                             alt="Core Aeration Certified Vendor" 
-                            style="width: 110px; 
-                                    height: 110px; 
+                            style="width: 150px; 
+                                    height: 150px; 
                                     border-radius: 6px; 
                                     flex-shrink: 0;
                                     object-fit: cover;" />
