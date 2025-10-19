@@ -41,7 +41,7 @@ const VendorSidebar = () => {
                 <h2 className="text-lg font-semibold">Menu</h2>
             </div>
 
-            <nav className="flex-1 px-2 py-2">
+            <nav className="flex-1 px-2 py-2 scroll-pb-4 overflow-y-auto">
                 <div className="space-y-1">
                     <Button
                         variant={isActiveRoute("/vendor/dashboard") ? "secondary" : "ghost"}

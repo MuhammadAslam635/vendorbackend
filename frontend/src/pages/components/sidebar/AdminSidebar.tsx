@@ -69,7 +69,7 @@ const AdminSidebar = () => {
         <h2 className="text-lg font-semibold">Menu</h2>
       </div>
 
-      <nav className="flex-1 px-2 py-2">
+      <nav className="flex-1 px-2 py-2 scroll-pb-4 overflow-y-auto">
         <div className="space-y-1">
           {/* Dashboard - accessible to all authenticated users */}
           <Link
